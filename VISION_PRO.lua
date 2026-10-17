@@ -17,7 +17,7 @@ local Replicated=game:GetService("ReplicatedStorage")
 local Me=Players.LocalPlayer
 if not Me then return end
 local PG=Me:WaitForChild("PlayerGui")
-local V="1.4.5"
+local V="1.4.6"
 local GNAME="VISION_PRO_145_GUI"
 local ONAME="VISION_PRO_145_OVERLAY"
 local DNAME="VISION_PRO_145_DUMMIES"

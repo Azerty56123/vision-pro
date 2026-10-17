@@ -45,7 +45,6 @@ end
 -- CONFIGURATION GITHUB (UNE SEULE LIGNE A CHANGER) :
 -- Renseigne ici l'adresse RAW publique de ton propre fichier VISION_PRO.lua.
 -- Le pseudo / depot ne s'affiche jamais dans l'onglet About.
--- VISION_PRO_VERSION: 1.4.5
 
 local D={ESP=true,Box=true,BoxColor="BLEU",ThroughWalls=true,
     Skeleton=true,Tracers=false,Names=true,Distance=true,Health=true,

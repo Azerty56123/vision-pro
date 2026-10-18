@@ -29,6 +29,10 @@ local BETA_KEYS = {
 
 **Remplace la chaine d'exemple** par une cle aleatoire longue et privee. Pour une expiration, utilise un timestamp Unix a la place de 0. Pour restreindre aux testeurs, `AllowedUserIds = {[123456789] = true}` avec leurs vrais UserIds.
 
+## Apercu de l'interface V4 en Studio (sans cle)
+
+Si tu veux d'abord **voir le design V4**, mets `ALLOW_STUDIO_PREVIEW = true` dans **ta copie privee du script serveur**, puis lance **Play dans Roblox Studio**. Le serveur autorise alors uniquement la session Studio, sans cle beta. **Remets `false` avant de publier/tester l'acces beta reel.** Le parametre est deja `false` dans le fichier public, pour eviter un acces par defaut.
+
 ## Comment fonctionne la verification
 
 - L'interface affiche un ecran d'activation avant d'initialiser les modules locaux.

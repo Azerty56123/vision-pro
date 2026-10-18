@@ -176,7 +176,7 @@ local function on(event,cb)
     table.insert(S.Connections,con)
     return con
 end
--- SPECTRA V7 ROUNDED: consistent radii without changing button behavior.
+-- WORKSPACE V8: consistent shape tokens for all controls.
 local ROUND={Window=20,Sidebar=15,Card=12,Compact=11,Modal=18,Pill=10}
 local function corner(x,r)
     local radius=r
@@ -1486,7 +1486,7 @@ on(Me.CharacterAdded,function()
     end)
 end)
 
--- SPECTRA V4: Home quick access to local guard controls.
+-- WORKSPACE V8: quick access to local guard controls.
 section("HOME","TABLEAU DE BORD")
 local protectionCard=corner(make("Frame",{
     LayoutOrder=order("HOME"),Size=UDim2.new(1,-2,0,104),
@@ -1523,12 +1523,12 @@ end)
 table.insert(S.Toggles,refreshProtectButton)
 refreshProtectButton()
 
-section("HOME","ENTRAINEMENT")
+section("HOME","OUTILS DE TEST")
 action("HOME","Pistolet de test","Equiper puis tirer avec le clic gauche","EQUIP",equipGun)
 action("HOME","Mannequins de test","Creer trois mannequins R6 locaux","SPAWN",spawnDummies)
 action("HOME","Supprimer les mannequins","Retirer toutes les cibles locales","REMOVE",clearDummies)
 action("HOME","Reinitialiser les PV","Remettre les cibles a 100 PV","RESET",resetAllHP)
-section("HOME","STATUT EN DIRECT")
+section("HOME","ACTIVITE")
 local homeStatus=corner(make("Frame",{
     LayoutOrder=order("HOME"),Size=UDim2.new(1,-2,0,73),
     BackgroundColor3=C.SIDE,BorderSizePixel=0
@@ -1543,7 +1543,7 @@ section("VISUALS","VISUELS")
 toggle("VISUALS","ESP","Activer les visuels","Activer ou desactiver tout l'ESP")
 toggle("VISUALS","Box","Boites 3D","Affichage 3D uniquement")
 choices("VISUALS","Couleur des boites","BoxColor",{"BLEU","VIOLET","RGB","ACCENT"})
-choices("VISUALS","Affichage ESP V7","ESPDetail",{"FULL","COMPACT"})
+choices("VISUALS","Affichage ESP V8","ESPDetail",{"FULL","COMPACT"})
 slider("VISUALS","ESPExtraRange","Distance des effets",200,1500,100," studs")
 slider("VISUALS","ESPTextScale","Taille du texte ESP",.8,1.4,.1," x")
 slider("VISUALS","Thickness","Epaisseur des contours",.03,.18,.01," studs")
@@ -1560,7 +1560,7 @@ toggle("VISUALS","ShowAllies","Afficher les allies","Inclure les membres de l'eq
 toggle("VISUALS","ShowNPC","Afficher les PNJ","Montrer les cibles d'entrainement")
 toggle("VISUALS","TeamColors","Couleurs des equipes","Couleurs selon l'equipe")
 
-section("AIMBOT","CAMERA V7")
+section("AIMBOT","CAMERA V8")
 toggle("AIMBOT","Aim","Assistance camera","Clic droit pour suivre un mannequin vivant")
 toggle("AIMBOT","ShowFOV","Afficher le rayon","Zone de selection du viseur")
 choices("AIMBOT","Zone ciblee","AimPart",{"HEAD","BODY"})
@@ -1569,7 +1569,7 @@ slider("AIMBOT","AimFOV","Rayon de ciblage",60,300,10," px")
 slider("AIMBOT","AimSmooth","Fluidite du suivi",.03,.45,.02," s")
 action("AIMBOT","Creer les cibles","Trois mannequins espaces","SPAWN",spawnDummies)
 
-section("SILENT","IMPACTS V7")
+section("SILENT","IMPACTS V8")
 toggle("SILENT","Preview","Silent Aim simule","Agrandir la zone d'impact sans bouger la camera")
 toggle("SILENT","PreviewLOS","Visibilite requise","Ne pas traverser les murs solides")
 choices("SILENT","Zone d'impact","PreviewPart",{"HEAD","BODY"})
@@ -1590,17 +1590,17 @@ end)
 -- MISC: optional protections against abnormal incoming physics impulses.
 -- These guards NEVER deliberately rotate the character.
 section("MISC","PROTECTION")
-toggle("MISC","AntiFling","Anti-fling V7","Limiter les projections et les collisions anormales")
-toggle("MISC","AntiFly","Anti-flight V7","Limiter les montes anormales et le vol prolonge")
+toggle("MISC","AntiFling","Anti-fling V8","Limiter les projections et les collisions anormales")
+toggle("MISC","AntiFly","Anti-flight V8","Limiter les montes anormales et le vol prolonge")
 choices("MISC","Protection","GuardMode",{"NORMAL","STRONG"})
 toggle("MISC","SafeRecovery","Recuperation d'urgence","Retour apres une projection ou un vol anormal confirme")
 slider("MISC","FlingSpeed","Vitesse horizontale limite",70,250,10," studs/s")
 slider("MISC","FlyLaunchSpeed","Vitesse verticale limite",35,150,5," studs/s")
 slider("MISC","FlyGrace","Tolerance des sauts",.4,1.3,.1," s")
-section("MISC","ANTI-ROTATION V7")
+section("MISC","ANTI-ROTATION V8")
 toggle("MISC","AntiAim","Anti-rotation","Limiter les rotations forcees")
 slider("MISC","SpinThreshold","Sensibilite",5,25,1," rad/s")
-section("MISC","REACTIONS V7")
+section("MISC","REACTIONS V8")
 toggle("MISC","GuardCorrect","Corriger les anomalies","Limiter les mouvements anormaux locaux")
 toggle("MISC","MoveHUD","Indicateurs de protection","Afficher l'etat des protections")
 local miscPanel=corner(make("Frame",{
@@ -1609,7 +1609,7 @@ local miscPanel=corner(make("Frame",{
 },pages.MISC),ROUND.Card)
 stroke(miscPanel,C.STROKE,1).Transparency=.58
 bar(miscPanel,0,9,3,48,C.GOLD)
-local miscStatus=txt(miscPanel,"GUARD V7 / MONITORING",13,5,460,24,11,true,C.CYAN)
+local miscStatus=txt(miscPanel,"GUARD V8 / MONITORING",13,5,460,24,11,true,C.CYAN)
 local miscHint=description(miscPanel,"Client-side only / Server physics may override corrections.",13,32,467,24)
 S.MovementStatus=miscStatus
 action("MISC","Effacer les alertes","Vider les compteurs sans desactiver les protections","RESET",function()
@@ -1635,9 +1635,9 @@ slider("SETTINGS","MenuScale","Taille du menu",.7,1.15,.05," x")
 choices("SETTINGS","Raccourci du menu","Shortcut",{"TAB","RIGHTSHIFT","F4"})
 choices("SETTINGS","Couleur d'accent","Accent",{"BLEU","VIOLET","CYAN","ROUGE","VERT","ROSE"})
 toggle("SETTINGS","Animations","Animations de l'interface","Transitions et survols discrets")
-toggle("SETTINGS","Notifications","Notifications V7","Alertes regroupees et anti-spam")
+toggle("SETTINGS","Notifications","Notifications V8","Alertes regroupees et anti-spam")
 toggle("SETTINGS","MiniButton","Bouton flottant","Raccourci quand le menu est ferme")
-toggle("SETTINGS","CompactUI","Interface compacte V7","Reduire les espaces entre les cartes")
+toggle("SETTINGS","CompactUI","Interface compacte V8","Reduire les espaces entre les cartes")
 action("SETTINGS","Restaurer les parametres","Revenir aux parametres par defaut","RESET",function()
     for k,v in pairs(D) do cfg[k]=v end
     normalize();save();refresh();refreshRoundness();rescale()
@@ -1921,7 +1921,7 @@ on(applyButton.Activated,function()
     end)
 end)
 
-section("ABOUT","NOUVEAUTES")
+section("ABOUT","JOURNAL DES VERSIONS")
 local releasePanel=corner(make("Frame",{
     LayoutOrder=order("ABOUT"),Size=UDim2.new(1,-2,0,144),
     BackgroundColor3=C.CARD,BorderSizePixel=0
@@ -2034,7 +2034,7 @@ local function resetDefense()
     S.GuardTriggeredSevere=false
 end
 
--- Anti Flight V7: work on a client's locally simulated character only.
+-- Anti Flight V8: work on a client's locally simulated character only.
 -- Network ownership and server-authoritative motion cannot be overridden here.
 local function updateMovement(dt)
     if not S.Alive then return end
@@ -2196,7 +2196,7 @@ local function updateMovement(dt)
                 S.RecoveryUntil=now+1.7
             end
             if now-S.GuardNoticeCooldown>2.3 then
-                notify("Guard V7 / correction active","INFO")
+                notify("Guard V8 / correction active","INFO")
                 S.GuardNoticeCooldown=now
             end
         elseif hitSpin and cfg.GuardCorrect then
@@ -2240,7 +2240,7 @@ local function updateMovement(dt)
                     S.HoverDuration=0
                     S.FlyState="RECOVERED"
                     S.FlingState="RECOVERED"
-                    notify("Guard V7 / retour au sol","SUCCESS")
+                    notify("Guard V8 / retour au sol","SUCCESS")
                 end
             end
         end
@@ -2249,7 +2249,7 @@ local function updateMovement(dt)
     if now-S.LastGuardHUD<.14 then return end
     S.LastGuardHUD=now
     local active=cfg.AntiFly or cfg.AntiFling
-    guardStatusSidebar.Text=active and "GUARD V7 / ON" or "GUARD V7 / OFF"
+    guardStatusSidebar.Text=active and "GUARD V8 / ON" or "GUARD V8 / OFF"
     onlineDot.BackgroundColor3=active and C.GREEN or C.RED
     if protectCount.Parent then
         protectCount.Text=tostring(S.BlockedImpulses).." CORRECTIONS"
@@ -2276,6 +2276,9 @@ local function theme(dt)
         S.PaletteReady=true
         S.Accent=accent
         logo.BackgroundColor3=accent
+        if protectButton and protectButton.Parent and (cfg.AntiFling or cfg.AntiFly) then
+            protectButton.BackgroundColor3=accent
+        end
         pageCounter.TextColor3=C.MUTED
         v3BadgeText.TextColor3=C.TEXT
         for _,page in pairs(pages) do page.ScrollBarImageColor3=accent end

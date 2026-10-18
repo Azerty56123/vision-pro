@@ -1,5 +1,5 @@
--- VISION_PRO_VERSION: 3.1.2
---[[ VISION PRO 3.1.2 | CORE STARTUP / SYNTAX FIX
+-- VISION_PRO_VERSION: 3.2.0
+--[[ VISION PRO 3.2.0 | FIELDWORK / NEW DESIGN
      LocalScript for authorized testing in your Roblox place.
      Aimbot / simulated Silent Aim work on locally spawned mannequins only.
      Camera assist and impact preview always start disabled.
@@ -17,7 +17,7 @@ local Me=Players.LocalPlayer
 if not Me then return end
 local PG=Me:WaitForChild("PlayerGui")
 -- CoreGui is Roblox-owned. All custom UI belongs in PlayerGui.
-local V="3.1.2"
+local V="3.2.0"
 local GNAME="VISION_PRO_147_GUI"
 local ONAME="VISION_PRO_147_OVERLAY"
 local DNAME="VISION_PRO_147_DUMMIES"
@@ -105,20 +105,20 @@ save()
 
 local C={
     -- SPECTRA SLATE: four neutral surfaces, restrained cool-color accents.
-    BG=Color3.fromRGB(13,17,29),
-    SIDE=Color3.fromRGB(23,31,49),
-    CARD=Color3.fromRGB(31,41,62),
-    HOVER=Color3.fromRGB(49,62,89),
+    BG=Color3.fromRGB(14,18,25),
+    SIDE=Color3.fromRGB(21,28,38),
+    CARD=Color3.fromRGB(30,39,51),
+    HOVER=Color3.fromRGB(42,52,68),
     STROKE=Color3.fromRGB(70,87,118),
     WHITE=Color3.fromRGB(249,251,255),
     TEXT=Color3.fromRGB(214,225,245),
     MUTED=Color3.fromRGB(155,174,201),
     PURPLE=Color3.fromRGB(176,118,255),
-    BLUE=Color3.fromRGB(97,173,255),
+    BLUE=Color3.fromRGB(99,162,252),
     CYAN=Color3.fromRGB(70,230,227),
     GREEN=Color3.fromRGB(107,239,164),
     RED=Color3.fromRGB(255,103,134),
-    DARK=Color3.fromRGB(14,21,39),
+    DARK=Color3.fromRGB(15,22,32),
     GOLD=Color3.fromRGB(255,205,106),
     PINK=Color3.fromRGB(255,126,192),
     ORANGE=Color3.fromRGB(252,175,106)
@@ -380,78 +380,69 @@ notify=function(message,kind)
         end
     end)
 end
--- V3.1 COLOR STUDIO. Full replacement of the monochrome dock.
-local W,H=754,506
+-- FIELDWORK 3.2. Clean control panel without animated RGB or giant banner.
+local W,H=704,494
 local window=corner(make("Frame",{
-    Name="VisionColorStudio",Size=UDim2.fromOffset(W,H),
+    Name="VisionFieldwork",Size=UDim2.fromOffset(W,H),
     AnchorPoint=Vector2.new(.5,.5),Position=UDim2.fromScale(.5,.5),
-    BackgroundColor3=C.BG,BorderSizePixel=0,Active=true,ClipsDescendants=true
-},ui),ROUND.Window)
-stroke(window,C.STROKE,1).Transparency=.51
+    BackgroundColor3=C.BG,BorderSizePixel=0,Active=true,
+    ClipsDescendants=true
+},ui),18)
+stroke(window,C.STROKE,1).Transparency=.58
 local scale=make("UIScale",{Scale=1},window)
 local function rescale()
-    local cam=WS.CurrentCamera
-    if not cam then return end
-    local v=cam.ViewportSize
-    local wanted=math.clamp(tonumber(cfg.MenuScale) or .95,.7,1.15)
-    scale.Scale=math.clamp(math.min(wanted,(v.X-30)/W,(v.Y-30)/H),.34,1.15)
+    local camera=WS.CurrentCamera
+    if not camera then return end
+    local viewport=camera.ViewportSize
+    local desired=math.clamp(tonumber(cfg.MenuScale) or .95,.7,1.15)
+    scale.Scale=math.clamp(math.min(desired,
+        (viewport.X-26)/W,(viewport.Y-26)/H),.34,1.15)
 end
-
--- Brand plate and color-coded categories.
-local brandPlate=corner(make("Frame",{
-    Position=UDim2.fromOffset(16,15),Size=UDim2.fromOffset(145,80),
-    BackgroundColor3=C.SIDE,BorderSizePixel=0
-},window),13)
-stroke(brandPlate,C.PURPLE,1).Transparency=.56
-local logo=corner(make("Frame",{
-    Position=UDim2.fromOffset(13,13),Size=UDim2.fromOffset(36,36),
-    BackgroundColor3=C.PURPLE,BorderSizePixel=0
-},brandPlate),10)
-local mark=txt(logo,"VP",0,8,36,21,13,true,C.DARK)
-mark.TextXAlignment=Enum.TextXAlignment.Center
-local brandName=txt(brandPlate,"VISION",58,13,78,24,15,true,C.WHITE)
-local brandSub=txt(brandPlate,"PRO 3.1.2",58,36,78,19,10,true,C.CYAN)
-txt(brandPlate,"COLOR STUDIO",13,61,116,14,9,true,C.MUTED)
 local sidebar=corner(make("Frame",{
-    Name="ColorCategories",Position=UDim2.fromOffset(16,105),
-    Size=UDim2.fromOffset(145,383),
-    BackgroundColor3=C.SIDE,BorderSizePixel=0
-},window),14)
-stroke(sidebar,C.STROKE,1).Transparency=.73
+    Name="FieldworkRail",Position=UDim2.fromOffset(12,12),
+    Size=UDim2.fromOffset(110,469),BackgroundColor3=C.SIDE,
+    BorderSizePixel=0
+},window),13)
+local logo=corner(make("Frame",{
+    Position=UDim2.fromOffset(11,12),Size=UDim2.fromOffset(36,36),
+    BackgroundColor3=C.BLUE,BorderSizePixel=0
+},sidebar),10)
+local mark=txt(logo,"VP",0,9,36,18,12,true,C.DARK)
+mark.TextXAlignment=Enum.TextXAlignment.Center
+local brandName=txt(sidebar,"VISION",53,11,54,22,12,true,C.WHITE)
+local brandSub=txt(sidebar,"PRO 3.2",53,31,54,17,9,true,C.CYAN)
+make("Frame",{
+    Position=UDim2.fromOffset(13,63),Size=UDim2.fromOffset(84,1),
+    BackgroundColor3=C.STROKE,BackgroundTransparency=.74,
+    BorderSizePixel=0
+},sidebar)
 local tabs={"HOME","VISUALS","AIMBOT","SILENT","MISC","SETTINGS","ABOUT"}
 local tabTitles={
-    HOME="Accueil",VISUALS="Visuels",AIMBOT="Camera",SILENT="Impacts",
-    MISC="Securite",SETTINGS="Reglages",ABOUT="Infos"
+    HOME="Accueil",VISUALS="Visuels",AIMBOT="Camera",
+    SILENT="Impacts",MISC="Securite",SETTINGS="Reglages",ABOUT="Infos"
 }
 local tabIcons={
     HOME="home",VISUALS="eye",AIMBOT="aim",SILENT="silent",
     MISC="misc",SETTINGS="settings",ABOUT="info"
 }
 local tabColors={
-    HOME=C.CYAN,VISUALS=C.BLUE,AIMBOT=C.PURPLE,
-    SILENT=C.PINK,MISC=C.GREEN,SETTINGS=C.GOLD,ABOUT=C.CYAN
+    HOME=C.BLUE,VISUALS=C.BLUE,AIMBOT=C.BLUE,
+    SILENT=C.BLUE,MISC=C.GREEN,SETTINGS=C.BLUE,ABOUT=C.BLUE
 }
 local nav={}
-for index,name in ipairs(tabs) do
-    local tint=tabColors[name]
-    local control=btn(sidebar,"",7,12+(index-1)*52,131,46,C.SIDE)
-    local indicator=corner(make("Frame",{
-        Position=UDim2.fromOffset(3,9),Size=UDim2.fromOffset(3,28),
-        BackgroundColor3=tint,BorderSizePixel=0,Active=false,Visible=false
-    },control),3)
-    local iconBadge=corner(make("Frame",{
-        Position=UDim2.fromOffset(11,7),Size=UDim2.fromOffset(32,32),
-        BackgroundColor3=C.DARK,BorderSizePixel=0,Active=false
-    },control),8)
-    local glyph=icon(iconBadge,tabIcons[name],4,4,tint)
+for i,name in ipairs(tabs) do
+    local control=btn(sidebar,"",6,74+(i-1)*52,98,45,C.SIDE)
     buttonCaption(control).Visible=false
-    local title=txt(control,tabTitles[name],53,12,73,23,12,true,C.MUTED)
-    local outline=stroke(control,tint,1)
-    outline.Transparency=1
-    local badgeStroke=stroke(iconBadge,tint,1)
-    badgeStroke.Transparency=.88
-    nav[name]={Button=control,Title=title,Icon=glyph,Indicator=indicator,
-        Badge=iconBadge,BadgeStroke=badgeStroke,Outline=outline,Color=tint}
+    local line=corner(make("Frame",{
+        Position=UDim2.fromOffset(2,11),Size=UDim2.fromOffset(3,23),
+        BackgroundColor3=tabColors[name],BorderSizePixel=0,
+        Visible=false,Active=false
+    },control),2)
+    local glyph=icon(control,tabIcons[name],10,10,tabColors[name])
+    local title=txt(control,tabTitles[name],39,12,55,21,11,true,C.MUTED)
+    local rim=stroke(control,C.STROKE,1);rim.Transparency=1
+    nav[name]={Button=control,Title=title,Icon=glyph,
+        Indicator=line,Outline=rim,Color=tabColors[name]}
     on(control.MouseEnter,function()
         if S.Alive and S.Page~=name then
             animateUI(control,{BackgroundColor3=C.HOVER},.12)
@@ -463,45 +454,37 @@ for index,name in ipairs(tabs) do
         end
     end)
 end
-
--- Substantial vivid gradient header (no thin top accent bar).
-local header=corner(make("Frame",{
-    Name="ColorHeader",Position=UDim2.fromOffset(174,15),
-    Size=UDim2.fromOffset(564,110),
-    BackgroundColor3=C.PURPLE,BorderSizePixel=0,Active=true
-},window),16)
-local headerGradient=grad(header,C.PURPLE,C.BLUE,12)
-txt(header,"VISION PRO",18,10,237,22,13,true,C.WHITE)
-local pageCounter=txt(header,"MODULE  01 / 07",19,37,225,19,10,true,C.WHITE)
-pageCounter.TextTransparency=.12
-local pageTitle=txt(header,"Accueil",18,59,335,36,24,true,C.WHITE)
-local pageDesc=description(header,"Vos outils et votre session",350,72,183,20)
-pageDesc.TextXAlignment=Enum.TextXAlignment.Right
-pageDesc.TextColor3=C.WHITE
-pageDesc.TextTransparency=.08
+local header=make("Frame",{
+    Name="FieldworkHeader",Position=UDim2.fromOffset(138,16),
+    Size=UDim2.fromOffset(550,81),
+    BackgroundTransparency=1,Active=true
+},window)
+local pageCounter=txt(header,"FIELDWORK / 01",2,0,250,17,10,true,C.BLUE)
+local pageTitle=txt(header,"Accueil",1,22,350,34,25,true,C.WHITE)
+local pageDesc=description(header,"Controle local",2,60,390,18)
 local v3Badge=corner(make("Frame",{
-    Position=UDim2.fromOffset(342,9),Size=UDim2.fromOffset(96,25),
-    BackgroundColor3=C.WHITE,BackgroundTransparency=.81,BorderSizePixel=0
+    Position=UDim2.fromOffset(374,4),Size=UDim2.fromOffset(76,27),
+    BackgroundColor3=C.CARD,BorderSizePixel=0
 },header),10)
-local v3BadgeText=txt(v3Badge,"V3.1.2",7,4,83,18,10,true,C.WHITE)
+stroke(v3Badge,C.STROKE,1).Transparency=.74
+local v3BadgeText=txt(v3Badge,"V3.2.0",0,5,76,17,11,true,C.CYAN)
 v3BadgeText.TextXAlignment=Enum.TextXAlignment.Center
-local minimize=btn(header,"-",483,9,32,30,C.SIDE)
-local close=btn(header,"X",523,9,32,30,C.SIDE)
+local minimize=btn(header,"-",462,3,36,31,C.CARD)
+local close=btn(header,"X",507,3,36,31,C.CARD)
 buttonCaption(minimize).TextSize=16
-buttonCaption(close).TextSize=12
 buttonCaption(close).TextColor3=C.RED
 local contentShell=corner(make("Frame",{
-    Name="ColorWorkspace",Position=UDim2.fromOffset(174,137),
-    Size=UDim2.fromOffset(564,329),
-    BackgroundColor3=C.SIDE,BorderSizePixel=0
-},window),14)
-stroke(contentShell,C.STROKE,1).Transparency=.76
+    Name="FieldworkContent",Position=UDim2.fromOffset(136,108),
+    Size=UDim2.fromOffset(555,338),BackgroundColor3=C.SIDE,
+    BorderSizePixel=0
+},window),13)
+stroke(contentShell,C.STROKE,1).Transparency=.8
 local body=make("Frame",{
-    Position=UDim2.fromOffset(186,149),Size=UDim2.fromOffset(540,307),
+    Position=UDim2.fromOffset(148,117),Size=UDim2.fromOffset(530,319),
     BackgroundTransparency=1,BorderSizePixel=0
 },window)
 local footer=make("Frame",{
-    Position=UDim2.fromOffset(176,474),Size=UDim2.fromOffset(560,23),
+    Position=UDim2.fromOffset(139,454),Size=UDim2.fromOffset(550,23),
     BackgroundTransparency=1
 },window)
 local onlineDot=corner(make("Frame",{
@@ -509,10 +492,10 @@ local onlineDot=corner(make("Frame",{
     BackgroundColor3=C.GREEN,BorderSizePixel=0
 },footer),4)
 local runningDot=onlineDot
-local guardStatusSidebar=txt(footer,"GUARD / ACTIVE",15,1,173,20,10,true,C.GREEN)
-local foot=txt(footer,"VISION PRO 3.1.2",213,2,147,19,10,true,C.MUTED)
-local status=txt(footer,"TAB / MENU",398,2,100,19,9,false,C.MUTED)
-local fpsText=txt(footer,"-- FPS",489,2,58,19,10,true,C.CYAN)
+local guardStatusSidebar=txt(footer,"GUARD / ON",16,2,160,18,10,true,C.GREEN)
+local foot=txt(footer,"VISION PRO 3.2.0",206,2,152,18,10,false,C.MUTED)
+local status=txt(footer,"TAB / MENU",389,2,98,18,9,false,C.MUTED)
+local fpsText=txt(footer,"-- FPS",488,2,61,18,10,true,C.TEXT)
 fpsText.TextXAlignment=Enum.TextXAlignment.Right
 local pages,orders={},{}
 local pageLayouts={}
@@ -549,25 +532,18 @@ local function selectPage(name)
         local active=key==name
         item.Button.BackgroundColor3=active and C.HOVER or C.SIDE
         item.Title.TextColor3=active and C.WHITE or C.MUTED
-        item.Outline.Color=item.Color
-        item.Outline.Transparency=active and .43 or 1
+        item.Outline.Transparency=active and .74 or 1
         item.Indicator.Visible=active
-        item.Badge.BackgroundColor3=C.DARK
-        item.BadgeStroke.Transparency=active and .2 or .88
     end
-    local index=table.find(tabs,name) or 1
-    pageCounter.Text=string.format("MODULE  %02d / 07",index)
+    local number=table.find(tabs,name) or 1
+    pageCounter.Text=string.format("FIELDWORK / %02d",number)
+    pageCounter.TextColor3=tabColors[name]
     pageTitle.Text=({
-        HOME="Tableau de bord",VISUALS="Visuels 3D",
-        AIMBOT="Camera de test",SILENT="Impacts simules",
-        MISC="Securite",SETTINGS="Preferences",ABOUT="A propos"
+        HOME="Accueil",VISUALS="Visuels",AIMBOT="Camera de test",
+        SILENT="Simulation",MISC="Securite",SETTINGS="Reglages",ABOUT="Informations"
     })[name]
     pageDesc.Text=subtitles[name]
-    headerGradient.Color=ColorSequence.new(
-        tabColors[name]:Lerp(C.PURPLE,.28),
-        tabColors[name]:Lerp(C.BLUE,.26)
-    )
-    runningDot.BackgroundColor3=S.Errors==0 and C.GREEN or C.RED
+    runningDot.BackgroundColor3=S.Errors==0 and C.GREEN or C.GOLD
 end
 for n,item in pairs(nav) do
     local lastClick=0
@@ -2027,9 +2003,9 @@ local function releaseLine(index,version,heading,detail,color)
         line.BackgroundTransparency=.76
     end
 end
-releaseLine(1,"3.1.2","STARTUP FIX","Syntaxe des menus / PlayerGui",C.CYAN)
-releaseLine(2,"3.1.1","ICONS & SPACING","Navigation et marges",C.PURPLE)
-releaseLine(3,"3.1.0","COLOR STUDIO","Version coloree",C.GOLD)
+releaseLine(1,"3.2.0","FIELDWORK","Nouveau design / demarrage corrige",C.CYAN)
+releaseLine(2,"3.1.2","STARTUP FIX","Erreurs de syntaxe corrigees",C.PURPLE)
+releaseLine(3,"3.1.1","ICONS & SPACING","Ancienne interface",C.GOLD)
 local aboutEnd=make("Frame",{
     LayoutOrder=order("ABOUT"),Size=UDim2.new(1,-2,0,34),
     BackgroundTransparency=1
@@ -2361,7 +2337,7 @@ local function theme(dt)
     if accent~=S.Accent or not S.PaletteReady then
         S.PaletteReady=true
         S.Accent=accent
-        logo.BackgroundColor3=C.PURPLE
+        logo.BackgroundColor3=C.BLUE
         if protectButton and protectButton.Parent then
             protectButton.BackgroundColor3=C.DARK
             protectButtonOutline.Color=C.DARK
@@ -2370,8 +2346,7 @@ local function theme(dt)
         pageCounter.TextColor3=C.MUTED
         v3BadgeText.TextColor3=C.TEXT
         for _,page in pairs(pages) do page.ScrollBarImageColor3=accent end
-        -- Every module owns its permanent color, independent of global accent.
-        for _,item in pairs(nav) do item.Outline.Color=item.Color end
+        for _,item in pairs(nav) do item.Indicator.BackgroundColor3=item.Color end
         for _,update in ipairs(S.Selectors) do update() end
         for _,update in ipairs(S.Toggles) do update() end
         for _,update in ipairs(S.Sliders) do update() end
@@ -2379,7 +2354,7 @@ local function theme(dt)
         fovOutline.Color=accent
     end
     gunHudSecond.BackgroundColor3=C.STROKE
-    local gap=cfg.CompactUI and 4 or 7
+    local gap=cfg.CompactUI and 3 or 6
     for _,layout in pairs(pageLayouts) do
         if layout.Padding.Offset~=gap then
             layout.Padding=UDim.new(0,gap)
@@ -2492,4 +2467,4 @@ on(Run.RenderStepped,function(dt)
         fpsClock=0;frames=0;rescale();refreshDiagnostics()
     end
 end)
-print("VISION PRO "..V.." - COLOR STUDIO / ICON AND SPACING PASS")
+print("VISION PRO "..V.." - FIELDWORK / NEW UI")

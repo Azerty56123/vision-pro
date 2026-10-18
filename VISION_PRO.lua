@@ -1445,7 +1445,7 @@ slider("SETTINGS","Range","Distance ESP",100,2500,100," studs")
 section("SETTINGS","APPARENCE")
 choices("SETTINGS","Couleur d'accent","Accent",{"BLEU","VIOLET","CYAN","ROUGE","VERT","ROSE"})
 toggle("SETTINGS","RGB","Accent RGB","Animer lÃ©gÃ¨rement les accents")
-toggle("SETTINGS","Animations","Animations de l\u0027interface","Transitions et survols discrets")
+toggle("SETTINGS","Animations","Animations de l'interface","Transitions et survols discrets")
 toggle("SETTINGS","MiniButton","Bouton flottant","Raccourci quand le menu est fermÃ©")
 action("SETTINGS","Restaurer les paramÃ¨tres","Revenir aux paramÃ¨tres par dÃ©faut","RESET",function()
     for k,v in pairs(D) do cfg[k]=v end

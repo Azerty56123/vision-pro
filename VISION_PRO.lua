@@ -1,5 +1,5 @@
--- VISION_PRO_VERSION: 1.7.1
---[[ VISION PRO 1.7.1 | SPECTRA / UI NAVIGATION HOTFIX
+-- VISION_PRO_VERSION: 1.7.2
+--[[ VISION PRO 1.7.2 | SPECTRA / PAGE BUILD SAFETY
      LocalScript for authorized testing in your Roblox place.
      Aimbot / simulated Silent Aim work on locally spawned mannequins only.
      Camera assist and impact preview always start disabled.
@@ -16,7 +16,7 @@ local WS=game:GetService("Workspace")
 local Me=Players.LocalPlayer
 if not Me then return end
 local PG=Me:WaitForChild("PlayerGui")
-local V="1.7.1"
+local V="1.7.2"
 local GNAME="VISION_PRO_147_GUI"
 local ONAME="VISION_PRO_147_OVERLAY"
 local DNAME="VISION_PRO_147_DUMMIES"
@@ -379,7 +379,7 @@ local logo=corner(make("Frame",{
 local mark=txt(logo,"VP",0,4,32,22,13,true,C.DARK)
 mark.TextXAlignment=Enum.TextXAlignment.Center
 local brandName=txt(sidebar,"VISION PRO",53,13,100,24,12,true,C.WHITE)
-local brandSub=txt(sidebar,"DESKTOP V4  /  1.7.1",53,34,102,17,9,true,C.MUTED)
+local brandSub=txt(sidebar,"DESKTOP V4  /  1.7.2",53,34,102,17,9,true,C.MUTED)
 local sidebarLine=bar(sidebar,15,64,125,1,C.STROKE)
 sidebarLine.BackgroundTransparency=.4
 local tabs={"HOME","VISUALS","AIMBOT","SILENT","MISC","SETTINGS","ABOUT"}
@@ -392,10 +392,13 @@ for i,name in ipairs(tabs) do
     local y=84+(i-1)*42
     local control=btn(sidebar,"",10,y,136,37,C.SIDE)
     control.BackgroundTransparency=1
+    control.ZIndex=4
     local selected=corner(make("Frame",{Name="Selection",Position=UDim2.fromOffset(0,0),
         Size=UDim2.fromScale(1,1),BackgroundColor3=C.BLUE,
         BorderSizePixel=0,Visible=false,Active=false},control),17)
+    selected.ZIndex=3
     local line=bar(control,0,8,3,21,tabColors[name])
+    line.ZIndex=5
     line.Visible=false
     local accentDot=corner(make("Frame",{Position=UDim2.fromOffset(11,9),
         Size=UDim2.fromOffset(21,21),BackgroundColor3=C.CARD,
@@ -403,6 +406,8 @@ for i,name in ipairs(tabs) do
     local glyph=icon(control,tabIcons[name],10,7)
     glyph.Size=UDim2.fromOffset(24,24)
     local title=txt(control,tabTitles[name],44,7,88,24,12,true,C.MUTED)
+    title.ZIndex=6
+    glyph.ZIndex=6
     nav[name]={Button=control,Gradient={Enabled=false},Title=title,Line=line,
         Selected=selected,Dot=accentDot,Icon=glyph}
     on(control.MouseEnter,function()
@@ -453,56 +458,44 @@ local footer=make("Frame",{Position=UDim2.fromOffset(170,427),
     Size=UDim2.fromOffset(505,28),BackgroundTransparency=1},window)
 local footerLine=bar(footer,0,0,504,1,C.STROKE)
 footerLine.BackgroundTransparency=.54
-local foot=txt(footer,"SPECTRA V4  /  VISION PRO  /  v1.7.1",3,7,340,18,10,true,C.MUTED)
+local foot=txt(footer,"SPECTRA V4  /  VISION PRO  /  v1.7.2",3,7,340,18,10,true,C.MUTED)
 local fpsText=txt(footer,"-- FPS",390,7,105,18,10,true,C.GREEN)
 fpsText.TextXAlignment=Enum.TextXAlignment.Right
-local pages,orders,layouts={},{},{}
-local function updateCanvas(name)
-    local sc=pages[name]
-    local layout=layouts[name]
-    if not sc or not layout then return end
-    -- Stable scroll bounds for pages that were built while hidden.
-    local contentHeight=math.ceil(layout.AbsoluteContentSize.Y)+34
-    sc.CanvasSize=UDim2.fromOffset(0,math.max(sc.AbsoluteSize.Y,contentHeight))
-end
+local pages,orders={},{}
 for _,name in ipairs(tabs) do
     orders[name]=0
-    local sc=make("ScrollingFrame",{Name=name,Size=UDim2.fromScale(1,1),BackgroundTransparency=1,BorderSizePixel=0,
-        AutomaticCanvasSize=Enum.AutomaticSize.None,CanvasSize=UDim2.fromOffset(0,0),ScrollBarThickness=3,
-        ScrollBarImageColor3=C.PURPLE,ScrollingDirection=Enum.ScrollingDirection.Y,Visible=false,
-        ScrollingEnabled=true},body)
-    make("UIPadding",{PaddingTop=UDim.new(0,3),PaddingBottom=UDim.new(0,15),PaddingLeft=UDim.new(0,2),PaddingRight=UDim.new(0,10)},sc)
-    local layout=make("UIListLayout",{SortOrder=Enum.SortOrder.LayoutOrder,Padding=UDim.new(0,6)},sc)
+    local sc=make("ScrollingFrame",{
+        Name=name,Size=UDim2.fromScale(1,1),Position=UDim2.fromOffset(0,0),
+        BackgroundTransparency=1,BorderSizePixel=0,
+        AutomaticCanvasSize=Enum.AutomaticSize.Y,CanvasSize=UDim2.new(),
+        ScrollBarThickness=4,ScrollBarImageColor3=C.PURPLE,
+        ScrollingDirection=Enum.ScrollingDirection.Y,ScrollingEnabled=true,
+        Visible=false
+    },body)
+    make("UIPadding",{
+        PaddingTop=UDim.new(0,3),PaddingBottom=UDim.new(0,16),
+        PaddingLeft=UDim.new(0,2),PaddingRight=UDim.new(0,10)
+    },sc)
+    make("UIListLayout",{SortOrder=Enum.SortOrder.LayoutOrder,
+        Padding=UDim.new(0,6)},sc)
     pages[name]=sc
-    layouts[name]=layout
-    on(layout:GetPropertyChangedSignal("AbsoluteContentSize"),function()
-        if S.Alive then updateCanvas(name) end
-    end)
 end
 local subtitles={HOME="Controle et entrainement",VISUALS="ESP 3D et affichage",AIMBOT="Ciblage des mannequins uniquement",
     SILENT="Simulation des impacts locaux",MISC="Protections physiques locales",SETTINGS="Performances et apparence",ABOUT="Version, mises a jour et nouveautes"}
 local function selectPage(name)
     if not S.Alive or not pages[name] then return end
     S.Page=name
-    -- Never tween the ScrollingFrame itself: it can leave some tabs empty
-    -- or offscreen after rapid switches and layout recalculations.
-    for _,page in pairs(pages) do
-        page.Visible=false
+    for nameKey,page in pairs(pages) do
+        page.Visible=(nameKey==name)
         page.Position=UDim2.fromOffset(0,0)
+        if nameKey==name then page.CanvasPosition=Vector2.zero end
     end
-    local activePage=pages[name]
-    activePage.CanvasPosition=Vector2.zero
-    activePage.Visible=true
-    updateCanvas(name)
-    task.defer(function()
-        if S.Alive and S.Page==name then updateCanvas(name) end
-    end)
-    for n,item in pairs(nav) do
-        local active=n==name
+    for nameKey,item in pairs(nav) do
+        local active=nameKey==name
         item.Selected.Visible=active
         item.Line.Visible=active
         item.Selected.BackgroundColor3=S.Accent
-        item.Selected.BackgroundTransparency=.85
+        item.Selected.BackgroundTransparency=.84
         item.Line.BackgroundColor3=S.Accent
         item.Button.BackgroundColor3=active and C.CARD or C.SIDE
         item.Button.BackgroundTransparency=active and 0 or 1
@@ -517,7 +510,17 @@ local function selectPage(name)
     pageDesc.Text=subtitles[name]
     runningDot.BackgroundColor3=S.Errors==0 and C.GREEN or C.GOLD
 end
-for n,item in pairs(nav) do on(item.Button.Activated,function()selectPage(n)end) end
+for n,item in pairs(nav) do
+    local lastClick=0
+    local function openTab()
+        local now=os.clock()
+        if now-lastClick<.09 then return end
+        lastClick=now
+        selectPage(n)
+    end
+    on(item.Button.Activated,openTab)
+    on(item.Button.MouseButton1Click,openTab)
+end
 local function order(page) orders[page]+=1 return orders[page] end
 local function section(page,text)
     local row=make("Frame",{
@@ -721,6 +724,31 @@ local function slider(page,key,title,low,high,step,unit)
     table.insert(S.Sliders,refreshSlider)
     refreshSlider()
 end
+-- Prevent one broken UI element from stopping all later tabs.
+local function safeBuildWidget(kind,constructor)
+    return function(page,...)
+        local ok,result=pcall(constructor,page,...)
+        if ok then return result end
+        logVisionError("UI "..tostring(page).." / "..kind,result)
+        local parent=pages[page]
+        if parent then
+            local fallback=corner(make("Frame",{
+                Size=UDim2.new(1,-2,0,56),LayoutOrder=order(page),
+                BackgroundColor3=C.CARD,BorderSizePixel=0
+            },parent),ROUND.Card)
+            stroke(fallback,C.RED,1).Transparency=.36
+            txt(fallback,"UI ERROR / "..kind,13,6,460,19,11,true,C.RED)
+            description(fallback,tostring(result):sub(1,90),13,28,465,21)
+        end
+        return nil
+    end
+end
+section=safeBuildWidget("SECTION",section)
+action=safeBuildWidget("ACTION",action)
+toggle=safeBuildWidget("TOGGLE",toggle)
+choices=safeBuildWidget("CHOICES",choices)
+slider=safeBuildWidget("SLIDER",slider)
+
 on(UIS.InputChanged,function(input)
     local d=S.MouseDrag
     if d and ((d.Touch and d.Input==input) or (not d.Touch and input.UserInputType==Enum.UserInputType.MouseMovement)) then d.Set(input.Position.X) end
@@ -1891,9 +1919,9 @@ local function releaseLine(index,version,heading,detail,color)
         line.BackgroundTransparency=.76
     end
 end
-releaseLine(1,"1.7.1","UI HOTFIX","Pages visibles / scroll corrige / coins arrondis",C.CYAN)
-releaseLine(2,"1.7.0","V4 COMPLETE","UI / ESP / Anti Fling / notifications V4",C.PURPLE)
-releaseLine(3,"1.6.1","ROUNDED UI","Boutons et cartes arrondis",C.GOLD)
+releaseLine(1,"1.7.2","NAVIGATION FIX","Pages / widgets proteges / scroll Roblox",C.CYAN)
+releaseLine(2,"1.7.1","UI HOTFIX","Coins arrondis et ajustements",C.PURPLE)
+releaseLine(3,"1.7.0","V4 COMPLETE","Interface / ESP / protections V4",C.GOLD)
 local aboutEnd=make("Frame",{
     LayoutOrder=order("ABOUT"),Size=UDim2.new(1,-2,0,34),
     BackgroundTransparency=1
@@ -2216,13 +2244,19 @@ end
 on(close.Activated,stop)
 env[KEY]=stop
 for _,name in ipairs(tabs) do
-    updateCanvas(name)
+    local page=pages[name]
     local childCount=0
-    for _,element in ipairs(pages[name]:GetChildren()) do
+    for _,element in ipairs(page:GetChildren()) do
         if element:IsA("GuiObject") then childCount+=1 end
     end
     if childCount==0 then
-        logVisionError("Page "..name,"No UI items were created")
+        logVisionError("Page "..name,"No UI elements were created")
+        local row=corner(make("Frame",{
+            Size=UDim2.new(1,-2,0,60),LayoutOrder=1,
+            BackgroundColor3=C.CARD,BorderSizePixel=0
+        },page),ROUND.Card)
+        txt(row,"UI ERROR / PAGE EMPTY",14,10,460,22,12,true,C.RED)
+        description(row,"Check developer console for error details.",14,34,460,20)
     end
 end
 selectPage("HOME");rescale();changeInfo();refresh();theme(0)

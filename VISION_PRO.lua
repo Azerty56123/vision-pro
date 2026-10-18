@@ -2553,7 +2553,7 @@ end -- runVisionProUnlocked
 -- Deploy beta-generator/worker.js separately to Cloudflare Workers with D1.
 -- Set this to your own deployed HTTPS endpoint (without trailing slash).
 -- Never put the Cloudflare ADMIN_TOKEN or a private key list in this client.
-local BETA_API_URL="https://vision-pro-beta-v4.YOUR-SUBDOMAIN.workers.dev"
+local BETA_API_URL="https://vision-pro-beta-v4.clienthom.workers.dev"
 local function bootVisionPro()
     if not game:IsLoaded() then game.Loaded:Wait() end
     local Players=game:GetService("Players")

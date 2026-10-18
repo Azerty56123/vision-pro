@@ -2549,14 +2549,15 @@ print("VISION PRO "..V.." - NOVA / PRIVATE BETA RELEASE")
 
 end -- runVisionProUnlocked
 
--- V4 BETA GATE: A key is checked by the owner's PRIVATE Roblox server script.
--- There is no secret in this client, no "magic" local valid key and no bypass.
--- Use VISION_BETA_SERVER.lua as a private ServerScriptService Script.
+-- V4 BETA GATE: external key generator / verification, NO Roblox Studio needed.
+-- Deploy beta-generator/worker.js separately to Cloudflare Workers with D1.
+-- Set this to your own deployed HTTPS endpoint (without trailing slash).
+-- Never put the Cloudflare ADMIN_TOKEN or a private key list in this client.
+local BETA_API_URL="https://vision-pro-beta-v4.YOUR-SUBDOMAIN.workers.dev"
 local function bootVisionPro()
     if not game:IsLoaded() then game.Loaded:Wait() end
     local Players=game:GetService("Players")
-    local ReplicatedStorage=game:GetService("ReplicatedStorage")
-    local Tween=game:GetService("TweenService")
+    local HttpService=game:GetService("HttpService")
     local player=Players.LocalPlayer
     if not player then return end
     local playerGui=player:WaitForChild("PlayerGui")
@@ -2641,7 +2642,7 @@ local function bootVisionPro()
     local subtitle=elem("TextLabel",{
         Position=UDim2.fromOffset(25,136),
         Size=UDim2.fromOffset(394,39),BackgroundTransparency=1,
-        Text="Saisis une cle fournie par le createur.\nLa validation se fait sur le serveur Roblox.",
+        Text="Saisis ta cle generee sur le site beta.\nValidation en ligne, sans Roblox Studio.",
         TextXAlignment=Enum.TextXAlignment.Left,
         TextYAlignment=Enum.TextYAlignment.Top,
         TextWrapped=true,Font=Enum.Font.Gotham,
@@ -2660,7 +2661,7 @@ local function bootVisionPro()
         Size=UDim2.fromOffset(400,48),
         BackgroundColor3=Color3.fromRGB(12,19,30),
         BorderSizePixel=0,
-        ClearTextOnFocus=false,Text="",PlaceholderText="VP4-XXXX-XXXX-XXXX",
+        ClearTextOnFocus=false,Text="",PlaceholderText="VP4-XXXXXXXX-XXXXXXXX-...",
         PlaceholderColor3=Color3.fromRGB(110,130,154),
         TextColor3=Color3.fromRGB(248,251,255),
         TextXAlignment=Enum.TextXAlignment.Left,TextSize=14,
@@ -2683,7 +2684,7 @@ local function bootVisionPro()
     local status=elem("TextLabel",{
         Position=UDim2.fromOffset(24,338),
         Size=UDim2.fromOffset(395,37),
-        Text="Connexion au serveur beta...",
+        Text="Entre la cle generee sur ton site beta.",
         TextWrapped=true,TextYAlignment=Enum.TextYAlignment.Top,
         TextXAlignment=Enum.TextXAlignment.Left,
         BackgroundTransparency=1,Font=Enum.Font.GothamMedium,
@@ -2713,65 +2714,99 @@ local function bootVisionPro()
             end
         end)
     end
-    local function request(action,key)
+    -- External POST client, supports common HTTP request capabilities.
+    -- The key is sent as JSON in the HTTPS request body, never in a URL.
+    local function getHttpRequest()
+        local environments={_G}
+        if type(getgenv)=="function" then
+            local good,e=pcall(getgenv)
+            if good and type(e)=="table" then
+                table.insert(environments,1,e)
+            end
+        end
+        for _,environment in ipairs(environments) do
+            local candidate=environment.request or environment.http_request
+                or (type(environment.syn)=="table" and environment.syn.request)
+                or (type(environment.http)=="table" and environment.http.request)
+            if type(candidate)=="function" then return candidate end
+        end
+        return nil
+    end
+    local function submitKey(key)
         if busy or unlocked then return end
+        if type(BETA_API_URL)~="string"
+            or BETA_API_URL:find("YOUR-SUBDOMAIN",1,true)
+            or not BETA_API_URL:match("^https://[%w%._%-]+") then
+            message("Configure BETA_API_URL avec le lien de ton Worker Cloudflare.",
+                Color3.fromRGB(255,176,120))
+            return
+        end
+        local sendRequest=getHttpRequest()
+        if not sendRequest then
+            message("Cet environnement ne dispose pas de requetes HTTPS POST.",
+                Color3.fromRGB(255,176,120))
+            return
+        end
         busy=true
         activate.Text="VERIFICATION..."
         activate.BackgroundColor3=Color3.fromRGB(95,121,153)
-        message("Verification de l'acces beta...")
+        message("Verification de la cle sur le generateur...")
         task.spawn(function()
-            local remote=ReplicatedStorage:FindFirstChild("VisionProBetaAccess")
-            if not remote then
-                remote=ReplicatedStorage:WaitForChild("VisionProBetaAccess",8)
-            end
-            if not gate.Parent or unlocked then return end
-            if not remote or not remote:IsA("RemoteFunction") then
-                message("Service beta absent. Installer VISION_BETA_SERVER.lua dans ServerScriptService.",
-                    Color3.fromRGB(255,176,120))
-                busy=false
-                activate.Text="REESSAYER"
-                activate.BackgroundColor3=Color3.fromRGB(91,171,255)
-                return
-            end
             local ok,response=pcall(function()
-                return remote:InvokeServer(action,key)
+                return sendRequest({
+                    Url=BETA_API_URL.."/api/verify",
+                    Method="POST",
+                    Headers={["Content-Type"]="application/json"},
+                    Body=HttpService:JSONEncode({key=key})
+                })
             end)
             if not gate.Parent or unlocked then return end
-            if ok and type(response)=="table" and response.ok==true then
-                message("Acces autorise. Chargement...")
+            local accepted=false
+            local statusText="Connexion au generateur impossible"
+            if ok and type(response)=="table" then
+                local body=response.Body or response.body
+                if type(body)=="string" then
+                    local decodedOk,decoded=pcall(HttpService.JSONDecode,HttpService,body)
+                    if decodedOk and type(decoded)=="table" then
+                        accepted=decoded.ok==true
+                        if type(decoded.message)=="string" then
+                            statusText=decoded.message
+                        end
+                    else
+                        statusText="Reponse du serveur invalide"
+                    end
+                end
+            end
+            if accepted then
+                message("Cle valide. Ouverture de NOVA V4...")
                 openUnlocked()
                 return
             end
-            local err="Verification refusee"
-            if ok and type(response)=="table" and type(response.message)=="string" then
-                err=response.message
-            elseif not ok then
-                err="Impossible de contacter le serveur beta"
-            end
-            message(err,Color3.fromRGB(255,139,158))
+            message(statusText,Color3.fromRGB(255,139,158))
             busy=false
             activate.Text="ACTIVER LA BETA"
             activate.BackgroundColor3=Color3.fromRGB(91,171,255)
         end)
     end
     activate.Activated:Connect(function()
-        if #field.Text<8 then
-            message("Entre une cle beta valide avant de continuer.",
+        local key=field.Text:match("^%s*(.-)%s*$")
+        if #key<12 then
+            message("Saisis ta cle beta generee avant de continuer.",
                 Color3.fromRGB(255,139,158))
             return
         end
-        request("activate",field.Text)
+        submitKey(key)
     end)
     field.FocusLost:Connect(function(enter)
         if enter and not busy then
-            if #field.Text>=8 then
-                request("activate",field.Text)
+            local key=field.Text:match("^%s*(.-)%s*$")
+            if #key>=12 then
+                submitKey(key)
             else
                 message("Cle trop courte.",Color3.fromRGB(255,139,158))
             end
         end
     end)
-    request("status","")
 end -- bootVisionPro
 local ok,err=xpcall(bootVisionPro,function(problem)
     local message=tostring(problem)

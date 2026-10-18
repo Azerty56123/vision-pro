@@ -1,5 +1,5 @@
--- VISION_PRO_VERSION: 1.9.1
---[[ VISION PRO 1.9.1 | SPECTRA / SOFT NEON V7
+-- VISION_PRO_VERSION: 1.9.2
+--[[ VISION PRO 1.9.2 | SPECTRA / TRUE GLOW V7
      LocalScript for authorized testing in your Roblox place.
      Aimbot / simulated Silent Aim work on locally spawned mannequins only.
      Camera assist and impact preview always start disabled.
@@ -16,7 +16,7 @@ local WS=game:GetService("Workspace")
 local Me=Players.LocalPlayer
 if not Me then return end
 local PG=Me:WaitForChild("PlayerGui")
-local V="1.9.1"
+local V="1.9.2"
 local GNAME="VISION_PRO_147_GUI"
 local ONAME="VISION_PRO_147_OVERLAY"
 local DNAME="VISION_PRO_147_DUMMIES"
@@ -119,7 +119,9 @@ local C={
     DARK=Color3.fromRGB(15,21,29),
     GOLD=Color3.fromRGB(246,191,105),
     PINK=Color3.fromRGB(224,137,179),
-    ORANGE=Color3.fromRGB(252,175,106)
+    ORANGE=Color3.fromRGB(252,175,106),
+    NEON=Color3.fromRGB(137,239,255),
+    NEON_WHITE=Color3.fromRGB(232,251,255)
 }
 local accentChoices={BLEU=C.BLUE,VIOLET=C.PURPLE,CYAN=C.CYAN,ROUGE=C.RED,VERT=C.GREEN,ROSE=C.PINK}
 local S={Alive=true,Open=true,Page="HOME",Connections={},Players={},Targets={},Dummies={},
@@ -140,7 +142,7 @@ local S={Alive=true,Open=true,Page="HOME",Connections={},Players={},Targets={},D
     FlyState="OFF",FlingState="OFF",SpinState="OFF",
     MovementStatus=nil,MovementHUD=nil,
     OtaRelease=nil,OtaAssetUrl=nil,OtaPageUrl=nil,OtaBusy=false,OtaConfirmOpen=false,
-    AccentBars={},AccentToggles={},AccentButtons={},AccentLabels={},AccentStrokes={}}
+    AccentBars={},AccentToggles={},AccentButtons={},AccentLabels={},NeonHalos={}}
 -- Only errors raised by VISION PRO are recorded here. Roblox CoreGui errors
 -- and invalid animations in the experience are outside this client script.
 local function logVisionError(scope,problem)
@@ -195,7 +197,35 @@ local function refreshRoundness()
         end
     end
 end
-local function stroke(x,col,w) return make("UIStroke",{Color=col or C.STROKE,Thickness=w or 1},x) end
+local function stroke(x,col,w)
+    return make("UIStroke",{Color=col or C.STROKE,Thickness=w or 1},x)
+end
+-- GLOW V7: three static light layers emulate a soft neon halo.
+-- This is a deliberately fixed icy white/cyan light, NOT cycling RGB.
+-- All halo frames are visual-only and do not consume button clicks.
+local function createGlow(target,radius,enabled)
+    local halo=make("Frame",{
+        Name="NeonGlowV7",Position=UDim2.fromOffset(0,0),
+        Size=UDim2.fromScale(1,1),BackgroundTransparency=1,
+        BorderSizePixel=0,Active=false,Visible=enabled~=false,
+        ZIndex=target.ZIndex+1
+    },target)
+    for _,spec in ipairs({
+        {Name="SoftOuter",Width=8,Transparency=.89,Color=C.NEON},
+        {Name="SoftMiddle",Width=4,Transparency=.69,Color=C.NEON},
+        {Name="BrightCore",Width=1.65,Transparency=.10,Color=C.NEON_WHITE}
+    }) do
+        local ring=corner(make("Frame",{
+            Name=spec.Name,Size=UDim2.fromScale(1,1),
+            BackgroundTransparency=1,BorderSizePixel=0,
+            Active=false,ZIndex=halo.ZIndex
+        },halo),radius)
+        local line=stroke(ring,spec.Color,spec.Width)
+        line.Transparency=spec.Transparency
+        line.ApplyStrokeMode=Enum.ApplyStrokeMode.Border
+    end
+    return halo
+end
 local function grad(x,a,b,angle)
     return make("UIGradient",{Color=ColorSequence.new(a,b),Rotation=angle or 0},x)
 end
@@ -388,12 +418,13 @@ local logo=corner(make("Frame",{
     Position=UDim2.fromOffset(18,20),Size=UDim2.fromOffset(38,38),
     BackgroundColor3=C.BLUE,BorderSizePixel=0
 },sidebar),12)
-local logoGlow=stroke(logo,S.Accent,1.7)
-logoGlow.Transparency=.28
+local logoGlow=createGlow(logo,12,true)
+-- A white-to-cyan polished highlight makes the logo look lit.
+grad(logo,C.NEON_WHITE,Color3.fromRGB(101,193,244),25)
 local mark=txt(logo,"VP",0,8,38,23,13,true,C.DARK)
 mark.TextXAlignment=Enum.TextXAlignment.Center
 local brandName=txt(sidebar,"VISION PRO",68,17,108,23,13,true,C.WHITE)
-local brandSub=txt(sidebar,"DESKTOP V7  /  1.9.1",68,39,111,18,9,true,C.MUTED)
+local brandSub=txt(sidebar,"DESKTOP V7  /  1.9.2",68,39,111,18,9,true,C.MUTED)
 local navHeading=txt(sidebar,"NAVIGATION",19,87,149,18,10,true,C.MUTED)
 navHeading.TextTransparency=.18
 local tabs={"HOME","VISUALS","AIMBOT","SILENT","MISC","SETTINGS","ABOUT"}
@@ -414,8 +445,7 @@ for index,name in ipairs(tabs) do
         Position=UDim2.fromOffset(4,11),Size=UDim2.fromOffset(3,17),
         BackgroundColor3=C.BLUE,BorderSizePixel=0,Visible=false,Active=false
     },control),3)
-    local neonOutline=stroke(control,S.Accent,1.25)
-    neonOutline.Transparency=1
+    local neonOutline=createGlow(control,ROUND.Pill,false)
     local dot=corner(make("Frame",{
         Position=UDim2.fromOffset(13,8),Size=UDim2.fromOffset(23,23),
         BackgroundColor3=C.CARD,BorderSizePixel=0,Active=false
@@ -457,8 +487,7 @@ local v3Badge=corner(make("Frame",{
     BackgroundColor3=C.CARD,BorderSizePixel=0
 },header),12)
 stroke(v3Badge,C.STROKE,1).Transparency=.73
-local badgeGlow=stroke(v3Badge,S.Accent,1)
-badgeGlow.Transparency=.55
+local badgeGlow=createGlow(v3Badge,12,true)
 local v3BadgeText=txt(v3Badge,"VERSION V7",10,4,80,17,10,true,C.CYAN)
 v3BadgeText.TextXAlignment=Enum.TextXAlignment.Center
 local pageTitle=txt(header,"Accueil",7,27,387,34,24,true,C.WHITE)
@@ -483,7 +512,7 @@ local footerLine=make("Frame",{
     Position=UDim2.fromOffset(2,0),Size=UDim2.fromOffset(529,1),
     BackgroundColor3=C.STROKE,BackgroundTransparency=.68,BorderSizePixel=0
 },footer)
-local foot=txt(footer,"VISION PRO  /  v1.9.1  /  FULL V7",5,8,367,18,10,true,C.MUTED)
+local foot=txt(footer,"VISION PRO  /  v1.9.2  /  FULL V7",5,8,367,18,10,true,C.MUTED)
 local fpsText=txt(footer,"-- FPS",423,8,108,18,10,true,C.GREEN)
 fpsText.TextXAlignment=Enum.TextXAlignment.Right
 local pages,orders={},{}
@@ -524,8 +553,7 @@ local function selectPage(name)
         item.Selected.BackgroundColor3=S.Accent
         item.Selected.BackgroundTransparency=.84
         item.Line.BackgroundColor3=S.Accent
-        item.Neon.Color=S.Accent
-        item.Neon.Transparency=active and .53 or 1
+        item.Neon.Visible=active
         item.Button.BackgroundColor3=active and C.CARD or C.SIDE
         item.Button.BackgroundTransparency=active and 0 or 1
         item.Title.TextColor3=active and C.WHITE or C.MUTED
@@ -577,11 +605,8 @@ local function action(page,title,detail,caption,callback)
     local destructive=(caption=="RESET" or caption=="REMOVE")
     local control=btn(row,caption,376,18,110,36,
         destructive and C.HOVER or S.Accent)
-    local actionNeon
     if not destructive then
-        actionNeon=stroke(control,S.Accent,1.15)
-        actionNeon.Transparency=.62
-        table.insert(S.AccentStrokes,actionNeon)
+        createGlow(control,ROUND.Pill,true)
     end
     local label=buttonCaption(control)
     if destructive then
@@ -1558,8 +1583,7 @@ local protectionCard=corner(make("Frame",{
     LayoutOrder=order("HOME"),Size=UDim2.new(1,-2,0,115),
     BackgroundColor3=C.CARD,BorderSizePixel=0
 },pages.HOME),ROUND.Card)
-local protectionGlow=stroke(protectionCard,S.Accent,1.4)
-protectionGlow.Transparency=.48
+local protectionGlow=createGlow(protectionCard,ROUND.Card,true)
 local protectionMark=corner(make("Frame",{
     Position=UDim2.fromOffset(17,16),Size=UDim2.fromOffset(36,36),
     BackgroundColor3=C.SIDE,BorderSizePixel=0
@@ -1572,14 +1596,12 @@ local protectTitle=txt(protectionCard,"PROTECTION V7",65,14,267,25,15,true,C.WHI
 local protectDesc=description(protectionCard,"Guard actif / Protection locale",65,39,290,20)
 local protectCount=description(protectionCard,"0 CORRECTIONS",17,82,255,20)
 local protectButton=btn(protectionCard,"DESACTIVER",368,36,117,38,C.GREEN)
-local protectButtonGlow=stroke(protectButton,C.GREEN,1.2)
-protectButtonGlow.Transparency=.57
+local protectButtonGlow=createGlow(protectButton,ROUND.Pill,true)
 buttonCaption(protectButton).TextColor3=C.DARK
 local function refreshProtectButton()
     local enabled=cfg.AntiFling or cfg.AntiFly
     protectButton.BackgroundColor3=enabled and C.GREEN or C.HOVER
-    protectButtonGlow.Color=enabled and C.GREEN or C.STROKE
-    protectButtonGlow.Transparency=enabled and .52 or .85
+    protectButtonGlow.Visible=enabled
     buttonCaption(protectButton).Text=enabled and "DESACTIVER" or "ACTIVER"
     buttonCaption(protectButton).TextColor3=enabled and C.DARK or C.WHITE
     protectDesc.Text="MODE "..cfg.GuardMode.."  /  RECOVERY "..(cfg.SafeRecovery and "ON" or "OFF")
@@ -2014,9 +2036,9 @@ local function releaseLine(index,version,heading,detail,color)
         line.BackgroundTransparency=.76
     end
 end
-releaseLine(1,"1.9.1","SOFT NEON V7","Legers contours neon / interface epuree",C.CYAN)
-releaseLine(2,"1.9.0","FULL V7","Nouvelle interface / navigation / controles",C.PURPLE)
-releaseLine(3,"1.8.0","FULL V6","ESP / protections / diagnostic",C.GOLD)
+releaseLine(1,"1.9.2","TRUE GLOW V7","Halo brillant fixe / sans RGB anime",C.CYAN)
+releaseLine(2,"1.9.1","SOFT NEON V7","Contours lumineux et interface epuree",C.PURPLE)
+releaseLine(3,"1.9.0","FULL V7","Nouvelle interface / navigation / controles",C.GOLD)
 local aboutEnd=make("Frame",{
     LayoutOrder=order("ABOUT"),Size=UDim2.new(1,-2,0,34),
     BackgroundTransparency=1
@@ -2350,15 +2372,12 @@ local function theme(dt)
         S.PaletteReady=true
         S.Accent=accent
         logo.BackgroundColor3=accent
-        logoGlow.Color=accent
-        badgeGlow.Color=accent
-        protectionGlow.Color=accent
+        -- Static neon stays icy white/cyan even if accent RGB is enabled.
         pageCounter.TextColor3=accent
         v3BadgeText.TextColor3=accent
         for _,page in pairs(pages) do page.ScrollBarImageColor3=accent end
         for name,item in pairs(nav) do
             item.Line.BackgroundColor3=accent
-            item.Neon.Color=accent
             item.Selected.BackgroundColor3=accent
             if name==S.Page then item.Dot.BackgroundColor3=accent end
         end
@@ -2374,9 +2393,6 @@ local function theme(dt)
         end
         for _,button in ipairs(S.AccentButtons) do
             if button.Parent then button.BackgroundColor3=accent end
-        end
-        for _,outline in ipairs(S.AccentStrokes) do
-            if outline.Parent then outline.Color=accent end
         end
         for _,label in ipairs(S.AccentLabels) do
             if label.Parent then label.TextColor3=accent end

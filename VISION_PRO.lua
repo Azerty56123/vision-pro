@@ -1,5 +1,5 @@
--- VISION_PRO_VERSION: 1.7.4
---[[ VISION PRO 1.7.4 | SPECTRA / ANTI FLIGHT V5
+-- VISION_PRO_VERSION: 1.8.0
+--[[ VISION PRO 1.8.0 | SPECTRA / FULL V6
      LocalScript for authorized testing in your Roblox place.
      Aimbot / simulated Silent Aim work on locally spawned mannequins only.
      Camera assist and impact preview always start disabled.
@@ -16,7 +16,7 @@ local WS=game:GetService("Workspace")
 local Me=Players.LocalPlayer
 if not Me then return end
 local PG=Me:WaitForChild("PlayerGui")
-local V="1.7.4"
+local V="1.8.0"
 local GNAME="VISION_PRO_147_GUI"
 local ONAME="VISION_PRO_147_OVERLAY"
 local DNAME="VISION_PRO_147_DUMMIES"
@@ -45,7 +45,7 @@ end
 -- Renseigne ici l'adresse RAW publique de ton propre fichier VISION_PRO.lua.
 -- Le pseudo / depot ne s'affiche jamais dans l'onglet About.
 
-local D={ESP=true,Box=true,BoxColor="ACCENT",ESPDetail="FULL",ESPExtraRange=650,ThroughWalls=true,
+local D={ESP=true,Box=true,BoxColor="ACCENT",ESPDetail="FULL",ESPExtraRange=650,ESPTextScale=1,ThroughWalls=true,
     Skeleton=true,Tracers=false,Names=true,Distance=true,Health=true,
     ShowAllies=true,ShowNPC=true,TeamColors=false,Highlight=false,
     Aim=false,AimFOV=140,AimSmooth=.12,ShowFOV=true,AimPart="HEAD",AimLOS=true,
@@ -54,9 +54,9 @@ local D={ESP=true,Box=true,BoxColor="ACCENT",ESPDetail="FULL",ESPExtraRange=650,
     AntiFly=true,FlyLaunchSpeed=55,
     AntiFling=true,FlingSpeed=100,
     AntiAim=false,SpinThreshold=9,
-    GuardCorrect=true,MoveHUD=true,SafeRecovery=true,GuardV3=true,GuardMode="STRONG",GuardV4=true,GuardV5=true,
+    GuardCorrect=true,MoveHUD=true,SafeRecovery=true,GuardV3=true,GuardMode="STRONG",GuardV4=true,GuardV5=true,GuardV6=true,FlyGrace=.55,
     GITHUB_OTA_URL="https://raw.githubusercontent.com/Azerty56123/vision-pro/main/VISION_PRO.lua",
-    Accent="VIOLET",RGB=false,Animations=true,Notifications=true,MiniButton=false,
+    Accent="VIOLET",RGB=false,Animations=true,Notifications=true,MiniButton=false,CompactUI=false,
     MenuScale=1,UIRoundness=1.1,Shortcut="TAB",PerformanceMode="BALANCED",Range=1200,
     Thickness=.07,RenderRate=45,AdaptiveFPS=true}
 local cfg=table.clone(D)
@@ -80,7 +80,7 @@ local function normalize()
     cfg.UIRoundness=math.clamp(tonumber(cfg.UIRoundness) or 1.1,.7,1.5)
     validOptions("AimPart",{"HEAD","BODY"},"HEAD")
     validOptions("PreviewPart",{"HEAD","BODY"},"HEAD")
-    for k,v in pairs({AimFOV={60,300},PreviewFOV={60,300},AimSmooth={.03,.45},Range={100,2500},ESPExtraRange={200,1500},Thickness={.03,.18},RenderRate={15,60},ShotDamage={10,50},FlyLaunchSpeed={35,150},FlingSpeed={70,250},SpinThreshold={5,25}}) do
+    for k,v in pairs({AimFOV={60,300},PreviewFOV={60,300},AimSmooth={.03,.45},Range={100,2500},ESPExtraRange={200,1500},ESPTextScale={.8,1.4},FlyGrace={.4,1.3},Thickness={.03,.18},RenderRate={15,60},ShotDamage={10,50},FlyLaunchSpeed={35,150},FlingSpeed={70,250},SpinThreshold={5,25}}) do
         local num=tonumber(cfg[k]) or D[k]
         cfg[k]=math.clamp(num==num and num or D[k],v[1],v[2])
     end
@@ -129,12 +129,12 @@ local S={Alive=true,Open=true,Page="HOME",Connections={},Players={},Targets={},D
     Muzzle=nil,FlashToken=0,LastTarget=nil,SliderFills={},
     FlyFlags=0,FlingFlags=0,SpinFlags=0,
     FlySamples=0,FlingSamples=0,SpinSamples=0,
-    LastError=nil,EquipError=nil,
+    LastError=nil,EquipError=nil,ErrorHistory={},LastGuardEvent="NONE",LastGuardSpeed=0,
     FlyCooldown=0,FlingCooldown=0,SpinCooldown=0,
     GuardCharacter=nil,LastSafeCFrame=nil,LastSafeTime=0,LastRecovery=0,RecoveryUntil=0,
     GuardNoticeCooldown=0,LastGuardHUD=0,GuardCooldown=0,GuardErrorTime=0,BlockedImpulses=0,
     LastMotionVelocity=nil,GuardCorrections=0,RecoveryReason=nil,ToastList={},RoundCorners={},
-    AirborneSince=nil,LastMotionPosition=nil,AscentDuration=0,HoverDuration=0,
+    AirborneSince=nil,LastMotionPosition=nil,AscentDuration=0,HoverDuration=0,ToastLast={},
     GuardTriggeredAt=0,GuardTriggeredReason=nil,GuardTriggeredSevere=false,
     GuardSavedAltitude=nil,GuardSafeSample=0,LastGuardCharReady=0,
     FlyState="OFF",FlingState="OFF",SpinState="OFF",
@@ -147,6 +147,8 @@ local function logVisionError(scope,problem)
     local message=tostring(problem)
     S.Errors+=1
     S.LastError=tostring(scope)..": "..message
+    table.insert(S.ErrorHistory,S.LastError:sub(1,160))
+    if #S.ErrorHistory>8 then table.remove(S.ErrorHistory,1) end
     -- Limit repeated spam while retaining first detail in developer console.
     if S.Errors<=8 then
         warn("[VISION PRO "..V.." / "..tostring(scope).."] "..message)
@@ -173,8 +175,8 @@ local function on(event,cb)
     table.insert(S.Connections,con)
     return con
 end
--- SPECTRA V3 ROUNDED: consistent radii without changing button behavior.
-local ROUND={Window=32,Sidebar=32,Card=21,Compact=18,Modal=28,Pill=20}
+-- SPECTRA V6 ROUNDED: consistent radii without changing button behavior.
+local ROUND={Window=34,Sidebar=32,Card=22,Compact=18,Modal=28,Pill=20}
 local function corner(x,r)
     local radius=r
     if radius>=8 and radius<100 then
@@ -305,10 +307,16 @@ local overlay=make("ScreenGui",{Name=ONAME,DisplayOrder=850,IgnoreGuiInset=true,
 local ui=make("ScreenGui",{Name=GNAME,DisplayOrder=900,IgnoreGuiInset=true,ResetOnSpawn=false},PG)
 notify=function(message,kind)
     if not S.Alive or not cfg.Notifications or not ui.Parent then return end
+    local messageKey=tostring(kind).." / "..tostring(message)
+    local now=os.clock()
+    if now-(S.ToastLast[messageKey] or -100)<1.8 then
+        return
+    end
+    S.ToastLast[messageKey]=now
     local items=S.ToastList
     local color=kind=="ERROR" and C.RED or kind=="SUCCESS" and C.GREEN or S.Accent
     local toast=corner(make("Frame",{
-        Name="VPToastV4",AnchorPoint=Vector2.new(1,0),
+        Name="VPToastV6",AnchorPoint=Vector2.new(1,0),
         Position=UDim2.new(1,-18,0,-72),Size=UDim2.fromOffset(296,58),
         BackgroundColor3=C.SIDE,BorderSizePixel=0,ZIndex=100
     },ui),ROUND.Compact)
@@ -383,7 +391,7 @@ local logo=corner(make("Frame",{
 local mark=txt(logo,"VP",0,4,32,22,13,true,C.DARK)
 mark.TextXAlignment=Enum.TextXAlignment.Center
 local brandName=txt(sidebar,"VISION PRO",53,13,100,24,12,true,C.WHITE)
-local brandSub=txt(sidebar,"DESKTOP V4  /  1.7.4",53,34,102,17,9,true,C.MUTED)
+local brandSub=txt(sidebar,"DESKTOP V6  /  1.8.0",53,34,102,17,9,true,C.MUTED)
 local sidebarLine=bar(sidebar,15,64,125,1,C.STROKE)
 sidebarLine.BackgroundTransparency=.4
 local tabs={"HOME","VISUALS","AIMBOT","SILENT","MISC","SETTINGS","ABOUT"}
@@ -438,7 +446,7 @@ local v3Badge=corner(make("Frame",{
     Position=UDim2.fromOffset(292,5),Size=UDim2.fromOffset(94,19),
     BackgroundColor3=C.CARD,BorderSizePixel=0
 },header),10)
-local v3BadgeText=txt(v3Badge,"SPECTRA V4",11,1,77,16,9,true,C.CYAN)
+local v3BadgeText=txt(v3Badge,"SPECTRA V6",11,1,77,16,9,true,C.CYAN)
 v3BadgeText.TextXAlignment=Enum.TextXAlignment.Center
 local pageTitle=txt(header,"Accueil",12,18,340,28,21,true,C.WHITE)
 local pageDesc=description(header,"Environnement de test",13,44,340,18)
@@ -462,10 +470,11 @@ local footer=make("Frame",{Position=UDim2.fromOffset(170,427),
     Size=UDim2.fromOffset(505,28),BackgroundTransparency=1},window)
 local footerLine=bar(footer,0,0,504,1,C.STROKE)
 footerLine.BackgroundTransparency=.54
-local foot=txt(footer,"SPECTRA V4  /  VISION PRO  /  v1.7.4",3,7,340,18,10,true,C.MUTED)
+local foot=txt(footer,"SPECTRA V6  /  VISION PRO  /  v1.8.0",3,7,340,18,10,true,C.MUTED)
 local fpsText=txt(footer,"-- FPS",390,7,105,18,10,true,C.GREEN)
 fpsText.TextXAlignment=Enum.TextXAlignment.Right
 local pages,orders={},{}
+local pageLayouts={}
 for _,name in ipairs(tabs) do
     orders[name]=0
     local sc=make("ScrollingFrame",{
@@ -480,8 +489,9 @@ for _,name in ipairs(tabs) do
         PaddingTop=UDim.new(0,3),PaddingBottom=UDim.new(0,16),
         PaddingLeft=UDim.new(0,2),PaddingRight=UDim.new(0,10)
     },sc)
-    make("UIListLayout",{SortOrder=Enum.SortOrder.LayoutOrder,
-        Padding=UDim.new(0,6)},sc)
+    pageLayouts[name]=make("UIListLayout",{
+        SortOrder=Enum.SortOrder.LayoutOrder,Padding=UDim.new(0,6)
+    },sc)
     pages[name]=sc
 end
 local subtitles={HOME="Controle et entrainement",VISUALS="ESP 3D et affichage",AIMBOT="Ciblage des mannequins uniquement",
@@ -1090,6 +1100,12 @@ local function updateTargets()
             end
             d.Nametxt.Text=cfg.Names and (not alive and isDummy and (name.."  /  DOWN") or name) or ""
             d.Nametxt.Visible=cfg.Names
+            if d.LabelScale~=cfg.ESPTextScale then
+                d.LabelScale=cfg.ESPTextScale
+                d.Nametxt.TextSize=math.floor(11*cfg.ESPTextScale+.5)
+                d.Subtxt.TextSize=math.floor(10*cfg.ESPTextScale+.5)
+                d.HPText.TextSize=math.floor(10*cfg.ESPTextScale+.5)
+            end
             d.StateText.Text=(isDummy and (not alive and "DOWN" or "BOT")) or ""
             d.StateText.TextColor3=alive and C.CYAN or C.RED
             d.Subtxt.Text=cfg.Distance and (math.floor(dist+.5).." studs") or ""
@@ -1119,6 +1135,9 @@ local function updateTargets()
             end
             local geometryGap=cfg.PerformanceMode=="LOW" and .38
                 or cfg.PerformanceMode=="HIGH" and .16 or .23
+            if cfg.AdaptiveFPS and S.FPS<35 then
+                geometryGap=geometryGap*1.65
+            end
             local geometryNow=os.clock()
             if d.Visible and cfg.Box and geometryNow-d.LastGeometry>=geometryGap then
                 updateGeometry(d,model,geometryNow)
@@ -1513,7 +1532,7 @@ on(Me.CharacterAdded,function()
 end)
 
 -- SPECTRA V4: Home quick access to local guard controls.
-section("HOME","PROTECTION ACTIVE")
+section("HOME","PROTECTION V6")
 local protectionCard=corner(make("Frame",{
     LayoutOrder=order("HOME"),Size=UDim2.new(1,-2,0,91),
     BackgroundColor3=C.SIDE,BorderSizePixel=0
@@ -1521,7 +1540,7 @@ local protectionCard=corner(make("Frame",{
 stroke(protectionCard,C.STROKE,1).Transparency=.36
 local protectionAccent=bar(protectionCard,0,12,3,68,C.GREEN)
 table.insert(S.AccentBars,protectionAccent)
-local protectTitle=txt(protectionCard,"ANTI FLIGHT V5",17,9,265,24,14,true,C.WHITE)
+local protectTitle=txt(protectionCard,"ANTI FLIGHT V6",17,9,265,24,14,true,C.WHITE)
 local protectDesc=description(protectionCard,"Local protection / Strong / Recovery",17,33,306,20)
 local protectCount=description(protectionCard,"0 BLOCKED",17,60,270,18)
 local protectButton=btn(protectionCard,"TURN OFF",350,26,134,37,C.GREEN)
@@ -1562,12 +1581,13 @@ local metricsLine=bar(homeStatus,13,38,476,1,C.STROKE)
 dummyInfo=txt(homeStatus,"Targets: 0 / 3",13,8,220,25,12,true,C.WHITE)
 weaponInfo=description(homeStatus,"Ammo: 12 / 12   /   HOLSTERED",13,40,459,22)
 
-section("VISUALS","ESP V4")
+section("VISUALS","ESP V6")
 toggle("VISUALS","ESP","Activer les visuels","Activer ou desactiver tout l'ESP")
 toggle("VISUALS","Box","Boites 3D","Affichage 3D uniquement")
 choices("VISUALS","Couleur des boites","BoxColor",{"BLEU","VIOLET","RGB","ACCENT"})
-choices("VISUALS","Affichage ESP V4","ESPDetail",{"FULL","COMPACT"})
+choices("VISUALS","Affichage ESP V6","ESPDetail",{"FULL","COMPACT"})
 slider("VISUALS","ESPExtraRange","Distance des effets",200,1500,100," studs")
+slider("VISUALS","ESPTextScale","Taille du texte ESP",.8,1.4,.1," x")
 slider("VISUALS","Thickness","Epaisseur des contours",.03,.18,.01," studs")
 toggle("VISUALS","Skeleton","Skeleton","Articulations R6 et R15")
 toggle("VISUALS","Tracers","Tracers","Traces vers les cibles")
@@ -1582,7 +1602,7 @@ toggle("VISUALS","ShowAllies","Afficher les allies","Inclure les membres de l'eq
 toggle("VISUALS","ShowNPC","Afficher les PNJ","Montrer les cibles d'entrainement")
 toggle("VISUALS","TeamColors","Couleurs des equipes","Couleurs selon l'equipe")
 
-section("AIMBOT","ENTRAINEMENT CAMERA")
+section("AIMBOT","CAMERA V6")
 toggle("AIMBOT","Aim","Assistance camera","Clic droit pour suivre un mannequin vivant")
 toggle("AIMBOT","ShowFOV","Afficher le rayon","Zone de selection du viseur")
 choices("AIMBOT","Zone ciblee","AimPart",{"HEAD","BODY"})
@@ -1591,7 +1611,7 @@ slider("AIMBOT","AimFOV","Rayon de ciblage",60,300,10," px")
 slider("AIMBOT","AimSmooth","Fluidite du suivi",.03,.45,.02," s")
 action("AIMBOT","Creer les cibles","Trois mannequins espaces","SPAWN",spawnDummies)
 
-section("SILENT","TIRS DE TEST")
+section("SILENT","IMPACTS V6")
 toggle("SILENT","Preview","Silent Aim simule","Agrandir la zone d'impact sans bouger la camera")
 toggle("SILENT","PreviewLOS","Visibilite requise","Ne pas traverser les murs solides")
 choices("SILENT","Zone d'impact","PreviewPart",{"HEAD","BODY"})
@@ -1611,17 +1631,18 @@ end)
 
 -- MISC: optional protections against abnormal incoming physics impulses.
 -- These guards NEVER deliberately rotate the character.
-section("MISC","ANTI FLIGHT V5")
-toggle("MISC","AntiFling","Anti-fling","Bloquer les fortes projections horizontales et verticales")
-toggle("MISC","AntiFly","Anti-flight V5","Limiter les montes brusques, lentes et le vol prolonge")
+section("MISC","ANTI FLIGHT V6")
+toggle("MISC","AntiFling","Anti-fling V6","Limiter les projections et les collisions anormales")
+toggle("MISC","AntiFly","Anti-flight V6","Limiter les montes anormales et le vol prolonge")
 choices("MISC","Protection","GuardMode",{"NORMAL","STRONG"})
 toggle("MISC","SafeRecovery","Recuperation d'urgence","Retour apres une projection ou un vol anormal confirme")
 slider("MISC","FlingSpeed","Vitesse horizontale limite",70,250,10," studs/s")
 slider("MISC","FlyLaunchSpeed","Vitesse verticale limite",35,150,5," studs/s")
-section("MISC","ANTI-ROTATION")
+slider("MISC","FlyGrace","Tolerance des sauts",.4,1.3,.1," s")
+section("MISC","ANTI-ROTATION V6")
 toggle("MISC","AntiAim","Anti-rotation","Limiter les rotations forcees")
 slider("MISC","SpinThreshold","Sensibilite",5,25,1," rad/s")
-section("MISC","REACTIONS")
+section("MISC","REACTIONS V6")
 toggle("MISC","GuardCorrect","Corriger les anomalies","Limiter les mouvements anormaux locaux")
 toggle("MISC","MoveHUD","Indicateurs de protection","Afficher l'etat des protections")
 local miscPanel=corner(make("Frame",{
@@ -1630,7 +1651,7 @@ local miscPanel=corner(make("Frame",{
 },pages.MISC),ROUND.Card)
 stroke(miscPanel,C.STROKE,1).Transparency=.58
 bar(miscPanel,0,9,3,48,C.GOLD)
-local miscStatus=txt(miscPanel,"GUARD V5 / MONITORING",13,5,460,24,11,true,C.CYAN)
+local miscStatus=txt(miscPanel,"GUARD V6 / MONITORING",13,5,460,24,11,true,C.CYAN)
 local miscHint=description(miscPanel,"Client-side only / Server physics may override corrections.",13,32,467,24)
 S.MovementStatus=miscStatus
 action("MISC","Effacer les alertes","Vider les compteurs sans desactiver les protections","RESET",function()
@@ -1645,25 +1666,27 @@ action("MISC","Effacer les alertes","Vider les compteurs sans desactiver les pro
     save();refresh()
 end)
 
-section("SETTINGS","PERFORMANCES V4")
+section("SETTINGS","PERFORMANCES V6")
 choices("SETTINGS","Mode performance","PerformanceMode",{"LOW","BALANCED","HIGH"})
 toggle("SETTINGS","AdaptiveFPS","Rafraichissement adaptatif","Adapter le rendu aux FPS")
 slider("SETTINGS","RenderRate","Frequence d'affichage",15,60,5," Hz")
 slider("SETTINGS","Range","Distance ESP",100,2500,100," studs")
-section("SETTINGS","APPARENCE V4")
+section("SETTINGS","APPARENCE V6")
 slider("SETTINGS","UIRoundness","Arrondi des coins",.7,1.5,.1," x")
 slider("SETTINGS","MenuScale","Taille du menu",.7,1.15,.05," x")
 choices("SETTINGS","Raccourci du menu","Shortcut",{"TAB","RIGHTSHIFT","F4"})
 choices("SETTINGS","Couleur d'accent","Accent",{"BLEU","VIOLET","CYAN","ROUGE","VERT","ROSE"})
 toggle("SETTINGS","RGB","Accent RGB","Animer legerement les accents")
 toggle("SETTINGS","Animations","Animations de l'interface","Transitions et survols discrets")
-toggle("SETTINGS","Notifications","Notifications V4","Afficher jusqu a 3 alertes sans chevauchement")
+toggle("SETTINGS","Notifications","Notifications V6","Alertes regroupees et anti-spam")
 toggle("SETTINGS","MiniButton","Bouton flottant","Raccourci quand le menu est ferme")
+toggle("SETTINGS","CompactUI","Interface compacte V6","Reduire les espaces entre les cartes")
 action("SETTINGS","Restaurer les parametres","Revenir aux parametres par defaut","RESET",function()
     for k,v in pairs(D) do cfg[k]=v end
     normalize();save();refresh();refreshRoundness();rescale()
 end)
 
+local diagOverview,diagGuard,diagLastError
 do -- ABOUT: build status + configured OTA URL, no public input field.
 local Http = game:GetService("HttpService")
 local aboutBuild=corner(make("Frame",{
@@ -1685,6 +1708,24 @@ local versionPill=corner(make("Frame",{
 stroke(versionPill,C.PURPLE,1).Transparency=.34
 local versionPillText=txt(versionPill,"v"..V,0,4,90,21,12,true,C.PURPLE)
 versionPillText.TextXAlignment=Enum.TextXAlignment.Center
+
+section("ABOUT","DIAGNOSTIC V6")
+local diagCard=corner(make("Frame",{
+    LayoutOrder=order("ABOUT"),Size=UDim2.new(1,-2,0,117),
+    BackgroundColor3=C.CARD,BorderSizePixel=0
+},pages.ABOUT),ROUND.Card)
+stroke(diagCard,C.STROKE,1).Transparency=.50
+diagOverview=txt(diagCard,"FPS --  /  ERRORS 0",14,8,465,22,12,true,C.WHITE)
+diagGuard=description(diagCard,"FLIGHT OFF / FLING OFF",14,38,465,22)
+diagLastError=description(diagCard,"LAST ERROR / NONE",14,67,465,40)
+diagLastError.TextWrapped=true
+action("ABOUT","Afficher les erreurs","Details dans la console Roblox","LOG",function()
+    print("[VISION PRO DIAGNOSTIC "..V.."] FPS "..S.FPS.." / ERRORS "..S.Errors)
+    print("FLIGHT "..S.FlyState.." / FLING "..S.FlingState.." / EVENT "..S.LastGuardEvent.." / SPEED "..S.LastGuardSpeed)
+    for index,message in ipairs(S.ErrorHistory) do
+        print("ERROR "..index..": "..message)
+    end
+end)
 
 section("ABOUT","GITHUB OTA")
 local otaPanel=corner(make("Frame",{
@@ -1942,9 +1983,9 @@ local function releaseLine(index,version,heading,detail,color)
         line.BackgroundTransparency=.76
     end
 end
-releaseLine(1,"1.7.4","ANTI FLIGHT V5","Monte lente / Physics / recovery sol",C.CYAN)
-releaseLine(2,"1.7.3","SLIDER FIX","Calcul nil et correction des onglets",C.PURPLE)
-releaseLine(3,"1.7.2","NAVIGATION FIX","Pages et scroll Roblox",C.GOLD)
+releaseLine(1,"1.8.0","FULL V6","UI / ESP / Guards / Settings / diagnostic V6",C.CYAN)
+releaseLine(2,"1.7.4","ANTI FLIGHT V5","Monte lente / Physics / recovery sol",C.PURPLE)
+releaseLine(3,"1.7.3","SLIDER FIX","Calcul nil et correction des onglets",C.GOLD)
 local aboutEnd=make("Frame",{
     LayoutOrder=order("ABOUT"),Size=UDim2.new(1,-2,0,34),
     BackgroundTransparency=1
@@ -1952,6 +1993,16 @@ local aboutEnd=make("Frame",{
 description(aboutEnd,"LOCAL TRAINING ONLY  /  No server-side game damage",12,4,470,24)
 
 end -- About scope
+
+local function refreshDiagnostics()
+    if not diagOverview or not diagOverview.Parent then return end
+    diagOverview.Text="FPS "..tostring(S.FPS)..
+        "  /  ERRORS "..tostring(S.Errors).."  /  RATE "..tostring(S.Rate)
+    diagGuard.Text="FLIGHT "..S.FlyState.."  /  FLING "..S.FlingState..
+        "  /  "..S.LastGuardEvent.." "..tostring(S.LastGuardSpeed)
+    diagLastError.Text="LAST ERROR / "..(S.LastError or "NONE"):sub(1,110)
+    diagOverview.TextColor3=S.Errors>0 and C.GOLD or C.WHITE
+end
 
 -- Close/minimize, keyboard, camera and render lifecycle.
 local mini=btn(ui,"VP",19,90,46,36,C.PURPLE);mini.Visible=false
@@ -2026,7 +2077,7 @@ local function resetDefense()
     S.GuardTriggeredSevere=false
 end
 
--- Anti Flight V5: work on a client's locally simulated character only.
+-- Anti Flight V6: work on a client's locally simulated character only.
 -- Network ownership and server-authoritative motion cannot be overridden here.
 local function updateMovement(dt)
     if not S.Alive then return end
@@ -2094,6 +2145,7 @@ local function updateMovement(dt)
             S.HoverDuration=0
             S.GuardTriggeredAt=0
             S.GuardTriggeredReason=nil
+            S.GuardTriggeredSevere=false
             S.RecoveryUntil=0
             -- Store only stable standing points; never store a fling destination.
             if hSpeed<28 and math.abs(speedY)<16 then
@@ -2113,7 +2165,7 @@ local function updateMovement(dt)
         local safe=S.LastSafeCFrame
         local heightAbove=safe and root.Position.Y-safe.Position.Y or 0
         -- A normal jump lasts a short time and rises only a few studs.
-        local jumpGrace=airTime<.48 and heightAbove<13
+        local jumpGrace=airTime<cfg.FlyGrace and heightAbove<13
         local suddenY=speedY>yLimit
         local extremeY=speedY>math.max(95,yLimit*1.85)
         local verticalImpulse=(not jumpGrace and suddenY)
@@ -2138,8 +2190,10 @@ local function updateMovement(dt)
         local hitY=cfg.AntiFly and (
             (verticalImpulse and (airTime>.15 or extremeY))
             or slowFlight)
-        local hitH=cfg.AntiFling and hSpeed>hLimit
-            and (strict or hShock>hLimit*.28 or hSpeed>hLimit*1.65)
+        local hitH=cfg.AntiFling and
+            ((hSpeed>hLimit and
+                (strict or hShock>hLimit*.28 or hSpeed>hLimit*1.65))
+                or (hShock>hLimit*1.25 and hSpeed>hLimit*.65))
         local hitSpin=cfg.AntiAim and
             math.abs(angular.Y)>cfg.SpinThreshold
 
@@ -2152,6 +2206,8 @@ local function updateMovement(dt)
             and (hitSpin and "SPIN" or "MONITORING") or "OFF"
 
         if (hitY or hitH) and cfg.GuardCorrect then
+            S.LastGuardEvent=hitY and (slowFlight and "FLIGHT" or "LAUNCH") or "FLING"
+            S.LastGuardSpeed=math.floor(math.max(math.abs(speedY),hSpeed)+.5)
             -- Clear the dangerous axis while leaving ordinary movement alone.
             local nextH=horizontal
             if hitH and hSpeed>.01 then
@@ -2183,7 +2239,7 @@ local function updateMovement(dt)
                 S.RecoveryUntil=now+1.7
             end
             if now-S.GuardNoticeCooldown>2.3 then
-                notify("Anti Flight V5 / correction active","INFO")
+                notify("Guard V6 / correction active","INFO")
                 S.GuardNoticeCooldown=now
             end
         elseif hitSpin and cfg.GuardCorrect then
@@ -2227,7 +2283,7 @@ local function updateMovement(dt)
                     S.HoverDuration=0
                     S.FlyState="RECOVERED"
                     S.FlingState="RECOVERED"
-                    notify("Anti Flight V5 / retour au sol","SUCCESS")
+                    notify("Guard V6 / retour au sol","SUCCESS")
                 end
             end
         end
@@ -2236,7 +2292,7 @@ local function updateMovement(dt)
     if now-S.LastGuardHUD<.14 then return end
     S.LastGuardHUD=now
     local active=cfg.AntiFly or cfg.AntiFling
-    guardStatusSidebar.Text=active and "GUARD V5 / ON" or "GUARD V5 / OFF"
+    guardStatusSidebar.Text=active and "GUARD V6 / ON" or "GUARD V6 / OFF"
     onlineDot.BackgroundColor3=active and C.GREEN or C.RED
     if protectCount.Parent then
         protectCount.Text=tostring(S.BlockedImpulses).." CORRECTIONS"
@@ -2299,6 +2355,12 @@ local function theme(dt)
         fovOutline.Color=accent
     end
     gunHudSecond.BackgroundColor3=C.CYAN
+    local gap=cfg.CompactUI and 3 or 6
+    for _,layout in pairs(pageLayouts) do
+        if layout.Padding.Offset~=gap then
+            layout.Padding=UDim.new(0,gap)
+        end
+    end
     mini.Visible=not S.Open and cfg.MiniButton
     cross.Visible=S.Armed and not S.Open
     fov.Visible=not S.Open and ((cfg.Aim and cfg.ShowFOV) or (cfg.Preview and cfg.PreviewCircle and S.Armed))
@@ -2362,7 +2424,7 @@ for _,name in ipairs(tabs) do
         description(row,"Check developer console for error details.",14,34,460,20)
     end
 end
-selectPage("HOME");rescale();changeInfo();refresh();theme(0)
+selectPage("HOME");rescale();changeInfo();refresh();theme(0);refreshDiagnostics()
 local dataClock,renderClock,fpsClock,themeClock=0,0,0,0
 local frames=0
 on(Run.PostSimulation,function(dt)
@@ -2378,7 +2440,7 @@ on(Run.Heartbeat,function(dt)
     local updateInterval=cfg.PerformanceMode=="LOW" and .31
         or cfg.PerformanceMode=="HIGH" and .13 or .19
     if cfg.AdaptiveFPS and S.FPS<35 then
-        updateInterval=math.max(updateInterval,.32)
+        updateInterval=math.max(updateInterval,S.FPS<24 and .42 or .32)
     end
     if dataClock>=updateInterval then
         local ok,err=pcall(updateTargets)
@@ -2403,7 +2465,7 @@ on(Run.RenderStepped,function(dt)
     if fpsClock>=1 then
         S.FPS=math.floor(frames/fpsClock+.5)
         fpsText.Text=tostring(S.FPS).." FPS"
-        fpsClock=0;frames=0;rescale()
+        fpsClock=0;frames=0;rescale();refreshDiagnostics()
     end
 end)
-print("VISION PRO "..V.." - SPECTRA V4 / UI + ESP + GUARD")
+print("VISION PRO "..V.." - SPECTRA FULL V6 / UI + ESP + GUARDS + DIAGNOSTIC")

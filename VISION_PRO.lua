@@ -1407,7 +1407,40 @@ on(Me.CharacterAdded,function()
     end)
 end)
 
--- Pages: no giant introductory cards, no 2D/JSON options.
+-- SPECTRA V3: Home quick access to local guard controls.
+section("HOME","PROTECTION ACTIVE")
+local protectionCard=corner(make("Frame",{
+    LayoutOrder=order("HOME"),Size=UDim2.new(1,-2,0,91),
+    BackgroundColor3=C.SIDE,BorderSizePixel=0
+},pages.HOME),12)
+stroke(protectionCard,C.STROKE,1).Transparency=.36
+local protectionAccent=bar(protectionCard,0,12,3,68,C.GREEN)
+table.insert(S.AccentBars,protectionAccent)
+local protectTitle=txt(protectionCard,"ANTI FLING V3",17,9,265,24,14,true,C.WHITE)
+local protectDesc=description(protectionCard,"Local protection / Strong / Recovery",17,33,306,20)
+local protectCount=description(protectionCard,"0 BLOCKED",17,60,270,18)
+local protectButton=btn(protectionCard,"TURN OFF",350,26,134,37,C.GREEN)
+buttonCaption(protectButton).TextColor3=C.DARK
+local function refreshProtectButton()
+    local enabled=cfg.AntiFling or cfg.AntiFly
+    protectButton.BackgroundColor3=enabled and C.GREEN or C.HOVER
+    buttonCaption(protectButton).Text=enabled and "TURN OFF" or "TURN ON"
+    buttonCaption(protectButton).TextColor3=enabled and C.DARK or C.WHITE
+    protectDesc.Text="Local protection / "..cfg.GuardMode.." / Recovery "
+        ..(cfg.SafeRecovery and "ON" or "OFF")
+end
+on(protectButton.Activated,function()
+    local nextValue=not (cfg.AntiFling or cfg.AntiFly)
+    cfg.AntiFling=nextValue
+    cfg.AntiFly=nextValue
+    save()
+    refresh()
+    refreshProtectButton()
+    notify("Anti fling / "..(nextValue and "ON" or "OFF"),"INFO")
+end)
+table.insert(S.Toggles,refreshProtectButton)
+refreshProtectButton()
+
 section("HOME","ENTRAINEMENT")
 action("HOME","Pistolet de test","Equiper puis tirer avec le clic gauche","EQUIP",equipGun)
 action("HOME","Mannequins de test","Creer trois mannequins R6 locaux","SPAWN",spawnDummies)
@@ -1995,6 +2028,7 @@ local function updateMovement(dt)
 
     if now-S.LastGuardHUD<.13 then return end
     S.LastGuardHUD=now
+    if protectCount.Parent then protectCount.Text=tostring(S.BlockedImpulses).." BLOCKED IMPULSES" end
     local enabled=cfg.AntiFling or cfg.AntiFly
     guardStatusSidebar.Text=enabled and "GUARD / ACTIVE" or "GUARD / OFF"
     onlineDot.BackgroundColor3=enabled and C.GREEN or C.RED

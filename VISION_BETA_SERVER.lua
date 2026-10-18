@@ -46,8 +46,8 @@ end
 
 local function validEntry(entry,userId)
     if not entry then return false end
-    if tonumber(entry.ExpiresAt) and entry.ExpiresAt > 0
-        and os.time() >= entry.ExpiresAt then return false end
+    local expiration=tonumber(entry.ExpiresAt) or 0
+    if expiration > 0 and os.time() >= expiration then return false end
     if entry.AllowedUserIds and not entry.AllowedUserIds[userId] then
         return false
     end
@@ -159,8 +159,6 @@ Players.PlayerRemoving:Connect(function(player)
     session[player.UserId]=nil
     attempts[player.UserId]=nil
 end)
-print("[VISION PRO V4] Beta server ready, "..tostring(#(function()
-    local keys={}
-    for _ in pairs(BETA_KEYS) do table.insert(keys,true) end
-    return keys
-end)()).." configured keys")
+local keyCount=0
+for _ in pairs(BETA_KEYS) do keyCount=keyCount+1 end
+print("[VISION PRO V4] Beta server ready, "..keyCount.." configured keys")

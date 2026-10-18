@@ -1,59 +1,123 @@
-# VISION PRO V4.0.0 - NOVA / BETA
+# VISION PRO V4 — GENERATEUR EXTERNE, SANS ROBLOX STUDIO
 
-Cette version contient deux scripts complets :
-- **VISION_PRO.lua** : interface V4, modules locaux existants et fenetre de saisie de cle beta.
-- **VISION_BETA_SERVER.lua** : controle de cle **sur le serveur de ton jeu Roblox**.
+Le systeme beta V4 ne depend PLUS de ServerScriptService ou d'un serveur Roblox.
 
-## Installation (Roblox Studio)
+Fichiers:
+- **VISION_PRO.lua** : V4 avec ecran d'activation, UI et fonctions existantes.
+- **beta-generator/worker.js** : API HTTPS et page de generation des cles.
+- **beta-generator/schema.sql** : base de donnees Cloudflare D1.
+- **beta-generator/wrangler.toml** : configuration du deploiement.
 
-1. Ouvre **ton propre jeu** dans Roblox Studio.
-2. Dans **ServerScriptService**, ajoute un **Script** appele `VisionProBetaServer`. Colle-y le code complet de `VISION_BETA_SERVER.lua`.
-3. Dans **ce script prive de Studio uniquement**, ajoute tes cles dans `BETA_KEYS`. Ne publie JAMAIS ta liste de cles dans GitHub, un LocalScript, ou ReplicatedStorage.
-4. Pour une production multi-serveurs, garde `USE_DATASTORE = true`. **Publie le jeu** puis active l'acces aux services API dans les parametres de securite de Roblox Studio si tu testes les DataStores dans Studio. Sans DataStore fonctionnel, le serveur refuse l'activation (fail closed).
-5. Dans **StarterPlayer > StarterPlayerScripts**, ajoute un **LocalScript** `VisionProClient` et colle le code complet de `VISION_PRO.lua`.
-6. Lance le jeu avec **Play**. Entre une cle configuree. Apres validation, le panneau V4 s'ouvre.
-7. Le serveur cree automatiquement `ReplicatedStorage.VisionProBetaAccess` (RemoteFunction). Tu n'as rien a creer manuellement dans ReplicatedStorage.
+**Le site n'est pas encore heberge.** Il faut le deployer une fois sur un compte Cloudflare; aucune cle active n'est livree par defaut.
 
-Exemple de configuration **a garder privee** :
+## 1. Creer le generateur (une seule fois)
 
-```lua
-local BETA_KEYS = {
-    ["VP4-REMPLACE-CETTE-CLE-PUBLIQUE-PAR-UNE-CLE-ALEATOIRE-LONGUE"] = {
-        Id = "beta-wave-001",
-        ExpiresAt = 0,
-        MaxUsers = 5,
-        AllowedUserIds = nil
-    }
-}
-```
+Il faut un compte Cloudflare et Node.js sur ton PC. Ouvre PowerShell sur Windows :
 
-**Remplace la chaine d'exemple** par une cle aleatoire longue et privee. Pour une expiration, utilise un timestamp Unix a la place de 0. Pour restreindre aux testeurs, `AllowedUserIds = {[123456789] = true}` avec leurs vrais UserIds.
+~~~powershell
+git clone https://github.com/Azerty56123/vision-pro.git
+cd vision-pro\beta-generator
+npx wrangler login
+npx wrangler d1 create vision-pro-beta
+~~~
 
-## Apercu de l'interface V4 en Studio (sans cle)
+Wrangler affiche un identifiant de base de donnees.
 
-Si tu veux d'abord **voir le design V4**, mets `ALLOW_STUDIO_PREVIEW = true` dans **ta copie privee du script serveur**, puis lance **Play dans Roblox Studio**. Le serveur autorise alors uniquement la session Studio, sans cle beta. **Remets `false` avant de publier/tester l'acces beta reel.** Le parametre est deja `false` dans le fichier public, pour eviter un acces par defaut.
+Dans le fichier **beta-generator/wrangler.toml**, remplace **REPLACE_WITH_DATABASE_ID** par cet identifiant.
 
-## Comment fonctionne la verification
+Initialise la base :
 
-- L'interface affiche un ecran d'activation avant d'initialiser les modules locaux.
-- `status` demande au serveur si ce joueur dispose deja d'un acces.
-- `activate` transmet la cle au serveur et recoit un resultat (valide, refusee, expiree, pleine, etc.).
-- Les cles sont definies exclusivement dans le script serveur prive.
-- `MaxUsers` compte les comptes distincts via DataStore; `ExpiresAt` permet l'expiration.
-- Le serveur limite les essais consecutifs.
+~~~powershell
+npx wrangler d1 execute vision-pro-beta --remote --file=./schema.sql
+~~~
 
-## Limites de securite
+Genere un jeton d'administration secret, fort et aleatoire :
 
-La verification serveur controle **le flux d'acces du client officiel**. Un script client distribue publiquement est toujours modifiable. Pour proteger des **actions de jeu sensibles**, celles-ci doivent aussi etre autorisees et executees par des Scripts dans ServerScriptService. Les simulations de cette version (mannequins, impacts, ESP local) demeurent locales. N'utilise pas la validation du menu comme un systeme anti-triche serveur.
+~~~powershell
+node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
+~~~
 
-Le chargeur `loadstring(game:HttpGet(...))()` n'est pas une methode standard pour les LocalScripts dans Roblox Studio. Pour un jeu Roblox, copie le contenu complet dans le LocalScript indique ci-dessus.
+Garde ce resultat en prive, puis installe-le sur Cloudflare :
+
+~~~powershell
+npx wrangler secret put ADMIN_TOKEN
+~~~
+
+Colle ton secret quand Wrangler te le demande. Deploie ensuite le site :
+
+~~~powershell
+npx wrangler deploy
+~~~
+
+Cloudflare affichera une adresse HTTPS semblable a :
+
+~~~text
+https://vision-pro-beta-v4.TON-SOUS-DOMAINE.workers.dev
+~~~
+
+Documentation Cloudflare :
+- https://developers.cloudflare.com/d1/wrangler-commands/
+- https://developers.cloudflare.com/workers/configuration/secrets/
+
+## 2. Generer tes cles sur le site
+
+Va a l'adresse de ton Worker, en ajoutant **/admin** a la fin. Depuis cette page :
+
+1. Entre ton **ADMIN_TOKEN secret** (ne le donne jamais a un testeur).
+2. Choisis un nom de cle, sa duree en jours et sa limite d'activations.
+3. Clique sur **GENERER UNE CLE**.
+4. Copie la cle creee, commencant par **VP4-**, et donne-la au testeur.
+5. Clique sur **Revoquer** si tu veux la desactiver.
+
+**0 jour = illimite dans le temps ; 0 activation max = nombre illimite.**
+
+Chaque validation acceptee consomme **UNE activation**. Ce n'est pas un compteur d'utilisateurs uniques.
+
+Le serveur stocke uniquement l'empreinte SHA-256 de la cle, pas son texte en clair. La vraie cle s'affiche uniquement au moment de sa creation.
+
+## 3. Relier le site au client V4
+
+Dans le fichier **VISION_PRO.lua**, recherche la ligne suivante, pres du bas du fichier :
+
+~~~lua
+local BETA_API_URL="https://vision-pro-beta-v4.YOUR-SUBDOMAIN.workers.dev"
+~~~
+
+Remplace l'adresse d'exemple par TON URL Cloudflare (sans /admin ni /api/verify), puis sauvegarde le script sur GitHub si tu utilises le lien RAW.
+
+La V4 enverra une verification **POST HTTPS** vers **/api/verify** en envoyant la cle dans un corps JSON.
+
+## 4. Lancer sans Roblox Studio
+
+Si ton environnement de lancement prend en charge loadstring, game:HttpGet ET les requetes HTTPS POST, tu peux utiliser ton chargeur :
+
+~~~lua
+loadstring(game:HttpGet("https://raw.githubusercontent.com/Azerty56123/vision-pro/main/VISION_PRO.lua?v=4.0.0"))()
+~~~
+
+**Ce n'est pas une methode standard de Roblox LocalScript.** Le client depend de la fonction HTTP du programme qui execute le script : request, http_request, ou syn.request. Si aucune n'est disponible, il annonce l'erreur au lieu d'ignorer la validation.
+
+La V4 affiche l'ecran Beta Access, valide la cle avec ton site, puis ouvre NOVA seulement si le serveur externe confirme l'acces.
+
+## Securite et limites
+
+- Le generateur et le secret ADMIN_TOKEN doivent rester sous ton controle.
+- Le client public ne contient ni secret administrateur, ni liste de cles.
+- Les cles aleatoires sont generees cote serveur par crypto.getRandomValues.
+- Le site utilise HTTPS, stocke les empreintes de cles, et propose une limitation de tentatives par IP (best effort). Protege aussi ton site via Cloudflare si tu attends du trafic important.
+- Un script client public reste modifiable. Le systeme bloque le lancement officiel mais ne constitue PAS un dispositif inviolable ni un controle d'acces aux fonctions serveur Roblox.
+- Sans acces reseau au Worker, une cle ne peut pas etre verifiee.
 
 ## Depannage
 
-- **Service beta absent** : verifie que le Script serveur est place dans ServerScriptService, actif et sans erreurs; teste dans ton propre jeu.
-- **Verification serveur indisponible** : verifie l'acces DataStore et la console **F9**.
-- **Cle invalide** : verifie la cle configuree cote serveur; aucun code secret n'est inclus dans la version publique.
-- **Le menu ne se charge pas** : consulte la console F9 pour le message `VISION PRO V4 / UNLOCKED STARTUP`.
-- **CoreGui** : la V4 utilise `PlayerGui` pour l'interface; elle ne devrait pas necessiter de modifier le CoreGui Roblox.
+**Configure BETA_API_URL** : ton URL Cloudflare n'a pas ete renseignee.
 
-Il n'y a pas de cle active par defaut : **la V4 reste verrouillee tant que tu n'as pas configure le serveur**, conformement a son fonctionnement beta.
+**Requetes HTTPS POST non disponibles** : ton environnement d'execution ne propose pas de requete POST compatible.
+
+**Connexion impossible** : verifie le deploiement de Cloudflare et l'adresse exacte.
+
+**Jeton administrateur incorrect** : verifie le secret ADMIN_TOKEN renseigne dans Cloudflare.
+
+**Cle refusee** : verifie l'expiration, le nombre d'activations et l'etat de la cle.
+
+**L'ancien fichier VISION_BETA_SERVER.lua n'est pas utilise par cette methode sans Studio.**

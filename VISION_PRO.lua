@@ -1,5 +1,5 @@
--- VISION_PRO_VERSION: 1.7.2
---[[ VISION PRO 1.7.2 | SPECTRA / PAGE BUILD SAFETY
+-- VISION_PRO_VERSION: 1.7.3
+--[[ VISION PRO 1.7.3 | SPECTRA / SLIDER NIL HOTFIX
      LocalScript for authorized testing in your Roblox place.
      Aimbot / simulated Silent Aim work on locally spawned mannequins only.
      Camera assist and impact preview always start disabled.
@@ -16,7 +16,7 @@ local WS=game:GetService("Workspace")
 local Me=Players.LocalPlayer
 if not Me then return end
 local PG=Me:WaitForChild("PlayerGui")
-local V="1.7.2"
+local V="1.7.3"
 local GNAME="VISION_PRO_147_GUI"
 local ONAME="VISION_PRO_147_OVERLAY"
 local DNAME="VISION_PRO_147_DUMMIES"
@@ -379,7 +379,7 @@ local logo=corner(make("Frame",{
 local mark=txt(logo,"VP",0,4,32,22,13,true,C.DARK)
 mark.TextXAlignment=Enum.TextXAlignment.Center
 local brandName=txt(sidebar,"VISION PRO",53,13,100,24,12,true,C.WHITE)
-local brandSub=txt(sidebar,"DESKTOP V4  /  1.7.2",53,34,102,17,9,true,C.MUTED)
+local brandSub=txt(sidebar,"DESKTOP V4  /  1.7.3",53,34,102,17,9,true,C.MUTED)
 local sidebarLine=bar(sidebar,15,64,125,1,C.STROKE)
 sidebarLine.BackgroundTransparency=.4
 local tabs={"HOME","VISUALS","AIMBOT","SILENT","MISC","SETTINGS","ABOUT"}
@@ -458,7 +458,7 @@ local footer=make("Frame",{Position=UDim2.fromOffset(170,427),
     Size=UDim2.fromOffset(505,28),BackgroundTransparency=1},window)
 local footerLine=bar(footer,0,0,504,1,C.STROKE)
 footerLine.BackgroundTransparency=.54
-local foot=txt(footer,"SPECTRA V4  /  VISION PRO  /  v1.7.2",3,7,340,18,10,true,C.MUTED)
+local foot=txt(footer,"SPECTRA V4  /  VISION PRO  /  v1.7.3",3,7,340,18,10,true,C.MUTED)
 local fpsText=txt(footer,"-- FPS",390,7,105,18,10,true,C.GREEN)
 fpsText.TextXAlignment=Enum.TextXAlignment.Right
 local pages,orders={},{}
@@ -678,6 +678,16 @@ local function choices(page,title,key,options)
     end)
 end
 local function slider(page,key,title,low,high,step,unit)
+    if D[key]==nil or type(D[key])~="number" then
+        error("Unknown numeric slider setting: "..tostring(key))
+    end
+    if type(low)~="number" or type(high)~="number"
+        or type(step)~="number" or high<=low or step<=0 then
+        error("Invalid slider bounds: "..tostring(key))
+    end
+    local current=tonumber(cfg[key])
+    if not current or current~=current then cfg[key]=D[key] end
+    cfg[key]=math.clamp(cfg[key],low,high)
     local row=corner(make("Frame",{Size=UDim2.new(1,-2,0,71),
         LayoutOrder=order(page),BackgroundColor3=C.CARD,
         BorderSizePixel=0},pages[page]),ROUND.Card)
@@ -698,11 +708,17 @@ local function slider(page,key,title,low,high,step,unit)
         Size=UDim2.fromOffset(12,12),BackgroundColor3=C.WHITE,
         BorderSizePixel=0},rail),7)
     local function refreshSlider()
-        local f=math.clamp((cfg[key]-low)/(high-low),0,1)
+        local current=tonumber(cfg[key])
+        if not current or current~=current then
+            current=D[key]
+            cfg[key]=current
+        end
+        current=math.clamp(current,low,high)
+        local f=math.clamp((current-low)/(high-low),0,1)
         fill.Size=UDim2.fromScale(f,1)
         knob.Position=UDim2.fromScale(f,.5)
-        value.Text=(step<1 and string.format("%.2f",cfg[key])
-            or tostring(math.floor(cfg[key]+.5)))..(unit or "")
+        value.Text=(step<1 and string.format("%.2f",current)
+            or tostring(math.floor(current+.5)))..(unit or "")
     end
     local function set(x)
         if zone.AbsoluteSize.X<2 then return end
@@ -721,8 +737,8 @@ local function slider(page,key,title,low,high,step,unit)
             set(input.Position.X)
         end
     end)
-    table.insert(S.Sliders,refreshSlider)
     refreshSlider()
+    table.insert(S.Sliders,refreshSlider)
 end
 -- Prevent one broken UI element from stopping all later tabs.
 local function safeBuildWidget(kind,constructor)
@@ -1547,7 +1563,7 @@ toggle("VISUALS","ESP","Activer les visuels","Activer ou desactiver tout l'ESP")
 toggle("VISUALS","Box","Boites 3D","Affichage 3D uniquement")
 choices("VISUALS","Couleur des boites","BoxColor",{"BLEU","VIOLET","RGB","ACCENT"})
 choices("VISUALS","Affichage ESP V4","ESPDetail",{"FULL","COMPACT"})
-slider("VISUALS","Distance des effets","ESPExtraRange",200,1500,100," studs")
+slider("VISUALS","ESPExtraRange","Distance des effets",200,1500,100," studs")
 slider("VISUALS","Thickness","Epaisseur des contours",.03,.18,.01," studs")
 toggle("VISUALS","Skeleton","Skeleton","Articulations R6 et R15")
 toggle("VISUALS","Tracers","Tracers","Traces vers les cibles")
@@ -1628,7 +1644,7 @@ toggle("SETTINGS","AdaptiveFPS","Rafraichissement adaptatif","Adapter le rendu a
 slider("SETTINGS","RenderRate","Frequence d'affichage",15,60,5," Hz")
 slider("SETTINGS","Range","Distance ESP",100,2500,100," studs")
 section("SETTINGS","APPARENCE V4")
-slider("SETTINGS","Arrondi des coins","UIRoundness",.7,1.5,.1," x")
+slider("SETTINGS","UIRoundness","Arrondi des coins",.7,1.5,.1," x")
 slider("SETTINGS","MenuScale","Taille du menu",.7,1.15,.05," x")
 choices("SETTINGS","Raccourci du menu","Shortcut",{"TAB","RIGHTSHIFT","F4"})
 choices("SETTINGS","Couleur d'accent","Accent",{"BLEU","VIOLET","CYAN","ROUGE","VERT","ROSE"})
@@ -1919,9 +1935,9 @@ local function releaseLine(index,version,heading,detail,color)
         line.BackgroundTransparency=.76
     end
 end
-releaseLine(1,"1.7.2","NAVIGATION FIX","Pages / widgets proteges / scroll Roblox",C.CYAN)
-releaseLine(2,"1.7.1","UI HOTFIX","Coins arrondis et ajustements",C.PURPLE)
-releaseLine(3,"1.7.0","V4 COMPLETE","Interface / ESP / protections V4",C.GOLD)
+releaseLine(1,"1.7.3","SLIDER FIX","Calcul nil / onglets / arrondis / effets",C.CYAN)
+releaseLine(2,"1.7.2","NAVIGATION FIX","Pages / widgets proteges / scroll Roblox",C.PURPLE)
+releaseLine(3,"1.7.1","UI HOTFIX","Coins arrondis et ajustements",C.GOLD)
 local aboutEnd=make("Frame",{
     LayoutOrder=order("ABOUT"),Size=UDim2.new(1,-2,0,34),
     BackgroundTransparency=1

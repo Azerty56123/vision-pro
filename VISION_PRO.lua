@@ -1,5 +1,5 @@
--- VISION_PRO_VERSION: 1.6.1
---[[ VISION PRO 1.6.1 | SPECTRA / ROUNDED UI V3
+-- VISION_PRO_VERSION: 1.7.0
+--[[ VISION PRO 1.7.0 | SPECTRA / FULL V4
      LocalScript for authorized testing in your Roblox place.
      Aimbot / simulated Silent Aim work on locally spawned mannequins only.
      Camera assist and impact preview always start disabled.
@@ -16,7 +16,7 @@ local WS=game:GetService("Workspace")
 local Me=Players.LocalPlayer
 if not Me then return end
 local PG=Me:WaitForChild("PlayerGui")
-local V="1.6.1"
+local V="1.7.0"
 local GNAME="VISION_PRO_147_GUI"
 local ONAME="VISION_PRO_147_OVERLAY"
 local DNAME="VISION_PRO_147_DUMMIES"
@@ -45,7 +45,7 @@ end
 -- Renseigne ici l'adresse RAW publique de ton propre fichier VISION_PRO.lua.
 -- Le pseudo / depot ne s'affiche jamais dans l'onglet About.
 
-local D={ESP=true,Box=true,BoxColor="BLEU",ThroughWalls=true,
+local D={ESP=true,Box=true,BoxColor="ACCENT",ESPDetail="FULL",ESPExtraRange=650,ThroughWalls=true,
     Skeleton=true,Tracers=false,Names=true,Distance=true,Health=true,
     ShowAllies=true,ShowNPC=true,TeamColors=false,Highlight=false,
     Aim=false,AimFOV=140,AimSmooth=.12,ShowFOV=true,AimPart="HEAD",AimLOS=true,
@@ -54,10 +54,10 @@ local D={ESP=true,Box=true,BoxColor="BLEU",ThroughWalls=true,
     AntiFly=true,FlyLaunchSpeed=75,
     AntiFling=true,FlingSpeed=100,
     AntiAim=false,SpinThreshold=9,
-    GuardCorrect=true,MoveHUD=true,SafeRecovery=true,GuardV3=true,GuardMode="STRONG",
+    GuardCorrect=true,MoveHUD=true,SafeRecovery=true,GuardV3=true,GuardMode="STRONG",GuardV4=true,
     GITHUB_OTA_URL="https://raw.githubusercontent.com/Azerty56123/vision-pro/main/VISION_PRO.lua",
     Accent="VIOLET",RGB=false,Animations=true,Notifications=true,MiniButton=false,
-    MenuScale=1,Shortcut="TAB",PerformanceMode="BALANCED",Range=1200,
+    MenuScale=1,UIRoundness=1.1,Shortcut="TAB",PerformanceMode="BALANCED",Range=1200,
     Thickness=.07,RenderRate=45,AdaptiveFPS=true}
 local cfg=table.clone(D)
 local old=env.VISION_PRO_147_PREFS or env.VISION_PRO_145_PREFS or env.VISION_PRO_144_PREFS or env.VISION_PRO_143_PREFS or env.VISION_PRO_142_PREFS or env.VISION_PRO_141_PREFS or env.VISION_PRO_140_PREFS or env.VISION_PRO_132_PREFS or env.VISION_PRO_131_PREFS or env.VISION_PRO_130_PREFS or env.VISION_PRO_127_PREFS or env.VISION_PRO_126_PREFS or env.VISION_PRO_125_PREFS or env.VISION_PRO_124_PREFS
@@ -70,15 +70,17 @@ local function validOptions(key,values,fallback)
     if not table.find(values,cfg[key]) then cfg[key]=fallback end
 end
 local function normalize()
-    validOptions("BoxColor",{"BLEU","VIOLET","RGB"},"BLEU")
+    validOptions("BoxColor",{"BLEU","VIOLET","RGB","ACCENT"},"ACCENT")
+    validOptions("ESPDetail",{"FULL","COMPACT"},"FULL")
     validOptions("Accent",{"BLEU","VIOLET","CYAN","ROUGE","VERT","ROSE"},"VIOLET")
     validOptions("PerformanceMode",{"LOW","BALANCED","HIGH"},"BALANCED")
     validOptions("Shortcut",{"TAB","RIGHTSHIFT","F4"},"TAB")
     validOptions("GuardMode",{"NORMAL","STRONG"},"STRONG")
     cfg.MenuScale=math.clamp(tonumber(cfg.MenuScale) or 1,.7,1.15)
+    cfg.UIRoundness=math.clamp(tonumber(cfg.UIRoundness) or 1.1,.7,1.5)
     validOptions("AimPart",{"HEAD","BODY"},"HEAD")
     validOptions("PreviewPart",{"HEAD","BODY"},"HEAD")
-    for k,v in pairs({AimFOV={60,300},PreviewFOV={60,300},AimSmooth={.03,.45},Range={100,2500},Thickness={.03,.18},RenderRate={15,60},ShotDamage={10,50},FlyLaunchSpeed={50,200},FlingSpeed={70,250},SpinThreshold={5,25}}) do
+    for k,v in pairs({AimFOV={60,300},PreviewFOV={60,300},AimSmooth={.03,.45},Range={100,2500},ESPExtraRange={200,1500},Thickness={.03,.18},RenderRate={15,60},ShotDamage={10,50},FlyLaunchSpeed={50,200},FlingSpeed={70,250},SpinThreshold={5,25}}) do
         local num=tonumber(cfg[k]) or D[k]
         cfg[k]=math.clamp(num==num and num or D[k],v[1],v[2])
     end
@@ -100,11 +102,11 @@ save()
 
 local C={
     -- SPECTRA SLATE: four neutral surfaces, restrained cool-color accents.
-    BG=Color3.fromRGB(12,16,25),
-    SIDE=Color3.fromRGB(17,23,34),
-    CARD=Color3.fromRGB(24,32,47),
-    HOVER=Color3.fromRGB(34,46,64),
-    STROKE=Color3.fromRGB(53,69,91),
+    BG=Color3.fromRGB(13,17,27),
+    SIDE=Color3.fromRGB(19,25,39),
+    CARD=Color3.fromRGB(27,36,53),
+    HOVER=Color3.fromRGB(39,52,73),
+    STROKE=Color3.fromRGB(58,76,100),
     WHITE=Color3.fromRGB(244,249,255),
     TEXT=Color3.fromRGB(210,223,236),
     MUTED=Color3.fromRGB(151,169,189),
@@ -130,6 +132,7 @@ local S={Alive=true,Open=true,Page="HOME",Connections={},Players={},Targets={},D
     FlyCooldown=0,FlingCooldown=0,SpinCooldown=0,
     GuardCharacter=nil,LastSafeCFrame=nil,LastSafeTime=0,LastRecovery=0,RecoveryUntil=0,
     GuardNoticeCooldown=0,LastGuardHUD=0,GuardCooldown=0,GuardErrorTime=0,BlockedImpulses=0,
+    LastMotionVelocity=nil,GuardCorrections=0,RecoveryReason=nil,ToastList={},RoundCorners={},
     FlyState="OFF",FlingState="OFF",SpinState="OFF",
     MovementStatus=nil,MovementHUD=nil,
     OtaRelease=nil,OtaAssetUrl=nil,OtaPageUrl=nil,OtaBusy=false,OtaConfirmOpen=false,
@@ -167,10 +170,24 @@ local function on(event,cb)
     return con
 end
 -- SPECTRA V3 ROUNDED: consistent radii without changing button behavior.
-local ROUND={Window=26,Sidebar=26,Card=18,Compact=15,Modal=23,Pill=18}
+local ROUND={Window=27,Sidebar=27,Card=18,Compact=15,Modal=24,Pill=18}
 local function corner(x,r)
-    make("UICorner",{CornerRadius=UDim.new(0,r)},x)
+    local radius=r
+    if radius>=8 and radius<100 then
+        radius=math.floor(radius*cfg.UIRoundness+.5)
+    end
+    local rounded=make("UICorner",{CornerRadius=UDim.new(0,radius)},x)
+    if r>=8 and r<100 then
+        table.insert(S.RoundCorners,{Corner=rounded,Base=r})
+    end
     return x
+end
+local function refreshRoundness()
+    for _,item in ipairs(S.RoundCorners) do
+        if item.Corner.Parent then
+            item.Corner.CornerRadius=UDim.new(0,math.floor(item.Base*cfg.UIRoundness+.5))
+        end
+    end
 end
 local function stroke(x,col,w) return make("UIStroke",{Color=col or C.STROKE,Thickness=w or 1},x) end
 local function grad(x,a,b,angle)
@@ -284,30 +301,43 @@ local overlay=make("ScreenGui",{Name=ONAME,DisplayOrder=850,IgnoreGuiInset=true,
 local ui=make("ScreenGui",{Name=GNAME,DisplayOrder=900,IgnoreGuiInset=true,ResetOnSpawn=false},PG)
 notify=function(message,kind)
     if not S.Alive or not cfg.Notifications or not ui.Parent then return end
-    if S.Toast and S.Toast.Parent then S.Toast:Destroy() end
-    local tint=kind=="ERROR" and C.RED or kind=="SUCCESS" and C.GREEN or S.Accent
+    local items=S.ToastList
+    local color=kind=="ERROR" and C.RED or kind=="SUCCESS" and C.GREEN or S.Accent
     local toast=corner(make("Frame",{
-        Name="VPToast",AnchorPoint=Vector2.new(1,0),
-        Position=UDim2.new(1,-18,0,-72),Size=UDim2.fromOffset(288,59),
-        BackgroundColor3=C.SIDE,BorderSizePixel=0,ZIndex=100,
+        Name="VPToastV4",AnchorPoint=Vector2.new(1,0),
+        Position=UDim2.new(1,-18,0,-72),Size=UDim2.fromOffset(296,58),
+        BackgroundColor3=C.SIDE,BorderSizePixel=0,ZIndex=100
     },ui),ROUND.Compact)
-    S.Toast=toast
-    stroke(toast,C.STROKE,1).Transparency=.35
-    local mark=bar(toast,0,9,3,41,tint)
-    mark.ZIndex=101
-    local heading=txt(toast,kind=="ERROR" and "ERROR" or kind=="SUCCESS" and "SUCCESS" or "VISION PRO",12,5,263,18,10,true,tint)
+    stroke(toast,C.STROKE,1).Transparency=.28
+    bar(toast,0,10,3,38,color).ZIndex=101
+    local heading=txt(toast,kind=="ERROR" and "ERROR" or kind=="SUCCESS" and "SUCCESS" or "VISION PRO",
+        14,5,258,17,10,true,color)
     heading.ZIndex=101
-    local info=description(toast,tostring(message):sub(1,94),12,25,263,26)
-    info.ZIndex=101
-    info.TextWrapped=true
-    animateUI(toast,{Position=UDim2.new(1,-18,0,18)},.2)
-    task.delay(2.8,function()
-        if not toast.Parent then return end
-        animateUI(toast,{Position=UDim2.new(1,-18,0,-72)},.18)
-        task.delay(.22,function()
-            if toast.Parent then toast:Destroy() end
-            if S.Toast==toast then S.Toast=nil end
-        end)
+    local info=description(toast,tostring(message):sub(1,90),14,25,261,24)
+    info.ZIndex=101;info.TextWrapped=true
+    table.insert(items,toast)
+    if #items>3 then
+        local oldest=table.remove(items,1)
+        if oldest.Parent then oldest:Destroy() end
+    end
+    for index,item in ipairs(items) do
+        if item.Parent then
+            animateUI(item,{Position=UDim2.new(1,-18,0,18+(index-1)*68)},.18)
+        end
+    end
+    task.delay(kind=="ERROR" and 4 or 2.8,function()
+        local where=table.find(items,toast)
+        if not where then return end
+        table.remove(items,where)
+        if toast.Parent then
+            animateUI(toast,{Position=UDim2.new(1,-18,0,-72)},.15)
+            task.delay(.2,function()if toast.Parent then toast:Destroy() end end)
+        end
+        for index,item in ipairs(items) do
+            if item.Parent then
+                animateUI(item,{Position=UDim2.new(1,-18,0,18+(index-1)*68)},.18)
+            end
+        end
     end)
 end
 -- SPECTRA: purpose-built desktop control surface, not a dashboard grid.
@@ -349,7 +379,7 @@ local logo=corner(make("Frame",{
 local mark=txt(logo,"VP",0,4,32,22,13,true,C.DARK)
 mark.TextXAlignment=Enum.TextXAlignment.Center
 local brandName=txt(sidebar,"VISION PRO",53,13,100,24,12,true,C.WHITE)
-local brandSub=txt(sidebar,"DESKTOP V3  /  1.6.1",53,34,102,17,9,true,C.MUTED)
+local brandSub=txt(sidebar,"DESKTOP V4  /  1.7.0",53,34,102,17,9,true,C.MUTED)
 local sidebarLine=bar(sidebar,15,64,125,1,C.STROKE)
 sidebarLine.BackgroundTransparency=.4
 local tabs={"HOME","VISUALS","AIMBOT","SILENT","MISC","SETTINGS","ABOUT"}
@@ -399,11 +429,11 @@ local v3Badge=corner(make("Frame",{
     Position=UDim2.fromOffset(292,5),Size=UDim2.fromOffset(94,19),
     BackgroundColor3=C.CARD,BorderSizePixel=0
 },header),10)
-local v3BadgeText=txt(v3Badge,"SPECTRA V3",11,1,77,16,9,true,C.CYAN)
+local v3BadgeText=txt(v3Badge,"SPECTRA V4",11,1,77,16,9,true,C.CYAN)
 v3BadgeText.TextXAlignment=Enum.TextXAlignment.Center
 local pageTitle=txt(header,"Accueil",12,18,340,28,21,true,C.WHITE)
 local pageDesc=description(header,"Environnement de test",13,44,340,18)
-local headerStripe=bar(header,0,58,3,6,C.BLUE)
+local headerStripe=bar(header,0,58,4,6,C.BLUE)
 local headerPink=bar(header,361,57,15,2,C.BLUE)
 headerPink.BackgroundTransparency=.66
 local headerCyan=bar(header,379,57,8,2,C.CYAN)
@@ -423,7 +453,7 @@ local footer=make("Frame",{Position=UDim2.fromOffset(170,427),
     Size=UDim2.fromOffset(505,28),BackgroundTransparency=1},window)
 local footerLine=bar(footer,0,0,504,1,C.STROKE)
 footerLine.BackgroundTransparency=.54
-local foot=txt(footer,"SPECTRA  /  VISION PRO  /  v1.6.1",3,7,340,18,10,true,C.MUTED)
+local foot=txt(footer,"SPECTRA V4  /  VISION PRO  /  v1.7.0",3,7,340,18,10,true,C.MUTED)
 local fpsText=txt(footer,"-- FPS",390,7,105,18,10,true,C.GREEN)
 fpsText.TextXAlignment=Enum.TextXAlignment.Right
 local pages,orders={},{ }
@@ -668,6 +698,7 @@ local function slider(page,key,title,low,high,step,unit)
         save()
         refreshSlider()
         if key=="MenuScale" then rescale() end
+        if key=="UIRoundness" then refreshRoundness() end
     end
     on(zone.InputBegan,function(input)
         if input.UserInputType==Enum.UserInputType.MouseButton1
@@ -835,6 +866,7 @@ local function teamColor(player)
 end
 local function boxColor()
     if cfg.BoxColor=="RGB" then return Color3.fromHSV((os.clock()*.32)%1,.85,1) end
+    if cfg.BoxColor=="ACCENT" then return S.Accent end
     return cfg.BoxColor=="VIOLET" and C.PURPLE or C.BLUE
 end
 local function newVisual(d,model)
@@ -860,7 +892,7 @@ local function newVisual(d,model)
     local panel=corner(make("Frame",{
         Position=UDim2.fromOffset(5,1),Size=UDim2.fromOffset(182,59),
         BackgroundColor3=C.DARK,BackgroundTransparency=.07,BorderSizePixel=0
-    },d.Billboard),9)
+    },d.Billboard),ROUND.Compact)
     local rim=stroke(panel,C.STROKE,1);rim.Transparency=.25
     local accent=bar(panel,0,10,3,38,C.PURPLE)
     d.Panel=panel;d.PanelRim=rim;d.Accent=accent
@@ -988,7 +1020,9 @@ local function updateTargets()
                 local camera=WS.CurrentCamera
                 if camera and not see(d,model,camera) then d.Visible=false end
             end
-            d.Billboard.Enabled=d.Visible and (cfg.Names or cfg.Distance or (cfg.Health and hp~=nil))
+            local detailed=cfg.ESPDetail=="FULL"
+            d.ShowExtras=d.Visible and dist<=cfg.ESPExtraRange
+            d.Billboard.Enabled=d.Visible and (cfg.Names or (detailed and (cfg.Distance or (cfg.Health and hp~=nil))))
             d.Billboard.MaxDistance=cfg.Range
             d.Billboard.AlwaysOnTop=cfg.ThroughWalls
             d.Accent.BackgroundColor3=boxColor()
@@ -1001,9 +1035,9 @@ local function updateTargets()
             d.StateText.Text=(isDummy and (not alive and "DOWN" or "BOT")) or ""
             d.StateText.TextColor3=alive and C.CYAN or C.RED
             d.Subtxt.Text=cfg.Distance and (math.floor(dist+.5).." studs") or ""
-            d.Subtxt.Visible=cfg.Distance
-            d.HPText.Visible=cfg.Health and hp~=nil
-            d.HealthRail.Visible=cfg.Health and hp~=nil
+            d.Subtxt.Visible=detailed and cfg.Distance
+            d.HPText.Visible=detailed and cfg.Health and hp~=nil
+            d.HealthRail.Visible=detailed and cfg.Health and hp~=nil
             if hp~=nil and maxHP~=nil then
                 local ratio=math.clamp(hp/maxHP,0,1)
                 d.HPText.Text=string.format("%d / %d",math.ceil(hp),math.ceil(maxHP))
@@ -1017,7 +1051,7 @@ local function updateTargets()
                 d.HPText.TextColor3=tone
                 d.HealthFill.BackgroundColor3=tone
             end
-            d.Glow.Enabled=d.Visible and cfg.Highlight
+            d.Glow.Enabled=d.ShowExtras and cfg.Highlight
             d.Glow.DepthMode=cfg.ThroughWalls and Enum.HighlightDepthMode.AlwaysOnTop or Enum.HighlightDepthMode.Occluded
             d.Glow.OutlineColor=cfg.TeamColors and teamColor(player) or boxColor()
             d.Glow.FillColor=cfg.TeamColors and teamColor(player) or boxColor()
@@ -1034,6 +1068,7 @@ local function updateTargets()
             end
         else
             d.Visible=false
+            d.ShowExtras=false
             if d.Billboard then d.Billboard.Enabled=false end
             if d.Edges then for _,edge in ipairs(d.Edges) do edge.Item.Visible=false end end
         end
@@ -1045,7 +1080,7 @@ local function drawEffects()
     local color=boxColor()
     for _,d in pairs(S.Targets) do
         if d.Edges then for _,edge in ipairs(d.Edges) do edge.Item.Color3=(d.Model and d.Model:GetAttribute("VisionProDown")) and C.RED or color end end
-        if d.Model and d.Visible and d.Root then drawExtras(d,d.Model,cam)
+        if d.Model and d.Visible and d.ShowExtras and d.Root then drawExtras(d,d.Model,cam)
         else hideExtras(d) end
     end
 end
@@ -1419,7 +1454,7 @@ on(Me.CharacterAdded,function()
     end)
 end)
 
--- SPECTRA V3: Home quick access to local guard controls.
+-- SPECTRA V4: Home quick access to local guard controls.
 section("HOME","PROTECTION ACTIVE")
 local protectionCard=corner(make("Frame",{
     LayoutOrder=order("HOME"),Size=UDim2.new(1,-2,0,91),
@@ -1428,7 +1463,7 @@ local protectionCard=corner(make("Frame",{
 stroke(protectionCard,C.STROKE,1).Transparency=.36
 local protectionAccent=bar(protectionCard,0,12,3,68,C.GREEN)
 table.insert(S.AccentBars,protectionAccent)
-local protectTitle=txt(protectionCard,"ANTI FLING V3",17,9,265,24,14,true,C.WHITE)
+local protectTitle=txt(protectionCard,"ANTI FLING V4",17,9,265,24,14,true,C.WHITE)
 local protectDesc=description(protectionCard,"Local protection / Strong / Recovery",17,33,306,20)
 local protectCount=description(protectionCard,"0 BLOCKED",17,60,270,18)
 local protectButton=btn(protectionCard,"TURN OFF",350,26,134,37,C.GREEN)
@@ -1469,10 +1504,12 @@ local metricsLine=bar(homeStatus,13,38,476,1,C.STROKE)
 dummyInfo=txt(homeStatus,"Targets: 0 / 3",13,8,220,25,12,true,C.WHITE)
 weaponInfo=description(homeStatus,"Ammo: 12 / 12   /   HOLSTERED",13,40,459,22)
 
-section("VISUALS","3D ESP")
+section("VISUALS","ESP V4")
 toggle("VISUALS","ESP","Activer les visuels","Activer ou desactiver tout l'ESP")
 toggle("VISUALS","Box","Boites 3D","Affichage 3D uniquement")
-choices("VISUALS","Couleur des boites","BoxColor",{"BLEU","VIOLET","RGB"})
+choices("VISUALS","Couleur des boites","BoxColor",{"BLEU","VIOLET","RGB","ACCENT"})
+choices("VISUALS","Affichage ESP V4","ESPDetail",{"FULL","COMPACT"})
+slider("VISUALS","Distance des effets","ESPExtraRange",200,1500,100," studs")
 slider("VISUALS","Thickness","Epaisseur des contours",.03,.18,.01," studs")
 toggle("VISUALS","Skeleton","Skeleton","Articulations R6 et R15")
 toggle("VISUALS","Tracers","Tracers","Traces vers les cibles")
@@ -1516,7 +1553,7 @@ end)
 
 -- MISC: optional protections against abnormal incoming physics impulses.
 -- These guards NEVER deliberately rotate the character.
-section("MISC","ANTI FLING V3")
+section("MISC","ANTI FLING V4")
 toggle("MISC","AntiFling","Anti-fling","Bloquer les fortes projections horizontales et verticales")
 toggle("MISC","AntiFly","Anti-launch","Limiter les projections vers le haut")
 choices("MISC","Protection","GuardMode",{"NORMAL","STRONG"})
@@ -1535,7 +1572,7 @@ local miscPanel=corner(make("Frame",{
 },pages.MISC),ROUND.Card)
 stroke(miscPanel,C.STROKE,1).Transparency=.58
 bar(miscPanel,0,9,3,48,C.GOLD)
-local miscStatus=txt(miscPanel,"ANTI FLING / MONITORING",13,5,460,24,11,true,C.CYAN)
+local miscStatus=txt(miscPanel,"GUARD V4 / MONITORING",13,5,460,24,11,true,C.CYAN)
 local miscHint=description(miscPanel,"Active local guard. Server physics can still override correction.",13,32,467,24)
 S.MovementStatus=miscStatus
 action("MISC","Effacer les alertes","Vider les compteurs sans desactiver les protections","RESET",function()
@@ -1547,18 +1584,19 @@ action("MISC","Effacer les alertes","Vider les compteurs sans desactiver les pro
     save();refresh()
 end)
 
-section("SETTINGS","PERFORMANCES")
+section("SETTINGS","PERFORMANCES V4")
 choices("SETTINGS","Mode performance","PerformanceMode",{"LOW","BALANCED","HIGH"})
 toggle("SETTINGS","AdaptiveFPS","Rafraichissement adaptatif","Adapter le rendu aux FPS")
 slider("SETTINGS","RenderRate","Frequence d'affichage",15,60,5," Hz")
 slider("SETTINGS","Range","Distance ESP",100,2500,100," studs")
-section("SETTINGS","APPARENCE")
+section("SETTINGS","APPARENCE V4")
+slider("SETTINGS","Arrondi des coins","UIRoundness",.7,1.5,.1," x")
 slider("SETTINGS","MenuScale","Taille du menu",.7,1.15,.05," x")
 choices("SETTINGS","Raccourci du menu","Shortcut",{"TAB","RIGHTSHIFT","F4"})
 choices("SETTINGS","Couleur d'accent","Accent",{"BLEU","VIOLET","CYAN","ROUGE","VERT","ROSE"})
 toggle("SETTINGS","RGB","Accent RGB","Animer legerement les accents")
 toggle("SETTINGS","Animations","Animations de l'interface","Transitions et survols discrets")
-toggle("SETTINGS","Notifications","Notifications","Afficher les confirmations et alertes")
+toggle("SETTINGS","Notifications","Notifications V4","Afficher jusqu a 3 alertes sans chevauchement")
 toggle("SETTINGS","MiniButton","Bouton flottant","Raccourci quand le menu est ferme")
 action("SETTINGS","Restaurer les parametres","Revenir aux parametres par defaut","RESET",function()
     for k,v in pairs(D) do cfg[k]=v end
@@ -1843,9 +1881,9 @@ local function releaseLine(index,version,heading,detail,color)
         line.BackgroundTransparency=.76
     end
 end
-releaseLine(1,"1.6.1","ROUNDED UI","Coins arrondis / boutons pill / cartes V3",C.CYAN)
-releaseLine(2,"1.6.0","DESIGN V3","Interface V3 / Anti Fling V3",C.PURPLE)
-releaseLine(3,"1.5.0","MAJOR UPDATE","Interface V2 / performance / notifications",C.GOLD)
+releaseLine(1,"1.7.0","V4 COMPLETE","UI / ESP / Anti Fling / notifications V4",C.CYAN)
+releaseLine(2,"1.6.1","ROUNDED UI","Coins arrondis / boutons pill / cartes",C.PURPLE)
+releaseLine(3,"1.6.0","DESIGN V3","Interface et protection V3",C.GOLD)
 local aboutEnd=make("Frame",{
     LayoutOrder=order("ABOUT"),Size=UDim2.new(1,-2,0,34),
     BackgroundTransparency=1
@@ -1912,11 +1950,12 @@ S.MovementHUD=movementHud
 local function resetDefense()
     S.FlyState="OFF";S.FlingState="OFF";S.SpinState="OFF"
     S.FlySamples=0;S.FlingSamples=0;S.SpinSamples=0
+    S.LastMotionVelocity=nil
     S.RecoveryUntil=0
 end
 
--- Small per-physics-step guard: this tries to stop abnormal impulses before
--- they launch the local character across the map. It does not override server authority.
+-- Guard V4: purely local physics mitigation in authorized test places.
+-- No client script can override server-authoritative physics in every game.
 local function updateMovement(dt)
     if not S.Alive then return end
     local character=Me.Character
@@ -1926,7 +1965,6 @@ local function updateMovement(dt)
         S.GuardCharacter=character
         S.LastSafeCFrame=nil
         S.LastSafeTime=0
-        S.RecoveryUntil=0
         resetDefense()
     end
     if not root or not root:IsA("BasePart") or not humanoid or humanoid.Health<=0 then
@@ -1939,124 +1977,142 @@ local function updateMovement(dt)
         or state==Enum.HumanoidStateType.Swimming
         or state==Enum.HumanoidStateType.Climbing
         or state==Enum.HumanoidStateType.Dead
+        or state==Enum.HumanoidStateType.Physics
     local now=os.clock()
-    local velocity=root.AssemblyLinearVelocity
-    local angular=root.AssemblyAngularVelocity
-    local horizontal=Vector3.new(velocity.X,0,velocity.Z)
-    local horizontalSpeed=horizontal.Magnitude
-    local verticalSpeed=velocity.Y
+    local v=root.AssemblyLinearVelocity
+    local a=root.AssemblyAngularVelocity
+    local last=S.LastMotionVelocity
+    S.LastMotionVelocity=v
+    local h=Vector3.new(v.X,0,v.Z)
+    local hSpeed=h.Magnitude
+    local ySpeed=v.Y
     local strict=cfg.GuardMode=="STRONG"
     local hLimit=cfg.FlingSpeed*(strict and .82 or 1)
-    local vLimit=cfg.FlyLaunchSpeed*(strict and .86 or 1)
+    local yLimit=cfg.FlyLaunchSpeed*(strict and .86 or 1)
+    local horizontalShock=last and
+        (Vector3.new(v.X-last.X,0,v.Z-last.Z)).Magnitude or 0
+    local verticalShock=last and math.max(0,v.Y-last.Y) or 0
+    local grounded=humanoid.FloorMaterial~=Enum.Material.Air
 
-    -- Grounded, slow locations are trusted for a few seconds as recovery points.
-    if not excluded and humanoid.FloorMaterial~=Enum.Material.Air
-        and horizontalSpeed<32 and math.abs(verticalSpeed)<24 then
-        S.LastSafeCFrame=root.CFrame
-        S.LastSafeTime=now
+    -- Store a recent, slow grounded point. A recovery still requires a raycast.
+    if not excluded and grounded and hSpeed<28 and math.abs(ySpeed)<18 then
+        if not S.LastSafeCFrame or now-S.LastSafeTime>.12 then
+            S.LastSafeCFrame=root.CFrame
+            S.LastSafeTime=now
+        end
     end
 
-    local protectH=not excluded and cfg.AntiFling
-        and horizontalSpeed>hLimit
-    -- Anti-fling also watches upward impulses when AntiFly is toggled off.
-    local protectV=not excluded and (cfg.AntiFly or cfg.AntiFling)
-        and verticalSpeed>vLimit
-    local protectSpin=not excluded and cfg.AntiAim
-        and math.abs(angular.Y)>cfg.SpinThreshold
+    local detectH=not excluded and cfg.AntiFling
+        and hSpeed>hLimit and
+        (strict or horizontalShock>hLimit*.3 or hSpeed>hLimit*1.7)
+    local detectY=not excluded and (cfg.AntiFly or cfg.AntiFling)
+        and ySpeed>yLimit and
+        (strict or verticalShock>yLimit*.3 or ySpeed>yLimit*1.7)
+    local detectSpin=not excluded and cfg.AntiAim
+        and math.abs(a.Y)>cfg.SpinThreshold
 
     if excluded then
-        S.FlyState="EXEMPT";S.FlingState="EXEMPT";S.SpinState="EXEMPT"
-        S.FlySamples=0;S.FlingSamples=0;S.SpinSamples=0
+        S.FlingState="EXEMPT";S.FlyState="EXEMPT";S.SpinState="EXEMPT"
+        S.FlingSamples=0;S.FlySamples=0;S.SpinSamples=0
         S.RecoveryUntil=0
     else
-        S.FlingSamples=protectH and math.min(3,S.FlingSamples+1) or 0
-        S.FlySamples=protectV and math.min(3,S.FlySamples+1) or 0
-        S.SpinSamples=protectSpin and math.min(3,S.SpinSamples+1) or 0
-
-        local hitH=protectH and (strict or S.FlingSamples>=2 or horizontalSpeed>hLimit*1.4)
-        local hitV=protectV and (strict or S.FlySamples>=2 or verticalSpeed>vLimit*1.4)
-        local hitSpin=protectSpin and (strict or S.SpinSamples>=2)
-        local impulse=hitH or hitV
-        S.FlingState=cfg.AntiFling and (hitH and "BLOCKED" or protectH and "VERIFYING" or "MONITORING") or "OFF"
-        S.FlyState=(cfg.AntiFly or cfg.AntiFling) and (hitV and "BLOCKED" or protectV and "VERIFYING" or "MONITORING") or "OFF"
-        S.SpinState=cfg.AntiAim and (hitSpin and "BLOCKED" or protectSpin and "VERIFYING" or "MONITORING") or "OFF"
-
-        if impulse then
+        S.FlingSamples=detectH and math.min(3,S.FlingSamples+1) or 0
+        S.FlySamples=detectY and math.min(3,S.FlySamples+1) or 0
+        S.SpinSamples=detectSpin and math.min(3,S.SpinSamples+1) or 0
+        local hitH=detectH and (strict or S.FlingSamples>=2)
+        local hitY=detectY and (strict or S.FlySamples>=2)
+        local hitSpin=detectSpin and (strict or S.SpinSamples>=2)
+        local impacted=hitH or hitY
+        S.FlingState=cfg.AntiFling and (hitH and "LIMITED" or detectH and "CHECKING" or "MONITORING") or "OFF"
+        S.FlyState=(cfg.AntiFly or cfg.AntiFling) and
+            (hitY and "LIMITED" or detectY and "CHECKING" or "MONITORING") or "OFF"
+        S.SpinState=cfg.AntiAim and (hitSpin and "LIMITED" or detectSpin and "CHECKING" or "MONITORING") or "OFF"
+        if impacted then
             if now-S.GuardCooldown>.5 then
                 S.BlockedImpulses+=1
+                S.GuardCorrections+=1
                 S.GuardCooldown=now
                 if hitH then S.FlingFlags+=1 end
-                if hitV then S.FlyFlags+=1 end
+                if hitY then S.FlyFlags+=1 end
             end
-            -- Allow an emergency return after a very large impulse only.
-            if cfg.SafeRecovery and cfg.GuardCorrect
-                and (horizontalSpeed>hLimit*2.3 or verticalSpeed>vLimit*2.3)
-                and now-S.LastSafeTime<2.4 and S.LastSafeCFrame then
-                S.RecoveryUntil=now+.5
+            if cfg.GuardCorrect then
+                -- Modify only the dangerous axis; preserve ordinary gravity and movement.
+                local horizontalNew=h
+                if hitH and hSpeed>.001 then
+                    horizontalNew=h.Unit*math.min(hSpeed,hLimit*.52)
+                end
+                local verticalNew=hitY and math.min(ySpeed,16) or ySpeed
+                root.AssemblyLinearVelocity=Vector3.new(
+                    horizontalNew.X,verticalNew,horizontalNew.Z)
+                if a.Magnitude>math.max(8,cfg.SpinThreshold*1.1) then
+                    root.AssemblyAngularVelocity=Vector3.zero
+                end
+                if cfg.SafeRecovery and
+                    (hSpeed>hLimit*2.2 or ySpeed>yLimit*2.2) and
+                    S.LastSafeCFrame and now-S.LastSafeTime<2 then
+                    S.RecoveryUntil=now+.65
+                end
             end
-            if now-S.GuardNoticeCooldown>2.2 then
-                notify("Abnormal movement blocked","INFO")
+            if now-S.GuardNoticeCooldown>2.5 then
+                notify("Guard V4: abnormal impulse limited","INFO")
                 S.GuardNoticeCooldown=now
             end
-        end
-
-        if cfg.GuardCorrect and impulse then
-            -- Minimize horizontal and vertical launch in the same correction.
-            local safeHorizontal=horizontalSpeed>0.001
-                and horizontal.Unit*math.min(horizontalSpeed,hLimit*.48)
-                or Vector3.zero
-            local safeVertical=hitV and math.min(verticalSpeed,18)
-                or math.clamp(verticalSpeed,-125,vLimit*.65)
-            root.AssemblyLinearVelocity=Vector3.new(
-                safeHorizontal.X,safeVertical,safeHorizontal.Z)
-            -- Fast rotation is often paired with collisions from other assemblies.
-            if angular.Magnitude>8 then
-                root.AssemblyAngularVelocity=Vector3.zero
-            end
-        elseif cfg.GuardCorrect and hitSpin then
-            root.AssemblyAngularVelocity=Vector3.new(angular.X,
-                math.clamp(angular.Y,-cfg.SpinThreshold*.5,cfg.SpinThreshold*.5),angular.Z)
+        elseif hitSpin and cfg.GuardCorrect then
+            root.AssemblyAngularVelocity=Vector3.new(a.X,
+                math.clamp(a.Y,-cfg.SpinThreshold*.5,cfg.SpinThreshold*.5),a.Z)
         end
 
         if cfg.GuardCorrect and cfg.SafeRecovery and S.RecoveryUntil>now
-            and S.LastSafeCFrame and now-S.LastSafeTime<2.4
-            and now-S.LastRecovery>2.8 then
-            local delta=root.Position-S.LastSafeCFrame.Position
-            if delta.Magnitude>10 and delta.Magnitude<135
-                and humanoid.FloorMaterial==Enum.Material.Air then
-                local saved=S.LastSafeCFrame
-                local orientation=root.CFrame-root.Position
-                character:PivotTo(CFrame.new(saved.Position+Vector3.new(0,2,0))*orientation)
-                root.AssemblyLinearVelocity=Vector3.zero
-                root.AssemblyAngularVelocity=Vector3.zero
-                S.RecoveryUntil=0
-                S.LastRecovery=now
-                S.FlingState="RECOVERED"
-                S.FlyState="RECOVERED"
-                notify("Safe position restored","SUCCESS")
+            and S.LastSafeCFrame and now-S.LastSafeTime<2
+            and now-S.LastRecovery>3 and not grounded then
+            local safe=S.LastSafeCFrame
+            local distance=(root.Position-safe.Position).Magnitude
+            if distance>12 and distance<125 then
+                -- Confirm the saved place still has supporting ground.
+                local query=RaycastParams.new()
+                query.FilterType=Enum.RaycastFilterType.Exclude
+                query.FilterDescendantsInstances={character}
+                query.IgnoreWater=true
+                local ground=WS:Raycast(safe.Position+Vector3.new(0,3,0),
+                    Vector3.new(0,-9,0),query)
+                if ground and ground.Instance and ground.Instance.CanCollide
+                    and ground.Normal.Y>.65 then
+                    local destination=Vector3.new(safe.Position.X,
+                        math.max(safe.Position.Y,ground.Position.Y+3),safe.Position.Z)
+                    local orientation=root.CFrame-root.Position
+                    character:PivotTo(CFrame.new(destination)*orientation)
+                    root.AssemblyLinearVelocity=Vector3.zero
+                    root.AssemblyAngularVelocity=Vector3.zero
+                    S.LastRecovery=now
+                    S.RecoveryUntil=0
+                    S.FlingState="RECOVERED"
+                    S.FlyState="RECOVERED"
+                    notify("Guard V4: position restored","SUCCESS")
+                end
             end
         end
     end
 
-    if now-S.LastGuardHUD<.13 then return end
+    if now-S.LastGuardHUD<.14 then return end
     S.LastGuardHUD=now
-    if protectCount.Parent then protectCount.Text=tostring(S.BlockedImpulses).." BLOCKED IMPULSES" end
-    local enabled=cfg.AntiFling or cfg.AntiFly
-    guardStatusSidebar.Text=enabled and "GUARD / ACTIVE" or "GUARD / OFF"
-    onlineDot.BackgroundColor3=enabled and C.GREEN or C.RED
-    local total=S.FlyFlags+S.FlingFlags+S.SpinFlags
+    if protectCount.Parent then
+        protectCount.Text=tostring(S.BlockedImpulses).." LIMITED IMPULSES"
+    end
+    local active=cfg.AntiFling or cfg.AntiFly
+    guardStatusSidebar.Text=active and "GUARD V4 / ON" or "GUARD V4 / OFF"
+    onlineDot.BackgroundColor3=active and C.GREEN or C.RED
     if S.MovementStatus and S.MovementStatus.Parent then
-        S.MovementStatus.Text="ANTI FLING "..S.FlingState
-            .."  /  LAUNCH "..S.FlyState.."  /  BLOCKED "..S.BlockedImpulses
+        S.MovementStatus.Text="FLING "..S.FlingState.." / LAUNCH "..S.FlyState
+            .." / EVENTS "..S.BlockedImpulses
     end
     movementHud.Visible=not S.Open and cfg.MoveHUD
         and (cfg.AntiFly or cfg.AntiFling or cfg.AntiAim)
     flightText.Text="LAUNCH / "..S.FlyState.." ("..S.FlyFlags..")"
     flingText.Text="FLING / "..S.FlingState.." ("..S.FlingFlags..")"
     angleText.Text="ROTATION / "..S.SpinState.." ("..S.SpinFlags..")"
-    flightText.TextColor3=S.FlyState=="BLOCKED" and C.GREEN or C.CYAN
-    flingText.TextColor3=S.FlingState=="BLOCKED" and C.GREEN or C.MUTED
-    angleText.TextColor3=S.SpinState=="BLOCKED" and C.GREEN or C.MUTED
+    flightText.TextColor3=S.FlyState=="LIMITED" and C.GREEN or C.CYAN
+    flingText.TextColor3=S.FlingState=="LIMITED" and C.GREEN or C.MUTED
+    angleText.TextColor3=S.SpinState=="LIMITED" and C.GREEN or C.MUTED
 end
 
 local function theme(dt)
@@ -2162,8 +2218,11 @@ end)
 on(Run.Heartbeat,function(dt)
     if not S.Alive then return end
     dataClock+=dt;themeClock+=dt
-    local updateInterval=cfg.PerformanceMode=="LOW" and .3
-        or cfg.PerformanceMode=="HIGH" and .12 or .18
+    local updateInterval=cfg.PerformanceMode=="LOW" and .31
+        or cfg.PerformanceMode=="HIGH" and .13 or .19
+    if cfg.AdaptiveFPS and S.FPS<35 then
+        updateInterval=math.max(updateInterval,.32)
+    end
     if dataClock>=updateInterval then
         local ok,err=pcall(updateTargets)
         if not ok then logVisionError("ESP",err) end
@@ -2190,4 +2249,4 @@ on(Run.RenderStepped,function(dt)
         fpsClock=0;frames=0;rescale()
     end
 end)
-print("VISION PRO "..V.." - SPECTRA V3 / CLIENT GUARD")
+print("VISION PRO "..V.." - SPECTRA V4 / UI + ESP + GUARD")

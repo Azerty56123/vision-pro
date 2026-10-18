@@ -1,0 +1,8 @@
+name = "vision-pro-beta-v4"
+main = "worker.js"
+compatibility_date = "2026-10-18"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "vision-pro-beta"
+database_id = "REPLACE_WITH_DATABASE_ID"

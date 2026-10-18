@@ -1,5 +1,5 @@
--- VISION_PRO_VERSION: 1.7.0
---[[ VISION PRO 1.7.0 | SPECTRA / FULL V4
+-- VISION_PRO_VERSION: 1.7.1
+--[[ VISION PRO 1.7.1 | SPECTRA / UI NAVIGATION HOTFIX
      LocalScript for authorized testing in your Roblox place.
      Aimbot / simulated Silent Aim work on locally spawned mannequins only.
      Camera assist and impact preview always start disabled.
@@ -16,7 +16,7 @@ local WS=game:GetService("Workspace")
 local Me=Players.LocalPlayer
 if not Me then return end
 local PG=Me:WaitForChild("PlayerGui")
-local V="1.7.0"
+local V="1.7.1"
 local GNAME="VISION_PRO_147_GUI"
 local ONAME="VISION_PRO_147_OVERLAY"
 local DNAME="VISION_PRO_147_DUMMIES"
@@ -170,7 +170,7 @@ local function on(event,cb)
     return con
 end
 -- SPECTRA V3 ROUNDED: consistent radii without changing button behavior.
-local ROUND={Window=27,Sidebar=27,Card=18,Compact=15,Modal=24,Pill=18}
+local ROUND={Window=32,Sidebar=32,Card=21,Compact=18,Modal=28,Pill=20}
 local function corner(x,r)
     local radius=r
     if radius>=8 and radius<100 then
@@ -350,9 +350,9 @@ stroke(window,C.STROKE,1).Transparency=.25
 local topLight=bar(window,157,0,527,3,C.BLUE)
 local topGradient=grad(topLight,C.BLUE,C.PURPLE,5)
 topLight.ZIndex=3
-local backgroundTint=make("Frame",{Position=UDim2.fromOffset(157,0),
-    Size=UDim2.new(1,-157,1,0),BackgroundColor3=C.BG,BorderSizePixel=0},window)
-grad(backgroundTint,Color3.fromRGB(24,32,48),Color3.fromRGB(13,19,31),78)
+-- Apply the tint directly to the rounded root. A rectangular child would
+-- cover the visual corners even when the root frame has a UICorner.
+grad(window,Color3.fromRGB(16,22,36),Color3.fromRGB(11,16,27),78)
 local scale=make("UIScale",{Scale=1},window)
 local function rescale()
     local camera=WS.CurrentCamera
@@ -363,7 +363,7 @@ local function rescale()
 end
 local sidebar=corner(make("Frame",{
     Position=UDim2.fromOffset(0,0),Size=UDim2.fromOffset(157,464),
-    BackgroundColor3=C.SIDE,BorderSizePixel=0
+    BackgroundColor3=C.SIDE,BorderSizePixel=0,ClipsDescendants=true
 },window),ROUND.Sidebar)
 -- Fill the rounded sidebar's inner right edge so the content divider stays straight.
 make("Frame",{
@@ -375,11 +375,11 @@ bar(sidebar,156,0,1,464,C.STROKE)
 local logo=corner(make("Frame",{
     Position=UDim2.fromOffset(15,17),Size=UDim2.fromOffset(32,32),
     BackgroundColor3=C.BLUE,BorderSizePixel=0
-},sidebar),12)
+},sidebar),14)
 local mark=txt(logo,"VP",0,4,32,22,13,true,C.DARK)
 mark.TextXAlignment=Enum.TextXAlignment.Center
 local brandName=txt(sidebar,"VISION PRO",53,13,100,24,12,true,C.WHITE)
-local brandSub=txt(sidebar,"DESKTOP V4  /  1.7.0",53,34,102,17,9,true,C.MUTED)
+local brandSub=txt(sidebar,"DESKTOP V4  /  1.7.1",53,34,102,17,9,true,C.MUTED)
 local sidebarLine=bar(sidebar,15,64,125,1,C.STROKE)
 sidebarLine.BackgroundTransparency=.4
 local tabs={"HOME","VISUALS","AIMBOT","SILENT","MISC","SETTINGS","ABOUT"}
@@ -394,7 +394,7 @@ for i,name in ipairs(tabs) do
     control.BackgroundTransparency=1
     local selected=corner(make("Frame",{Name="Selection",Position=UDim2.fromOffset(0,0),
         Size=UDim2.fromScale(1,1),BackgroundColor3=C.BLUE,
-        BorderSizePixel=0,Visible=false,Active=false},control),15)
+        BorderSizePixel=0,Visible=false,Active=false},control),17)
     local line=bar(control,0,8,3,21,tabColors[name])
     line.Visible=false
     local accentDot=corner(make("Frame",{Position=UDim2.fromOffset(11,9),
@@ -453,51 +453,62 @@ local footer=make("Frame",{Position=UDim2.fromOffset(170,427),
     Size=UDim2.fromOffset(505,28),BackgroundTransparency=1},window)
 local footerLine=bar(footer,0,0,504,1,C.STROKE)
 footerLine.BackgroundTransparency=.54
-local foot=txt(footer,"SPECTRA V4  /  VISION PRO  /  v1.7.0",3,7,340,18,10,true,C.MUTED)
+local foot=txt(footer,"SPECTRA V4  /  VISION PRO  /  v1.7.1",3,7,340,18,10,true,C.MUTED)
 local fpsText=txt(footer,"-- FPS",390,7,105,18,10,true,C.GREEN)
 fpsText.TextXAlignment=Enum.TextXAlignment.Right
-local pages,orders={},{ }
+local pages,orders,layouts={},{},{}
+local function updateCanvas(name)
+    local sc=pages[name]
+    local layout=layouts[name]
+    if not sc or not layout then return end
+    -- Stable scroll bounds for pages that were built while hidden.
+    local contentHeight=math.ceil(layout.AbsoluteContentSize.Y)+34
+    sc.CanvasSize=UDim2.fromOffset(0,math.max(sc.AbsoluteSize.Y,contentHeight))
+end
 for _,name in ipairs(tabs) do
     orders[name]=0
     local sc=make("ScrollingFrame",{Name=name,Size=UDim2.fromScale(1,1),BackgroundTransparency=1,BorderSizePixel=0,
-        AutomaticCanvasSize=Enum.AutomaticSize.Y,CanvasSize=UDim2.new(),ScrollBarThickness=3,
-        ScrollBarImageColor3=C.PURPLE,ScrollingDirection=Enum.ScrollingDirection.Y,Visible=false},body)
+        AutomaticCanvasSize=Enum.AutomaticSize.None,CanvasSize=UDim2.fromOffset(0,0),ScrollBarThickness=3,
+        ScrollBarImageColor3=C.PURPLE,ScrollingDirection=Enum.ScrollingDirection.Y,Visible=false,
+        ScrollingEnabled=true},body)
     make("UIPadding",{PaddingTop=UDim.new(0,3),PaddingBottom=UDim.new(0,15),PaddingLeft=UDim.new(0,2),PaddingRight=UDim.new(0,10)},sc)
-    make("UIListLayout",{SortOrder=Enum.SortOrder.LayoutOrder,Padding=UDim.new(0,6)},sc)
+    local layout=make("UIListLayout",{SortOrder=Enum.SortOrder.LayoutOrder,Padding=UDim.new(0,6)},sc)
     pages[name]=sc
+    layouts[name]=layout
+    on(layout:GetPropertyChangedSignal("AbsoluteContentSize"),function()
+        if S.Alive then updateCanvas(name) end
+    end)
 end
 local subtitles={HOME="Controle et entrainement",VISUALS="ESP 3D et affichage",AIMBOT="Ciblage des mannequins uniquement",
     SILENT="Simulation des impacts locaux",MISC="Protections physiques locales",SETTINGS="Performances et apparence",ABOUT="Version, mises a jour et nouveautes"}
 local function selectPage(name)
-    if not pages[name] then return end
-    local previous=S.Page
+    if not S.Alive or not pages[name] then return end
     S.Page=name
-    for n,page in pairs(pages) do
-        page.Visible=(n==name)
-        if n~=name then page.Position=UDim2.fromOffset(0,0) end
+    -- Never tween the ScrollingFrame itself: it can leave some tabs empty
+    -- or offscreen after rapid switches and layout recalculations.
+    for _,page in pairs(pages) do
+        page.Visible=false
+        page.Position=UDim2.fromOffset(0,0)
     end
-    if previous~=name and cfg.Animations then
-        local current=pages[name]
-        current.Position=UDim2.fromOffset(0,6)
-        animateUI(current,{Position=UDim2.fromOffset(0,0)},.18)
-    end
+    local activePage=pages[name]
+    activePage.CanvasPosition=Vector2.zero
+    activePage.Visible=true
+    updateCanvas(name)
+    task.defer(function()
+        if S.Alive and S.Page==name then updateCanvas(name) end
+    end)
     for n,item in pairs(nav) do
         local active=n==name
-        item.Selected.Visible=true
-        item.Line.Visible=true
+        item.Selected.Visible=active
+        item.Line.Visible=active
         item.Selected.BackgroundColor3=S.Accent
+        item.Selected.BackgroundTransparency=.85
         item.Line.BackgroundColor3=S.Accent
-        animateUI(item.Selected,{BackgroundTransparency=active and .85 or 1},.16)
-        animateUI(item.Line,{BackgroundTransparency=active and 0 or 1},.16)
-        animateUI(item.Button,{
-            BackgroundTransparency=active and 0 or 1,
-            BackgroundColor3=active and C.CARD or C.SIDE,
-        },.16)
-        animateUI(item.Title,{TextColor3=active and C.WHITE or C.MUTED},.16)
-        animateUI(item.Dot,{
-            BackgroundColor3=active and S.Accent or C.DARK,
-            BackgroundTransparency=active and .06 or .24
-        },.16)
+        item.Button.BackgroundColor3=active and C.CARD or C.SIDE
+        item.Button.BackgroundTransparency=active and 0 or 1
+        item.Title.TextColor3=active and C.WHITE or C.MUTED
+        item.Dot.BackgroundColor3=active and S.Accent or C.DARK
+        item.Dot.BackgroundTransparency=active and .06 or .24
     end
     pageCounter.Text=string.format("%02d / 07   -   WORKSPACE",table.find(tabs,name) or 1)
     pageCounter.TextColor3=S.Accent
@@ -577,8 +588,7 @@ end
 local function toggle(page,key,title,detail)
     local row=btn(pages[page],"",0,0,502,60,C.CARD)
     row.Size=UDim2.new(1,-2,0,60)
-    local toggleCorners=row:FindFirstChildOfClass("UICorner")
-    if toggleCorners then toggleCorners.CornerRadius=UDim.new(0,ROUND.Card) end
+    -- The button already uses the shared rounded corner helper.
     row.LayoutOrder=order(page)
     row.BackgroundTransparency=.20
     local rim=stroke(row,C.STROKE,1)
@@ -1600,7 +1610,7 @@ toggle("SETTINGS","Notifications","Notifications V4","Afficher jusqu a 3 alertes
 toggle("SETTINGS","MiniButton","Bouton flottant","Raccourci quand le menu est ferme")
 action("SETTINGS","Restaurer les parametres","Revenir aux parametres par defaut","RESET",function()
     for k,v in pairs(D) do cfg[k]=v end
-    normalize();save();refresh()
+    normalize();save();refresh();refreshRoundness();rescale()
 end)
 
 do -- ABOUT: build status + configured OTA URL, no public input field.
@@ -1881,9 +1891,9 @@ local function releaseLine(index,version,heading,detail,color)
         line.BackgroundTransparency=.76
     end
 end
-releaseLine(1,"1.7.0","V4 COMPLETE","UI / ESP / Anti Fling / notifications V4",C.CYAN)
-releaseLine(2,"1.6.1","ROUNDED UI","Coins arrondis / boutons pill / cartes",C.PURPLE)
-releaseLine(3,"1.6.0","DESIGN V3","Interface et protection V3",C.GOLD)
+releaseLine(1,"1.7.1","UI HOTFIX","Pages visibles / scroll corrige / coins arrondis",C.CYAN)
+releaseLine(2,"1.7.0","V4 COMPLETE","UI / ESP / Anti Fling / notifications V4",C.PURPLE)
+releaseLine(3,"1.6.1","ROUNDED UI","Boutons et cartes arrondis",C.GOLD)
 local aboutEnd=make("Frame",{
     LayoutOrder=order("ABOUT"),Size=UDim2.new(1,-2,0,34),
     BackgroundTransparency=1
@@ -2205,6 +2215,16 @@ local function stop()
 end
 on(close.Activated,stop)
 env[KEY]=stop
+for _,name in ipairs(tabs) do
+    updateCanvas(name)
+    local childCount=0
+    for _,element in ipairs(pages[name]:GetChildren()) do
+        if element:IsA("GuiObject") then childCount+=1 end
+    end
+    if childCount==0 then
+        logVisionError("Page "..name,"No UI items were created")
+    end
+end
 selectPage("HOME");rescale();changeInfo();refresh();theme(0)
 local dataClock,renderClock,fpsClock,themeClock=0,0,0,0
 local frames=0

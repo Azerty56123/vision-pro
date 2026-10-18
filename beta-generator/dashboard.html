@@ -1,0 +1,234 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#0c1015">
+<title>VISION PRO — Access Console</title>
+<style>
+:root{color-scheme:dark;font-family:Inter,ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;font-synthesis:none;--bg:#0c1015;--nav:#10151c;--panel:#161d26;--panel2:#1b2430;--stroke:#2d3846;--text:#eef3f8;--sub:#9cabbc;--muted:#75879a;--accent:#a9ceeF;--green:#a6dec1;--red:#f2aab2;--amber:#f2d1a0}
+*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;min-width:320px;background:var(--bg);color:var(--text);-webkit-font-smoothing:antialiased}a{color:inherit;text-decoration:none}button,input,select{font:inherit}button{cursor:pointer}button:disabled{opacity:.5;cursor:not-allowed}button:focus-visible,input:focus-visible,select:focus-visible,a:focus-visible{outline:2px solid var(--accent);outline-offset:3px}[hidden]{display:none!important}
+.shell{display:flex;min-height:100vh}.sidebar{position:sticky;top:0;flex:0 0 213px;height:100vh;background:var(--nav);border-right:1px solid var(--stroke);display:flex;flex-direction:column;padding:26px 13px 20px}.logo{display:flex;gap:11px;align-items:center;padding:0 8px 32px}.logo-symbol{width:38px;height:38px;border-radius:8px;display:grid;place-items:center;background:var(--accent);color:#172331;font-size:21px;font-weight:850;letter-spacing:-.08em}.logo-name{font-size:12px;letter-spacing:.12em;font-weight:800}.logo-caption{font-size:10px;letter-spacing:.07em;color:var(--muted);margin-top:4px}
+.nav-head{color:var(--muted);font-size:10px;text-transform:uppercase;letter-spacing:.13em;font-weight:760;margin:12px 12px}.nav{display:flex;flex-direction:column;gap:4px}.nav a{display:flex;align-items:center;gap:11px;border:1px solid transparent;padding:11px 12px;color:var(--sub);font-size:12px;font-weight:600;border-radius:7px}.nav a:hover,.nav a.selected{color:var(--text);background:#1d2a36}.nav a.selected{border-color:#34495a}.nav a svg{width:16px;height:16px;stroke-width:1.8}.nav a.selected svg{color:var(--accent)}.sidebar-spacer{flex:1}.sidefoot{border-top:1px solid var(--stroke);padding:16px 10px 0;color:var(--muted);font-size:11px;line-height:1.5}.sidefoot b{color:var(--sub);font-weight:700}
+.main{flex:1;min-width:0;max-width:1480px;margin:0 auto;padding:0 38px 43px}.topbar{display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--stroke);min-height:75px;gap:12px}.crumb{font-size:12px;color:var(--sub)}.crumb b{color:var(--text);font-weight:650}.crumb em{font-style:normal;color:#526377;margin:0 8px}.topactions{display:flex;gap:9px;align-items:center}.connection{font-size:11px;color:var(--sub);border:1px solid var(--stroke);border-radius:7px;padding:8px 11px;white-space:nowrap}.connection:before{content:"";display:inline-block;width:6px;height:6px;background:#6c7988;border-radius:50%;margin-right:7px;vertical-align:1px}.connection.online:before{background:var(--green)}.simple{font-size:11px;color:var(--sub);padding:9px 11px;border:1px solid var(--stroke);border-radius:7px;background:transparent}.simple:hover{border-color:#596d7f;color:var(--text)}
+.kicker{color:var(--muted);font-size:10px;letter-spacing:.15em;text-transform:uppercase;font-weight:750}.intro{display:flex;justify-content:space-between;align-items:end;gap:14px;padding:34px 0 28px}.intro h1{font-size:clamp(26px,3vw,33px);line-height:1.18;font-weight:700;letter-spacing:-.055em;margin:10px 0 9px}.intro p{font-size:13px;color:var(--sub);line-height:1.55;margin:0}
+.primary{display:inline-flex;align-items:center;justify-content:center;gap:8px;border:1px solid transparent;border-radius:7px;padding:11px 15px;background:var(--accent);color:#112232;font-size:12px;font-weight:780;white-space:nowrap}.primary:hover{background:#c3e1f8}.primary svg,.outline svg{width:16px;height:16px;stroke-width:2}
+.metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:13px}.metric{background:var(--panel);border:1px solid var(--stroke);border-radius:9px;padding:19px;min-height:111px}.metric span{font-size:11px;color:var(--sub);font-weight:590}.metric strong{display:block;font-size:30px;font-weight:690;letter-spacing:-.05em;margin-top:14px;font-variant-numeric:tabular-nums}
+.columns{display:grid;grid-template-columns:minmax(0,1fr) 317px;align-items:start;gap:15px;margin-top:19px}.panel{background:var(--panel);border:1px solid var(--stroke);border-radius:9px;min-width:0}.panel-top{display:flex;align-items:center;justify-content:space-between;gap:11px;padding:20px 20px 17px}.panel h2{font-size:15px;margin:0;font-weight:710;letter-spacing:-.025em}.sub{font-size:11px;color:var(--muted);line-height:1.5;margin:6px 0 0}.outline{display:inline-flex;align-items:center;gap:7px;border:1px solid #425263;border-radius:7px;background:#202b36;color:var(--text);font-size:11px;font-weight:650;padding:9px 11px}.outline:hover{background:#2a3643}
+.controls{display:flex;gap:9px;padding:0 20px 17px}.search{flex:1;min-width:0}.input,.filter{background:#10171f;border:1px solid #3b4a5b;color:var(--text);border-radius:7px;font-size:12px;min-height:39px;padding:9px 11px;width:100%}.input::placeholder{color:var(--muted);opacity:1}.filter{width:129px;flex:0 0 129px;cursor:pointer}.mono{font-family:ui-monospace,Menlo,Consolas,monospace;font-variant-numeric:tabular-nums}
+.tablewrap{overflow-x:auto}table{width:100%;border-collapse:collapse;text-align:left;white-space:nowrap}th{color:var(--muted);background:#19212b;text-transform:uppercase;letter-spacing:.075em;font-size:9px;font-weight:750}th,td{padding:13px 12px}th:first-child,td:first-child{padding-left:20px}th:last-child,td:last-child{padding-right:20px;text-align:right}td{border-top:1px solid #293543;color:#c6d2df;font-size:11px}tbody tr:hover td{background:#1b2630}.item-name{display:block;font-size:12px;font-weight:710;color:var(--text);max-width:160px;overflow:hidden;text-overflow:ellipsis}.item-id{display:block;color:var(--muted);font-size:10px;margin-top:5px}.badge{display:inline-block;padding:5px 8px;font-size:10px;font-weight:700;border-radius:5px}.active{color:var(--green);background:#203b30}.expiring,.exhausted{color:var(--amber);background:#3a3023}.expired,.revoked{color:var(--red);background:#38262e}.revoke{background:none;color:#deb0b5;font-size:11px;font-weight:700;border:0;padding:5px}.revoke:hover{color:#ffd0d4}.empty{text-align:center!important;white-space:normal;padding:50px 15px!important;color:var(--sub)}.tablefoot{border-top:1px solid var(--stroke);padding:13px 19px;font-size:11px;color:var(--muted);display:flex;justify-content:space-between;gap:8px}
+.creator{padding:20px}.creator .sub{margin-bottom:23px}.field{margin-bottom:18px}.field label{font-size:11px;color:#cfdae5;font-weight:650;display:block;margin-bottom:8px}.hint{font-size:10px;color:var(--muted);line-height:1.6;margin-top:7px}.presets{display:flex;gap:5px;margin-top:9px;flex-wrap:wrap}.preset{border:1px solid var(--stroke);background:#10171f;border-radius:6px;color:var(--sub);padding:7px 10px;font-size:10px;font-weight:700}.preset[aria-pressed=true]{border-color:#53718c;background:#243a4e;color:var(--accent)}.separator{height:1px;background:var(--stroke);margin:21px 0}.create{width:100%}.result{border:1px solid #466580;background:#192d3f;border-radius:7px;padding:14px;margin-top:17px}.result h3{font-size:11px;color:var(--accent);margin:0 0 11px}.result-key{font-size:11px;line-height:1.7;overflow-wrap:anywhere;user-select:all}.result button{margin-top:12px}.result .hint{margin-top:11px}
+.footer{display:flex;justify-content:space-between;gap:14px;border-top:1px solid var(--stroke);font-size:11px;color:var(--muted);padding-top:18px;margin-top:30px}
+.login-wrap{min-height:calc(100vh - 95px);display:grid;place-items:center}.login{width:min(100%,435px);border:1px solid var(--stroke);border-radius:11px;background:var(--panel);padding:32px}.lock{width:42px;height:42px;border:1px solid #415c71;border-radius:8px;background:#203344;display:grid;place-items:center;color:var(--accent);margin-bottom:25px}.lock svg{width:20px;height:20px}.login h1{font-size:25px;letter-spacing:-.05em;line-height:1.25;margin:11px 0}.login p{font-size:12px;line-height:1.65;color:var(--sub);margin:0 0 27px}.login label{font-size:11px;font-weight:700;color:#c8d3e1;display:block;margin-bottom:9px}.secret-input{position:relative}.secret-input input{min-height:46px;padding-right:75px}.eye{position:absolute;right:10px;top:8px;border:0;background:transparent;font-size:11px;color:var(--accent);padding:7px}.login .primary{width:100%;margin-top:16px;min-height:45px}.login-error{color:var(--red);font-size:11px;margin:12px 0 0;min-height:18px}.security-note{border-top:1px solid var(--stroke);padding-top:15px;margin-top:17px;font-size:10px;color:var(--muted);line-height:1.6}
+.toast{position:fixed;right:21px;bottom:21px;z-index:10;max-width:min(380px,calc(100% - 42px));padding:13px 16px;border:1px solid #4e6a7e;background:#203241;color:var(--text);border-radius:7px;box-shadow:0 8px 24px #0008;font-size:12px;line-height:1.5}.toast.error{background:#39242b;border-color:#794b55;color:#ffd0d4}
+@media(max-width:1190px){.main{padding:0 24px 40px}.columns{grid-template-columns:minmax(0,1fr) 287px}}
+@media(max-width:1000px){.columns{grid-template-columns:1fr}.creator{max-width:630px}}
+@media(max-width:760px){.shell{display:block}.sidebar{position:static;width:100%;height:auto;padding:15px 19px;border-right:0;border-bottom:1px solid var(--stroke)}.logo{padding:0}.nav-head,.nav,.sidebar-spacer,.sidefoot{display:none}.main{padding:0 19px 35px}.topbar{min-height:60px}.metrics{grid-template-columns:repeat(2,minmax(0,1fr))}.intro{padding:27px 0}.login-wrap{min-height:calc(100vh - 165px)}}
+@media(max-width:480px){.intro{flex-direction:column;align-items:start}.controls{flex-wrap:wrap}.filter{flex-basis:100%;width:100%}.metric{min-height:95px;padding:14px}.metric strong{font-size:26px}.login{padding:23px}.footer{flex-direction:column}.connection,.simple{font-size:10px}}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+</style>
+</head>
+<body>
+<div class="shell">
+<aside class="sidebar" aria-label="Navigation">
+  <a class="logo" href="#overview"><div class="logo-symbol">V</div><div><div class="logo-name">VISION PRO</div><div class="logo-caption">ACCESS CONSOLE</div></div></a>
+  <div class="nav-head">Espace de travail</div>
+  <nav id="nav" class="nav" hidden>
+    <a href="#overview" class="selected" data-nav="overview"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="3" width="8" height="8" rx="1.5"/><rect x="14" y="3" width="7" height="8" rx="1.5"/><rect x="3" y="14" width="8" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>Vue d'ensemble</a>
+    <a href="#keys" data-nav="keys"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="8" cy="15" r="4"/><path d="M11 12 21 2M17 6l3 3M14 9l3 3"/></svg>Clés d'accès</a>
+    <a href="#create" data-nav="create"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 5v14M5 12h14"/></svg>Nouvelle clé</a>
+  </nav>
+  <div class="sidebar-spacer"></div>
+  <div class="sidefoot"><b>Bêta privée · V4.0</b><div>Gère les accès sans toucher au script client.</div></div>
+</aside>
+<main class="main">
+  <div class="topbar">
+    <div class="crumb">Administration <em>/</em> <b>Accès bêta</b></div>
+    <div class="topactions"><span id="connection" class="connection">Hors connexion</span><button id="logout" class="simple" hidden type="button">Déconnexion</button></div>
+  </div>
+  <section id="loginView" class="login-wrap" aria-label="Connexion administrateur">
+    <form id="loginForm" class="login">
+      <div class="lock"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="5" y="10" width="14" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg></div>
+      <div class="kicker">Accès privé / Administrateur</div>
+      <h1>Bienvenue sur<br>Access Console.</h1>
+      <p>Connecte-toi pour générer des clés bêta, suivre les activations et gérer les accès de tes testeurs.</p>
+      <label for="token">Jeton administrateur</label>
+      <div class="secret-input"><input id="token" class="input mono" type="password" placeholder="Ton jeton privé" autocomplete="off" spellcheck="false" required><button class="eye" type="button" id="revealToken">Afficher</button></div>
+      <button id="login" class="primary" type="submit">Ouvrir la console →</button>
+      <div id="loginError" class="login-error" role="alert" aria-live="polite"></div>
+      <div class="security-note">Ton jeton est utilisé uniquement pendant cette session. Il n'est pas enregistré dans le navigateur.</div>
+    </form>
+  </section>
+  <div id="dashboard" hidden>
+    <header class="intro" id="overview">
+      <div><div class="kicker">VISION PRO / BETA MANAGEMENT</div><h1>Gère tes accès.</h1><p>Crée, retrouve et révoque tes clés depuis un seul espace.</p></div>
+      <button class="primary" id="topCreate" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 5v14M5 12h14"/></svg>Créer une clé</button>
+    </header>
+    <section class="metrics" aria-label="Statistiques réelles">
+      <div class="metric"><span>Clés actives</span><strong id="statActive">—</strong></div>
+      <div class="metric"><span>Total de clés</span><strong id="statTotal">—</strong></div>
+      <div class="metric"><span>Activations utilisées</span><strong id="statUses">—</strong></div>
+      <div class="metric"><span>Expirent sous 7 jours</span><strong id="statSoon">—</strong></div>
+    </section>
+    <div class="columns">
+      <section class="panel" id="keys" aria-labelledby="keysTitle">
+        <header class="panel-top"><div><h2 id="keysTitle">Clés générées</h2><p class="sub">Suivi en temps réel de tes accès bêta.</p></div>
+          <button class="outline" id="refresh" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M20 11a8 8 0 1 0-2.3 6M20 4v7h-7"/></svg>Actualiser</button>
+        </header>
+        <div class="controls">
+          <input class="input search" id="search" type="search" placeholder="Rechercher par nom ou identifiant" aria-label="Rechercher une clé">
+          <select class="filter" id="statusFilter" aria-label="Filtrer les clés">
+            <option value="all">Tous les états</option><option value="active">Actives</option><option value="expiring">Bientôt expirées</option>
+            <option value="exhausted">Épuisées</option><option value="expired">Expirées</option><option value="revoked">Révoquées</option>
+          </select>
+        </div>
+        <div class="tablewrap"><table><thead><tr><th>Clé</th><th>Expiration</th><th>Activations</th><th>État</th><th>Action</th></tr></thead><tbody id="rows"><tr><td colspan="5" class="empty">Connecte-toi pour afficher tes clés.</td></tr></tbody></table></div>
+        <div class="tablefoot"><span id="count">0 clé affichée</span><span>Les clés ne sont affichées qu'une fois.</span></div>
+      </section>
+      <section class="panel creator" id="create" aria-labelledby="creatorTitle">
+        <h2 id="creatorTitle">Nouvelle clé</h2><p class="sub">Configure les conditions d'accès.</p>
+        <form id="createForm">
+          <div class="field"><label for="keyName">Nom de la clé</label><input class="input" id="keyName" maxlength="64" required value="Beta V4" placeholder="Ex. Testeurs privés"><div class="hint">Nom visible uniquement par l'administrateur.</div></div>
+          <div class="field"><label for="days">Durée de validité (jours)</label><input class="input mono" id="days" type="number" required min="0" max="3650" step="1" value="30">
+            <div class="presets" role="group" aria-label="Durées rapides"><button type="button" class="preset" data-days="7" aria-pressed="false">7 j</button><button type="button" class="preset" data-days="30" aria-pressed="true">30 j</button><button type="button" class="preset" data-days="90" aria-pressed="false">90 j</button><button type="button" class="preset" data-days="0" aria-pressed="false">Illimité</button></div>
+            <div class="hint">0 = pas de date d'expiration.</div>
+          </div>
+          <div class="field"><label for="maxActivations">Activations maximum</label><input class="input mono" id="maxActivations" type="number" required min="0" max="100000" step="1" value="0"><div class="hint">0 = illimité. Chaque vérification réussie consomme une activation.</div></div>
+          <div class="separator"></div><button id="generate" type="submit" class="primary create">Générer la clé →</button>
+        </form>
+        <div class="result" id="created" hidden><h3>Clé créée — copie-la maintenant</h3><div class="result-key mono" id="generatedKey"></div>
+          <button class="outline" id="copy" type="button">Copier la clé</button>
+          <div class="hint">Cette valeur ne pourra pas être réaffichée après avoir quitté la page.</div>
+        </div>
+      </section>
+    </div>
+    <footer class="footer"><span>VISION PRO © Access Console · V4.0</span><span>Clés conservées sous forme d'empreintes SHA-256.</span></footer>
+  </div>
+</main>
+</div>
+<div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
+<script>
+(() => {
+"use strict";
+const $=id=>document.getElementById(id);
+const state={token:"",keys:[],busy:false,query:"",status:"all"};
+let toastTimeout;
+function alertText(text,error=false){
+ const el=$("toast");el.textContent=text;el.classList.toggle("error",error);el.hidden=false;
+ clearTimeout(toastTimeout);toastTimeout=setTimeout(()=>{el.hidden=true},4200);
+}
+async function api(path,method="GET",payload,token=state.token){
+ if(!token)throw Error("Jeton administrateur manquant.");
+ const res=await fetch(path,{method,headers:{"Authorization":"Bearer "+token,"Content-Type":"application/json"},body:payload===undefined?undefined:JSON.stringify(payload),cache:"no-store"});
+ let data;try{data=await res.json()}catch{throw Error("Réponse serveur invalide.");}
+ if(!res.ok||data.ok!==true)throw Error(data.message||"Erreur du serveur");
+ return data;
+}
+const now=()=>Math.floor(Date.now()/1000);
+function status(key){
+ if(key.disabled)return "revoked";
+ if(key.expiresAt>0&&key.expiresAt<=now())return "expired";
+ if(key.maxActivations>0&&key.uses>=key.maxActivations)return "exhausted";
+ if(key.expiresAt>0&&key.expiresAt<=now()+604800)return "expiring";
+ return "active";
+}
+const labels={active:"Active",expiring:"Expire bientôt",exhausted:"Épuisée",expired:"Expirée",revoked:"Révoquée"};
+function td(tr,value,css=""){
+ const node=document.createElement("td");node.textContent=value;if(css)node.className=css;tr.append(node);return node;
+}
+function formatDate(time){return time?new Date(time*1000).toLocaleDateString("fr-FR",{day:"2-digit",month:"short",year:"numeric"}):"Sans limite"}
+function render(){
+ const keys=state.keys,states=keys.map(status);
+ $("statActive").textContent=states.filter(s=>s==="active"||s==="expiring").length;
+ $("statTotal").textContent=keys.length;
+ $("statUses").textContent=keys.reduce((n,k)=>n+(Number(k.uses)||0),0).toLocaleString("fr-FR");
+ $("statSoon").textContent=states.filter(s=>s==="expiring").length;
+ const q=state.query.trim().toLocaleLowerCase("fr-FR");
+ const selected=keys.filter(k=>(!q||String(k.label||"").toLocaleLowerCase("fr-FR").includes(q)||String(k.id).toLocaleLowerCase("fr-FR").includes(q))&&(state.status==="all"||status(k)===state.status));
+ const tbody=$("rows");tbody.replaceChildren();
+ if(!selected.length){
+  const tr=document.createElement("tr");td(tr,keys.length?"Aucun résultat pour cette recherche.":"Aucune clé pour le moment. Génère ton premier accès.","empty").colSpan=5;tbody.append(tr);
+ }else for(const key of selected){
+  const tr=document.createElement("tr");const item=document.createElement("td");
+  const title=document.createElement("span");title.className="item-name";title.textContent=key.label||"Clé sans nom";title.title=title.textContent;
+  const id=document.createElement("span");id.className="item-id mono";id.textContent=key.id;
+  item.append(title,id);tr.append(item);
+  td(tr,formatDate(key.expiresAt));
+  td(tr,String(key.uses)+" / "+(key.maxActivations||"∞"),"mono");
+  const type=status(key),badge=document.createElement("span"),cell=document.createElement("td");
+  badge.className="badge "+type;badge.textContent=labels[type];cell.append(badge);tr.append(cell);
+  const action=document.createElement("td");
+  if(type!=="revoked"){
+   const revoke=document.createElement("button");revoke.type="button";revoke.className="revoke";revoke.textContent="Révoquer";
+   revoke.addEventListener("click",()=>revokeKey(key));action.append(revoke);
+  }else{action.textContent="—"}
+  tr.append(action);tbody.append(tr);
+ }
+ $("count").textContent=selected.length+" clé"+(selected.length===1?" affichée":"s affichées");
+}
+async function loadKeys(announce=false){
+ const data=await api("/api/admin/keys");state.keys=Array.isArray(data.keys)?data.keys:[];render();
+ if(announce)alertText("Liste des clés actualisée.");
+}
+async function login(event){
+ event.preventDefault();if(state.busy)return;
+ const candidate=$("token").value.trim();
+ if(candidate.length<32){$("loginError").textContent="Entre le jeton administrateur complet.";return}
+ state.busy=true;$("login").disabled=true;$("login").textContent="Connexion...";$("loginError").textContent="";
+ try{
+  const data=await api("/api/admin/keys","GET",undefined,candidate);
+  state.token=candidate;state.keys=Array.isArray(data.keys)?data.keys:[];
+  $("token").value="";$("loginView").hidden=true;$("dashboard").hidden=false;$("nav").hidden=false;$("logout").hidden=false;
+  $("connection").textContent="Connecté";$("connection").classList.add("online");render();
+ }catch(err){$("loginError").textContent=err.message||"Connexion refusée."}
+ finally{state.busy=false;$("login").disabled=false;$("login").textContent="Ouvrir la console →"}
+}
+function logout(){
+ state.token="";state.keys=[];state.query="";state.status="all";
+ $("generatedKey").textContent="";$("created").hidden=true;
+ $("loginView").hidden=false;$("dashboard").hidden=true;$("nav").hidden=true;$("logout").hidden=true;
+ $("connection").textContent="Hors connexion";$("connection").classList.remove("online");
+ $("loginError").textContent="";$("search").value="";$("statusFilter").value="all";
+ $("token").type="password";$("revealToken").textContent="Afficher";window.scrollTo(0,0);
+}
+async function revokeKey(key){
+ if(!confirm('Révoquer "'+key.label+'" ? Cette clé ne pourra plus être utilisée.'))return;
+ try{await api("/api/admin/revoke","POST",{id:key.id});await loadKeys();alertText("Clé révoquée.")}
+ catch(err){alertText(err.message||"Révocation impossible.",true)}
+}
+function presets(){const n=Number($("days").value);document.querySelectorAll("[data-days]").forEach(b=>b.setAttribute("aria-pressed",String(Number(b.dataset.days)===n)))}
+async function generate(event){
+ event.preventDefault();if(state.busy)return;
+ const label=$("keyName").value.trim(),days=Number($("days").value),maxActivations=Number($("maxActivations").value);
+ if(!label)return alertText("Donne un nom à ta clé.",true);
+ if(!Number.isInteger(days)||days<0||days>3650)return alertText("Durée invalide (0 à 3650 jours).",true);
+ if(!Number.isInteger(maxActivations)||maxActivations<0||maxActivations>100000)return alertText("Limite d'activations invalide.",true);
+ state.busy=true;$("generate").disabled=true;$("generate").textContent="Création en cours...";
+ try{
+  const result=await api("/api/admin/generate","POST",{label,days,maxActivations});
+  $("generatedKey").textContent=result.key;$("created").hidden=false;
+  try{await loadKeys()}catch{alertText("Clé créée mais rafraîchissement indisponible.",true);return}
+  alertText("Nouvelle clé générée. Pense à la copier.");
+ }catch(err){alertText(err.message||"Génération impossible.",true)}
+ finally{state.busy=false;$("generate").disabled=false;$("generate").textContent="Générer la clé →"}
+}
+async function copyKey(){
+ const key=$("generatedKey").textContent;if(!key)return;
+ try{await navigator.clipboard.writeText(key);alertText("Clé copiée.")}
+ catch{const r=document.createRange();r.selectNodeContents($("generatedKey"));window.getSelection().removeAllRanges();window.getSelection().addRange(r);alertText("Clé sélectionnée. Appuie sur Ctrl + C.")}
+}
+$("loginForm").addEventListener("submit",login);
+$("createForm").addEventListener("submit",generate);
+$("logout").addEventListener("click",logout);
+$("refresh").addEventListener("click",async()=>{$("refresh").disabled=true;try{await loadKeys(true)}catch(err){alertText(err.message,true)}finally{$("refresh").disabled=false}});
+$("search").addEventListener("input",e=>{state.query=e.target.value;render()});
+$("statusFilter").addEventListener("change",e=>{state.status=e.target.value;render()});
+$("copy").addEventListener("click",copyKey);
+$("days").addEventListener("input",presets);
+$("topCreate").addEventListener("click",()=>{$("create").scrollIntoView({behavior:"smooth"});$("keyName").focus({preventScroll:true})});
+$("revealToken").addEventListener("click",()=>{const input=$("token");input.type=input.type==="password"?"text":"password";$("revealToken").textContent=input.type==="password"?"Afficher":"Masquer"});
+document.querySelectorAll("[data-days]").forEach(b=>b.addEventListener("click",()=>{$("days").value=b.dataset.days;presets()}));
+document.querySelectorAll("[data-nav]").forEach(link=>link.addEventListener("click",()=>document.querySelectorAll("[data-nav]").forEach(other=>other.classList.toggle("selected",other===link))));
+})();
+</script>
+</body>
+</html>

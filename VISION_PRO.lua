@@ -1,5 +1,5 @@
--- VISION_PRO_VERSION: 1.7.3
---[[ VISION PRO 1.7.3 | SPECTRA / SLIDER NIL HOTFIX
+-- VISION_PRO_VERSION: 1.7.4
+--[[ VISION PRO 1.7.4 | SPECTRA / ANTI FLIGHT V5
      LocalScript for authorized testing in your Roblox place.
      Aimbot / simulated Silent Aim work on locally spawned mannequins only.
      Camera assist and impact preview always start disabled.
@@ -16,7 +16,7 @@ local WS=game:GetService("Workspace")
 local Me=Players.LocalPlayer
 if not Me then return end
 local PG=Me:WaitForChild("PlayerGui")
-local V="1.7.3"
+local V="1.7.4"
 local GNAME="VISION_PRO_147_GUI"
 local ONAME="VISION_PRO_147_OVERLAY"
 local DNAME="VISION_PRO_147_DUMMIES"
@@ -51,10 +51,10 @@ local D={ESP=true,Box=true,BoxColor="ACCENT",ESPDetail="FULL",ESPExtraRange=650,
     Aim=false,AimFOV=140,AimSmooth=.12,ShowFOV=true,AimPart="HEAD",AimLOS=true,
     Preview=false,PreviewFOV=170,PreviewPart="HEAD",PreviewLOS=true,ShotDamage=25,AutoRespawn=true,HitMarker=true,PreviewCircle=true,
     -- Local defenses against abnormal physics, not self-rotation demos.
-    AntiFly=true,FlyLaunchSpeed=75,
+    AntiFly=true,FlyLaunchSpeed=55,
     AntiFling=true,FlingSpeed=100,
     AntiAim=false,SpinThreshold=9,
-    GuardCorrect=true,MoveHUD=true,SafeRecovery=true,GuardV3=true,GuardMode="STRONG",GuardV4=true,
+    GuardCorrect=true,MoveHUD=true,SafeRecovery=true,GuardV3=true,GuardMode="STRONG",GuardV4=true,GuardV5=true,
     GITHUB_OTA_URL="https://raw.githubusercontent.com/Azerty56123/vision-pro/main/VISION_PRO.lua",
     Accent="VIOLET",RGB=false,Animations=true,Notifications=true,MiniButton=false,
     MenuScale=1,UIRoundness=1.1,Shortcut="TAB",PerformanceMode="BALANCED",Range=1200,
@@ -80,7 +80,7 @@ local function normalize()
     cfg.UIRoundness=math.clamp(tonumber(cfg.UIRoundness) or 1.1,.7,1.5)
     validOptions("AimPart",{"HEAD","BODY"},"HEAD")
     validOptions("PreviewPart",{"HEAD","BODY"},"HEAD")
-    for k,v in pairs({AimFOV={60,300},PreviewFOV={60,300},AimSmooth={.03,.45},Range={100,2500},ESPExtraRange={200,1500},Thickness={.03,.18},RenderRate={15,60},ShotDamage={10,50},FlyLaunchSpeed={50,200},FlingSpeed={70,250},SpinThreshold={5,25}}) do
+    for k,v in pairs({AimFOV={60,300},PreviewFOV={60,300},AimSmooth={.03,.45},Range={100,2500},ESPExtraRange={200,1500},Thickness={.03,.18},RenderRate={15,60},ShotDamage={10,50},FlyLaunchSpeed={35,150},FlingSpeed={70,250},SpinThreshold={5,25}}) do
         local num=tonumber(cfg[k]) or D[k]
         cfg[k]=math.clamp(num==num and num or D[k],v[1],v[2])
     end
@@ -90,12 +90,13 @@ normalize()
 cfg.Aim=false
 cfg.Preview=false
 cfg.AntiAim=false
--- New V3 protection starts enabled on the first run, then respects user settings.
-if type(old)~="table" or old.GuardV3~=true then
+-- First V5 run enables correction and recovery; later runs keep preferences.
+if type(old)~="table" or old.GuardV5~=true then
     cfg.AntiFly=true
     cfg.AntiFling=true
     cfg.GuardCorrect=true
     cfg.SafeRecovery=true
+    cfg.GuardMode="STRONG"
 end
 local function save() env.VISION_PRO_147_PREFS=table.clone(cfg) end
 save()
@@ -133,6 +134,9 @@ local S={Alive=true,Open=true,Page="HOME",Connections={},Players={},Targets={},D
     GuardCharacter=nil,LastSafeCFrame=nil,LastSafeTime=0,LastRecovery=0,RecoveryUntil=0,
     GuardNoticeCooldown=0,LastGuardHUD=0,GuardCooldown=0,GuardErrorTime=0,BlockedImpulses=0,
     LastMotionVelocity=nil,GuardCorrections=0,RecoveryReason=nil,ToastList={},RoundCorners={},
+    AirborneSince=nil,LastMotionPosition=nil,AscentDuration=0,HoverDuration=0,
+    GuardTriggeredAt=0,GuardTriggeredReason=nil,GuardTriggeredSevere=false,
+    GuardSavedAltitude=nil,GuardSafeSample=0,LastGuardCharReady=0,
     FlyState="OFF",FlingState="OFF",SpinState="OFF",
     MovementStatus=nil,MovementHUD=nil,
     OtaRelease=nil,OtaAssetUrl=nil,OtaPageUrl=nil,OtaBusy=false,OtaConfirmOpen=false,
@@ -379,7 +383,7 @@ local logo=corner(make("Frame",{
 local mark=txt(logo,"VP",0,4,32,22,13,true,C.DARK)
 mark.TextXAlignment=Enum.TextXAlignment.Center
 local brandName=txt(sidebar,"VISION PRO",53,13,100,24,12,true,C.WHITE)
-local brandSub=txt(sidebar,"DESKTOP V4  /  1.7.3",53,34,102,17,9,true,C.MUTED)
+local brandSub=txt(sidebar,"DESKTOP V4  /  1.7.4",53,34,102,17,9,true,C.MUTED)
 local sidebarLine=bar(sidebar,15,64,125,1,C.STROKE)
 sidebarLine.BackgroundTransparency=.4
 local tabs={"HOME","VISUALS","AIMBOT","SILENT","MISC","SETTINGS","ABOUT"}
@@ -458,7 +462,7 @@ local footer=make("Frame",{Position=UDim2.fromOffset(170,427),
     Size=UDim2.fromOffset(505,28),BackgroundTransparency=1},window)
 local footerLine=bar(footer,0,0,504,1,C.STROKE)
 footerLine.BackgroundTransparency=.54
-local foot=txt(footer,"SPECTRA V4  /  VISION PRO  /  v1.7.3",3,7,340,18,10,true,C.MUTED)
+local foot=txt(footer,"SPECTRA V4  /  VISION PRO  /  v1.7.4",3,7,340,18,10,true,C.MUTED)
 local fpsText=txt(footer,"-- FPS",390,7,105,18,10,true,C.GREEN)
 fpsText.TextXAlignment=Enum.TextXAlignment.Right
 local pages,orders={},{}
@@ -1517,7 +1521,7 @@ local protectionCard=corner(make("Frame",{
 stroke(protectionCard,C.STROKE,1).Transparency=.36
 local protectionAccent=bar(protectionCard,0,12,3,68,C.GREEN)
 table.insert(S.AccentBars,protectionAccent)
-local protectTitle=txt(protectionCard,"ANTI FLING V4",17,9,265,24,14,true,C.WHITE)
+local protectTitle=txt(protectionCard,"ANTI FLIGHT V5",17,9,265,24,14,true,C.WHITE)
 local protectDesc=description(protectionCard,"Local protection / Strong / Recovery",17,33,306,20)
 local protectCount=description(protectionCard,"0 BLOCKED",17,60,270,18)
 local protectButton=btn(protectionCard,"TURN OFF",350,26,134,37,C.GREEN)
@@ -1607,13 +1611,13 @@ end)
 
 -- MISC: optional protections against abnormal incoming physics impulses.
 -- These guards NEVER deliberately rotate the character.
-section("MISC","ANTI FLING V4")
+section("MISC","ANTI FLIGHT V5")
 toggle("MISC","AntiFling","Anti-fling","Bloquer les fortes projections horizontales et verticales")
-toggle("MISC","AntiFly","Anti-launch","Limiter les projections vers le haut")
+toggle("MISC","AntiFly","Anti-flight V5","Limiter les montes brusques, lentes et le vol prolonge")
 choices("MISC","Protection","GuardMode",{"NORMAL","STRONG"})
-toggle("MISC","SafeRecovery","Recuperation d'urgence","Retour local si une projection extreme est detectee")
+toggle("MISC","SafeRecovery","Recuperation d'urgence","Retour apres une projection ou un vol anormal confirme")
 slider("MISC","FlingSpeed","Vitesse horizontale limite",70,250,10," studs/s")
-slider("MISC","FlyLaunchSpeed","Vitesse verticale limite",50,200,10," studs/s")
+slider("MISC","FlyLaunchSpeed","Vitesse verticale limite",35,150,5," studs/s")
 section("MISC","ANTI-ROTATION")
 toggle("MISC","AntiAim","Anti-rotation","Limiter les rotations forcees")
 slider("MISC","SpinThreshold","Sensibilite",5,25,1," rad/s")
@@ -1626,8 +1630,8 @@ local miscPanel=corner(make("Frame",{
 },pages.MISC),ROUND.Card)
 stroke(miscPanel,C.STROKE,1).Transparency=.58
 bar(miscPanel,0,9,3,48,C.GOLD)
-local miscStatus=txt(miscPanel,"GUARD V4 / MONITORING",13,5,460,24,11,true,C.CYAN)
-local miscHint=description(miscPanel,"Active local guard. Server physics can still override correction.",13,32,467,24)
+local miscStatus=txt(miscPanel,"GUARD V5 / MONITORING",13,5,460,24,11,true,C.CYAN)
+local miscHint=description(miscPanel,"Client-side only / Server physics may override corrections.",13,32,467,24)
 S.MovementStatus=miscStatus
 action("MISC","Effacer les alertes","Vider les compteurs sans desactiver les protections","RESET",function()
     cfg.AntiAim=false
@@ -1635,6 +1639,9 @@ action("MISC","Effacer les alertes","Vider les compteurs sans desactiver les pro
     S.FlySamples=0;S.FlingSamples=0;S.SpinSamples=0
     S.FlyState="MONITORING";S.FlingState="MONITORING";S.SpinState="OFF"
     S.BlockedImpulses=0
+    S.GuardCorrections=0
+    S.RecoveryUntil=0
+    S.GuardTriggeredSevere=false
     save();refresh()
 end)
 
@@ -1935,9 +1942,9 @@ local function releaseLine(index,version,heading,detail,color)
         line.BackgroundTransparency=.76
     end
 end
-releaseLine(1,"1.7.3","SLIDER FIX","Calcul nil / onglets / arrondis / effets",C.CYAN)
-releaseLine(2,"1.7.2","NAVIGATION FIX","Pages / widgets proteges / scroll Roblox",C.PURPLE)
-releaseLine(3,"1.7.1","UI HOTFIX","Coins arrondis et ajustements",C.GOLD)
+releaseLine(1,"1.7.4","ANTI FLIGHT V5","Monte lente / Physics / recovery sol",C.CYAN)
+releaseLine(2,"1.7.3","SLIDER FIX","Calcul nil et correction des onglets",C.PURPLE)
+releaseLine(3,"1.7.2","NAVIGATION FIX","Pages et scroll Roblox",C.GOLD)
 local aboutEnd=make("Frame",{
     LayoutOrder=order("ABOUT"),Size=UDim2.new(1,-2,0,34),
     BackgroundTransparency=1
@@ -2002,14 +2009,25 @@ local flingText=description(movementHud,"FLING / OFF",11,22,217,18)
 local angleText=description(movementHud,"ROTATION / OFF",11,40,217,16)
 S.MovementHUD=movementHud
 local function resetDefense()
-    S.FlyState="OFF";S.FlingState="OFF";S.SpinState="OFF"
-    S.FlySamples=0;S.FlingSamples=0;S.SpinSamples=0
+    S.FlyState="OFF"
+    S.FlingState="OFF"
+    S.SpinState="OFF"
+    S.FlySamples=0
+    S.FlingSamples=0
+    S.SpinSamples=0
     S.LastMotionVelocity=nil
+    S.LastMotionPosition=nil
+    S.AirborneSince=nil
+    S.AscentDuration=0
+    S.HoverDuration=0
     S.RecoveryUntil=0
+    S.GuardTriggeredAt=0
+    S.GuardTriggeredReason=nil
+    S.GuardTriggeredSevere=false
 end
 
--- Guard V4: purely local physics mitigation in authorized test places.
--- No client script can override server-authoritative physics in every game.
+-- Anti Flight V5: work on a client's locally simulated character only.
+-- Network ownership and server-authoritative motion cannot be overridden here.
 local function updateMovement(dt)
     if not S.Alive then return end
     local character=Me.Character
@@ -2019,129 +2037,197 @@ local function updateMovement(dt)
         S.GuardCharacter=character
         S.LastSafeCFrame=nil
         S.LastSafeTime=0
+        S.LastRecovery=0
         resetDefense()
     end
-    if not root or not root:IsA("BasePart") or not humanoid or humanoid.Health<=0 then
+    if not root or not root:IsA("BasePart")
+        or not humanoid or humanoid.Health<=0 then
         movementHud.Visible=false
         return
     end
+
+    local now=os.clock()
     local state=humanoid:GetState()
+    -- Physics and PlatformStand are deliberately NOT exempt:
+    -- fling/launch impulses can put Humanoid in those states.
     local excluded=humanoid.Sit or root.Anchored
         or state==Enum.HumanoidStateType.Seated
         or state==Enum.HumanoidStateType.Swimming
         or state==Enum.HumanoidStateType.Climbing
         or state==Enum.HumanoidStateType.Dead
-        or state==Enum.HumanoidStateType.Physics
-    local now=os.clock()
     local v=root.AssemblyLinearVelocity
-    local a=root.AssemblyAngularVelocity
-    local last=S.LastMotionVelocity
+    local angular=root.AssemblyAngularVelocity
+    local prev=S.LastMotionVelocity
+    local prevPosition=S.LastMotionPosition
     S.LastMotionVelocity=v
-    local h=Vector3.new(v.X,0,v.Z)
-    local hSpeed=h.Magnitude
-    local ySpeed=v.Y
+    S.LastMotionPosition=root.Position
+
+    local horizontal=Vector3.new(v.X,0,v.Z)
+    local hSpeed=horizontal.Magnitude
+    local speedY=v.Y
     local strict=cfg.GuardMode=="STRONG"
     local hLimit=cfg.FlingSpeed*(strict and .82 or 1)
-    local yLimit=cfg.FlyLaunchSpeed*(strict and .86 or 1)
-    local horizontalShock=last and
-        (Vector3.new(v.X-last.X,0,v.Z-last.Z)).Magnitude or 0
-    local verticalShock=last and math.max(0,v.Y-last.Y) or 0
-    local grounded=humanoid.FloorMaterial~=Enum.Material.Air
-
-    -- Store a recent, slow grounded point. A recovery still requires a raycast.
-    if not excluded and grounded and hSpeed<28 and math.abs(ySpeed)<18 then
-        if not S.LastSafeCFrame or now-S.LastSafeTime>.12 then
-            S.LastSafeCFrame=root.CFrame
-            S.LastSafeTime=now
-        end
-    end
-
-    local detectH=not excluded and cfg.AntiFling
-        and hSpeed>hLimit and
-        (strict or horizontalShock>hLimit*.3 or hSpeed>hLimit*1.7)
-    local detectY=not excluded and (cfg.AntiFly or cfg.AntiFling)
-        and ySpeed>yLimit and
-        (strict or verticalShock>yLimit*.3 or ySpeed>yLimit*1.7)
-    local detectSpin=not excluded and cfg.AntiAim
-        and math.abs(a.Y)>cfg.SpinThreshold
+    local yLimit=cfg.FlyLaunchSpeed*(strict and .78 or 1)
+    local hShock=prev and Vector3.new(
+        v.X-prev.X,0,v.Z-prev.Z).Magnitude or 0
+    local yShock=prev and math.max(0,v.Y-prev.Y) or 0
+    local onGround=humanoid.FloorMaterial~=Enum.Material.Air
+    local displacementY=prevPosition and root.Position.Y-prevPosition.Y or 0
 
     if excluded then
-        S.FlingState="EXEMPT";S.FlyState="EXEMPT";S.SpinState="EXEMPT"
-        S.FlingSamples=0;S.FlySamples=0;S.SpinSamples=0
+        S.AirborneSince=nil
+        S.AscentDuration=0
+        S.HoverDuration=0
         S.RecoveryUntil=0
+        S.GuardTriggeredAt=0
+        S.GuardTriggeredReason=nil
+        S.FlingState="EXEMPT"
+        S.FlyState="EXEMPT"
+        S.SpinState="EXEMPT"
+        S.FlingSamples=0
+        S.FlySamples=0
+        S.SpinSamples=0
     else
-        S.FlingSamples=detectH and math.min(3,S.FlingSamples+1) or 0
-        S.FlySamples=detectY and math.min(3,S.FlySamples+1) or 0
-        S.SpinSamples=detectSpin and math.min(3,S.SpinSamples+1) or 0
-        local hitH=detectH and (strict or S.FlingSamples>=2)
-        local hitY=detectY and (strict or S.FlySamples>=2)
-        local hitSpin=detectSpin and (strict or S.SpinSamples>=2)
-        local impacted=hitH or hitY
-        S.FlingState=cfg.AntiFling and (hitH and "LIMITED" or detectH and "CHECKING" or "MONITORING") or "OFF"
-        S.FlyState=(cfg.AntiFly or cfg.AntiFling) and
-            (hitY and "LIMITED" or detectY and "CHECKING" or "MONITORING") or "OFF"
-        S.SpinState=cfg.AntiAim and (hitSpin and "LIMITED" or detectSpin and "CHECKING" or "MONITORING") or "OFF"
-        if impacted then
-            if now-S.GuardCooldown>.5 then
+        if onGround then
+            S.AirborneSince=nil
+            S.AscentDuration=0
+            S.HoverDuration=0
+            S.GuardTriggeredAt=0
+            S.GuardTriggeredReason=nil
+            S.RecoveryUntil=0
+            -- Store only stable standing points; never store a fling destination.
+            if hSpeed<28 and math.abs(speedY)<16 then
+                if now-S.GuardSafeSample>.12 then
+                    S.LastSafeCFrame=root.CFrame
+                    S.LastSafeTime=now
+                    S.GuardSafeSample=now
+                end
+            end
+        elseif not S.AirborneSince then
+            S.AirborneSince=now
+            S.AscentDuration=0
+            S.HoverDuration=0
+        end
+
+        local airTime=S.AirborneSince and (now-S.AirborneSince) or 0
+        local safe=S.LastSafeCFrame
+        local heightAbove=safe and root.Position.Y-safe.Position.Y or 0
+        -- A normal jump lasts a short time and rises only a few studs.
+        local jumpGrace=airTime<.48 and heightAbove<13
+        local suddenY=speedY>yLimit
+        local extremeY=speedY>math.max(95,yLimit*1.85)
+        local verticalImpulse=(not jumpGrace and suddenY)
+            or (extremeY and yShock>math.max(27,yLimit*.65))
+
+        -- Catch slower continuous flight/hover that the velocity-only V4 missed.
+        if not onGround and heightAbove>13 and airTime>.75
+            and (speedY>3.5 or displacementY>.16) then
+            S.AscentDuration=math.min(3,S.AscentDuration+math.min(dt,.1))
+        else
+            S.AscentDuration=math.max(0,S.AscentDuration-math.min(dt,.1)*.6)
+        end
+        if not onGround and heightAbove>18 and airTime>2.1
+            and math.abs(speedY)<8 then
+            S.HoverDuration=math.min(3,S.HoverDuration+math.min(dt,.1))
+        else
+            S.HoverDuration=math.max(0,S.HoverDuration-math.min(dt,.1)*.6)
+        end
+        local slowFlight=not onGround and cfg.AntiFly and safe~=nil
+            and ((heightAbove>18 and S.AscentDuration>.48)
+                or (heightAbove>20 and S.HoverDuration>.65))
+        local hitY=cfg.AntiFly and (
+            (verticalImpulse and (airTime>.15 or extremeY))
+            or slowFlight)
+        local hitH=cfg.AntiFling and hSpeed>hLimit
+            and (strict or hShock>hLimit*.28 or hSpeed>hLimit*1.65)
+        local hitSpin=cfg.AntiAim and
+            math.abs(angular.Y)>cfg.SpinThreshold
+
+        S.FlyState=cfg.AntiFly
+            and (hitY and (slowFlight and "FLIGHT" or "LAUNCH")
+                or "MONITORING") or "OFF"
+        S.FlingState=cfg.AntiFling
+            and (hitH and "FLING" or "MONITORING") or "OFF"
+        S.SpinState=cfg.AntiAim
+            and (hitSpin and "SPIN" or "MONITORING") or "OFF"
+
+        if (hitY or hitH) and cfg.GuardCorrect then
+            -- Clear the dangerous axis while leaving ordinary movement alone.
+            local nextH=horizontal
+            if hitH and hSpeed>.01 then
+                nextH=horizontal.Unit*math.min(hSpeed,hLimit*.37)
+            end
+            local nextY=speedY
+            if hitY then nextY=math.min(speedY,slowFlight and -7 or 8) end
+            root.AssemblyLinearVelocity=Vector3.new(nextH.X,nextY,nextH.Z)
+            if angular.Magnitude>math.max(8,cfg.SpinThreshold*1.1) then
+                root.AssemblyAngularVelocity=Vector3.zero
+            end
+            if now-S.GuardCooldown>.55 then
                 S.BlockedImpulses+=1
                 S.GuardCorrections+=1
                 S.GuardCooldown=now
-                if hitH then S.FlingFlags+=1 end
                 if hitY then S.FlyFlags+=1 end
+                if hitH then S.FlingFlags+=1 end
             end
-            if cfg.GuardCorrect then
-                -- Modify only the dangerous axis; preserve ordinary gravity and movement.
-                local horizontalNew=h
-                if hitH and hSpeed>.001 then
-                    horizontalNew=h.Unit*math.min(hSpeed,hLimit*.52)
-                end
-                local verticalNew=hitY and math.min(ySpeed,16) or ySpeed
-                root.AssemblyLinearVelocity=Vector3.new(
-                    horizontalNew.X,verticalNew,horizontalNew.Z)
-                if a.Magnitude>math.max(8,cfg.SpinThreshold*1.1) then
-                    root.AssemblyAngularVelocity=Vector3.zero
-                end
-                if cfg.SafeRecovery and
-                    (hSpeed>hLimit*2.2 or ySpeed>yLimit*2.2) and
-                    S.LastSafeCFrame and now-S.LastSafeTime<2 then
-                    S.RecoveryUntil=now+.65
-                end
+            -- A short correction isn't enough when a server/network impulse repeats.
+            -- Schedule a single grounded recovery, not a permanent teleport loop.
+            local severe=extremeY or hSpeed>hLimit*2
+                or heightAbove>24 or slowFlight
+            if cfg.SafeRecovery and severe and safe and
+                now-S.LastSafeTime<10 and airTime>.35 then
+                S.GuardTriggeredAt=now
+                S.GuardTriggeredReason=slowFlight and "FLIGHT"
+                    or (hitY and "LAUNCH" or "FLING")
+                S.GuardTriggeredSevere=true
+                S.RecoveryUntil=now+1.7
             end
-            if now-S.GuardNoticeCooldown>2.5 then
-                notify("Guard V4: abnormal impulse limited","INFO")
+            if now-S.GuardNoticeCooldown>2.3 then
+                notify("Anti Flight V5 / correction active","INFO")
                 S.GuardNoticeCooldown=now
             end
         elseif hitSpin and cfg.GuardCorrect then
-            root.AssemblyAngularVelocity=Vector3.new(a.X,
-                math.clamp(a.Y,-cfg.SpinThreshold*.5,cfg.SpinThreshold*.5),a.Z)
+            root.AssemblyAngularVelocity=Vector3.new(angular.X,
+                math.clamp(angular.Y,-cfg.SpinThreshold*.5,
+                    cfg.SpinThreshold*.5),angular.Z)
         end
 
-        if cfg.GuardCorrect and cfg.SafeRecovery and S.RecoveryUntil>now
-            and S.LastSafeCFrame and now-S.LastSafeTime<2
-            and now-S.LastRecovery>3 and not grounded then
-            local safe=S.LastSafeCFrame
-            local distance=(root.Position-safe.Position).Magnitude
-            if distance>12 and distance<125 then
-                -- Confirm the saved place still has supporting ground.
+        if cfg.SafeRecovery and cfg.GuardCorrect
+            and S.GuardTriggeredSevere and S.RecoveryUntil>now
+            and S.LastSafeCFrame and now-S.LastSafeTime<10
+            and now-S.LastRecovery>2.5 and not onGround then
+            local safeFrame=S.LastSafeCFrame
+            local delta=root.Position-safeFrame.Position
+            local distance=delta.Magnitude
+            -- Only return after a clearly abnormal displacement or air time.
+            if distance>13 and distance<220
+                and (delta.Y>16 or horizontal.Magnitude>hLimit
+                    or airTime>1.4) then
                 local query=RaycastParams.new()
                 query.FilterType=Enum.RaycastFilterType.Exclude
                 query.FilterDescendantsInstances={character}
                 query.IgnoreWater=true
-                local ground=WS:Raycast(safe.Position+Vector3.new(0,3,0),
-                    Vector3.new(0,-9,0),query)
+                local ground=WS:Raycast(
+                    safeFrame.Position+Vector3.new(0,4,0),
+                    Vector3.new(0,-12,0),query)
                 if ground and ground.Instance and ground.Instance.CanCollide
-                    and ground.Normal.Y>.65 then
-                    local destination=Vector3.new(safe.Position.X,
-                        math.max(safe.Position.Y,ground.Position.Y+3),safe.Position.Z)
-                    local orientation=root.CFrame-root.Position
-                    character:PivotTo(CFrame.new(destination)*orientation)
+                    and ground.Normal.Y>.67 then
+                    local returnPos=Vector3.new(safeFrame.Position.X,
+                        math.max(safeFrame.Position.Y,
+                            ground.Position.Y+3),safeFrame.Position.Z)
+                    local rotation=root.CFrame-root.Position
+                    character:PivotTo(CFrame.new(returnPos)*rotation)
                     root.AssemblyLinearVelocity=Vector3.zero
                     root.AssemblyAngularVelocity=Vector3.zero
                     S.LastRecovery=now
                     S.RecoveryUntil=0
-                    S.FlingState="RECOVERED"
+                    S.GuardTriggeredSevere=false
+                    S.GuardTriggeredReason=nil
+                    S.AscentDuration=0
+                    S.HoverDuration=0
                     S.FlyState="RECOVERED"
-                    notify("Guard V4: position restored","SUCCESS")
+                    S.FlingState="RECOVERED"
+                    notify("Anti Flight V5 / retour au sol","SUCCESS")
                 end
             end
         end
@@ -2149,24 +2235,25 @@ local function updateMovement(dt)
 
     if now-S.LastGuardHUD<.14 then return end
     S.LastGuardHUD=now
-    if protectCount.Parent then
-        protectCount.Text=tostring(S.BlockedImpulses).." LIMITED IMPULSES"
-    end
-    local active=cfg.AntiFling or cfg.AntiFly
-    guardStatusSidebar.Text=active and "GUARD V4 / ON" or "GUARD V4 / OFF"
+    local active=cfg.AntiFly or cfg.AntiFling
+    guardStatusSidebar.Text=active and "GUARD V5 / ON" or "GUARD V5 / OFF"
     onlineDot.BackgroundColor3=active and C.GREEN or C.RED
+    if protectCount.Parent then
+        protectCount.Text=tostring(S.BlockedImpulses).." CORRECTIONS"
+    end
     if S.MovementStatus and S.MovementStatus.Parent then
-        S.MovementStatus.Text="FLING "..S.FlingState.." / LAUNCH "..S.FlyState
-            .." / EVENTS "..S.BlockedImpulses
+        S.MovementStatus.Text="FLIGHT "..S.FlyState..
+            " / FLING "..S.FlingState.." / CORR "..S.BlockedImpulses
     end
     movementHud.Visible=not S.Open and cfg.MoveHUD
         and (cfg.AntiFly or cfg.AntiFling or cfg.AntiAim)
-    flightText.Text="LAUNCH / "..S.FlyState.." ("..S.FlyFlags..")"
+    flightText.Text="FLIGHT / "..S.FlyState.." ("..S.FlyFlags..")"
     flingText.Text="FLING / "..S.FlingState.." ("..S.FlingFlags..")"
     angleText.Text="ROTATION / "..S.SpinState.." ("..S.SpinFlags..")"
-    flightText.TextColor3=S.FlyState=="LIMITED" and C.GREEN or C.CYAN
-    flingText.TextColor3=S.FlingState=="LIMITED" and C.GREEN or C.MUTED
-    angleText.TextColor3=S.SpinState=="LIMITED" and C.GREEN or C.MUTED
+    flightText.TextColor3=(S.FlyState=="LAUNCH"
+        or S.FlyState=="FLIGHT") and C.RED or C.CYAN
+    flingText.TextColor3=S.FlingState=="FLING" and C.RED or C.MUTED
+    angleText.TextColor3=S.SpinState=="SPIN" and C.RED or C.MUTED
 end
 
 local function theme(dt)

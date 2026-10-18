@@ -1,5 +1,5 @@
--- VISION_PRO_VERSION: 3.1.1
---[[ VISION PRO 3.1.1 | COLOR STUDIO / ICON AND SPACING PASS
+-- VISION_PRO_VERSION: 3.1.2
+--[[ VISION PRO 3.1.2 | CORE STARTUP / SYNTAX FIX
      LocalScript for authorized testing in your Roblox place.
      Aimbot / simulated Silent Aim work on locally spawned mannequins only.
      Camera assist and impact preview always start disabled.
@@ -16,7 +16,8 @@ local WS=game:GetService("Workspace")
 local Me=Players.LocalPlayer
 if not Me then return end
 local PG=Me:WaitForChild("PlayerGui")
-local V="3.1.1"
+-- CoreGui is Roblox-owned. All custom UI belongs in PlayerGui.
+local V="3.1.2"
 local GNAME="VISION_PRO_147_GUI"
 local ONAME="VISION_PRO_147_OVERLAY"
 local DNAME="VISION_PRO_147_DUMMIES"
@@ -325,8 +326,14 @@ local function icon(parent,kind,x,y,tint)
     end
     return glyph
 end
-local overlay=make("ScreenGui",{Name=ONAME,DisplayOrder=850,IgnoreGuiInset=true,ResetOnSpawn=false},PG)
-local ui=make("ScreenGui",{Name=GNAME,DisplayOrder=900,IgnoreGuiInset=true,ResetOnSpawn=false},PG)
+local overlay=make("ScreenGui",{
+    Name=ONAME,DisplayOrder=850,IgnoreGuiInset=true,
+    ResetOnSpawn=false,ZIndexBehavior=Enum.ZIndexBehavior.Sibling
+},PG)
+local ui=make("ScreenGui",{
+    Name=GNAME,DisplayOrder=900,IgnoreGuiInset=true,
+    ResetOnSpawn=false,ZIndexBehavior=Enum.ZIndexBehavior.Sibling
+},PG)
 notify=function(message,kind)
     if not S.Alive or not cfg.Notifications or not ui.Parent then return end
     local messageKey=tostring(kind).." / "..tostring(message)
@@ -403,7 +410,7 @@ local logo=corner(make("Frame",{
 local mark=txt(logo,"VP",0,8,36,21,13,true,C.DARK)
 mark.TextXAlignment=Enum.TextXAlignment.Center
 local brandName=txt(brandPlate,"VISION",58,13,78,24,15,true,C.WHITE)
-local brandSub=txt(brandPlate,"PRO 3.1.1",58,36,78,19,10,true,C.CYAN)
+local brandSub=txt(brandPlate,"PRO 3.1.2",58,36,78,19,10,true,C.CYAN)
 txt(brandPlate,"COLOR STUDIO",13,61,116,14,9,true,C.MUTED)
 local sidebar=corner(make("Frame",{
     Name="ColorCategories",Position=UDim2.fromOffset(16,105),
@@ -476,7 +483,7 @@ local v3Badge=corner(make("Frame",{
     Position=UDim2.fromOffset(342,9),Size=UDim2.fromOffset(96,25),
     BackgroundColor3=C.WHITE,BackgroundTransparency=.81,BorderSizePixel=0
 },header),10)
-local v3BadgeText=txt(v3Badge,"V3.1.1",7,4,83,18,10,true,C.WHITE)
+local v3BadgeText=txt(v3Badge,"V3.1.2",7,4,83,18,10,true,C.WHITE)
 v3BadgeText.TextXAlignment=Enum.TextXAlignment.Center
 local minimize=btn(header,"-",483,9,32,30,C.SIDE)
 local close=btn(header,"X",523,9,32,30,C.SIDE)
@@ -503,7 +510,7 @@ local onlineDot=corner(make("Frame",{
 },footer),4)
 local runningDot=onlineDot
 local guardStatusSidebar=txt(footer,"GUARD / ACTIVE",15,1,173,20,10,true,C.GREEN)
-local foot=txt(footer,"VISION PRO 3.1.1",213,2,147,19,10,true,C.MUTED)
+local foot=txt(footer,"VISION PRO 3.1.2",213,2,147,19,10,true,C.MUTED)
 local status=txt(footer,"TAB / MENU",398,2,100,19,9,false,C.MUTED)
 local fpsText=txt(footer,"-- FPS",489,2,58,19,10,true,C.CYAN)
 fpsText.TextXAlignment=Enum.TextXAlignment.Right
@@ -627,7 +634,7 @@ end
 local function toggle(page,key,title,detail)
     local tint=tabColors[page]
     local row=corner(make("TextButton",{
-        Size=UDim2.new(1,-2,0,64),LayoutOrder=order(page)
+        Size=UDim2.new(1,-2,0,64),LayoutOrder=order(page),
         BackgroundColor3=C.CARD,BorderSizePixel=0,
         Text="",AutoButtonColor=false,Active=true
     },pages[page]),ROUND.Card)
@@ -675,7 +682,7 @@ end
 local function choices(page,title,key,options)
     local tint=tabColors[page]
     local row=corner(make("Frame",{
-        Size=UDim2.new(1,-2,0,81),LayoutOrder=order(page)
+        Size=UDim2.new(1,-2,0,81),LayoutOrder=order(page),
         BackgroundColor3=C.CARD,BorderSizePixel=0
     },pages[page]),ROUND.Card)
     txt(row,title,16,9,465,23,12,true,C.WHITE)
@@ -1606,7 +1613,7 @@ action("HOME","Supprimer les mannequins","Retirer toutes les cibles locales","RE
 action("HOME","Reinitialiser les PV","Remettre les cibles a 100 PV","RESET",resetAllHP)
 section("HOME","SESSION LOCALE")
 local homeStatus=make("Frame",{
-    LayoutOrder=order("HOME"),Size=UDim2.new(1,-2,0,76)
+    LayoutOrder=order("HOME"),Size=UDim2.new(1,-2,0,76),
     BackgroundTransparency=1
 },pages.HOME)
 local targetsCard=corner(make("Frame",{
@@ -2020,9 +2027,9 @@ local function releaseLine(index,version,heading,detail,color)
         line.BackgroundTransparency=.76
     end
 end
-releaseLine(1,"3.1.1","ICONS & SPACING","Icones / marges / boutons alignes",C.CYAN)
-releaseLine(2,"3.1.0","COLOR STUDIO","Navigation coloree et refonte V3",C.PURPLE)
-releaseLine(3,"3.0.0","ATELIER V9","Ancien dock inferieur",C.GOLD)
+releaseLine(1,"3.1.2","STARTUP FIX","Syntaxe des menus / PlayerGui",C.CYAN)
+releaseLine(2,"3.1.1","ICONS & SPACING","Navigation et marges",C.PURPLE)
+releaseLine(3,"3.1.0","COLOR STUDIO","Version coloree",C.GOLD)
 local aboutEnd=make("Frame",{
     LayoutOrder=order("ABOUT"),Size=UDim2.new(1,-2,0,34),
     BackgroundTransparency=1

@@ -11,10 +11,12 @@
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
 local DataStoreService = game:GetService("DataStoreService")
 
 local REMOTE_NAME = "VisionProBetaAccess"
 local USE_DATASTORE = true
+local ALLOW_STUDIO_PREVIEW = false -- set true in your PRIVATE Studio copy for UI previews only
 local STORE_NAME = "VisionProBetaAccessV4"
 local MAX_ATTEMPTS = 6
 local ATTEMPT_WINDOW = 90
@@ -63,6 +65,9 @@ local function response(ok,message,expires)
 end
 
 local function activeStatus(player)
+    if ALLOW_STUDIO_PREVIEW and RunService:IsStudio() then
+        return response(true,"Apercu Studio autorise",0)
+    end
     local id = player.UserId
     local cached = session[id]
     if cached and validEntry(byId[cached],id) then
@@ -94,6 +99,9 @@ local function rateLimit(userId)
 end
 
 local function activate(player,rawKey)
+    if ALLOW_STUDIO_PREVIEW and RunService:IsStudio() then
+        return response(true,"Apercu Studio autorise",0)
+    end
     if rateLimit(player.UserId) then
         return response(false,"Trop d'essais. Reessayez plus tard.")
     end

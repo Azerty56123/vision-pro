@@ -1,5 +1,5 @@
--- VISION_PRO_VERSION: 1.6.0
---[[ VISION PRO 1.6.0 | SPECTRA / UI V3 AND ANTI FLING V3
+-- VISION_PRO_VERSION: 1.6.1
+--[[ VISION PRO 1.6.1 | SPECTRA / ROUNDED UI V3
      LocalScript for authorized testing in your Roblox place.
      Aimbot / simulated Silent Aim work on locally spawned mannequins only.
      Camera assist and impact preview always start disabled.
@@ -16,7 +16,7 @@ local WS=game:GetService("Workspace")
 local Me=Players.LocalPlayer
 if not Me then return end
 local PG=Me:WaitForChild("PlayerGui")
-local V="1.6.0"
+local V="1.6.1"
 local GNAME="VISION_PRO_147_GUI"
 local ONAME="VISION_PRO_147_OVERLAY"
 local DNAME="VISION_PRO_147_DUMMIES"
@@ -166,7 +166,12 @@ local function on(event,cb)
     table.insert(S.Connections,con)
     return con
 end
-local function corner(x,r) make("UICorner",{CornerRadius=UDim.new(0,r)},x) return x end
+-- SPECTRA V3 ROUNDED: consistent radii without changing button behavior.
+local ROUND={Window=26,Sidebar=26,Card=18,Compact=15,Modal=23,Pill=18}
+local function corner(x,r)
+    make("UICorner",{CornerRadius=UDim.new(0,r)},x)
+    return x
+end
 local function stroke(x,col,w) return make("UIStroke",{Color=col or C.STROKE,Thickness=w or 1},x) end
 local function grad(x,a,b,angle)
     return make("UIGradient",{Color=ColorSequence.new(a,b),Rotation=angle or 0},x)
@@ -190,7 +195,7 @@ local function btn(parent,s,x,y,w,h,background)
         Position=UDim2.fromOffset(x,y),Size=UDim2.fromOffset(w,h),
         Text="",BackgroundColor3=background or C.HOVER,
         BorderSizePixel=0,AutoButtonColor=false,Active=true,
-    },parent),9)
+    },parent),math.min(ROUND.Pill,math.floor(h/2)))
     local caption=make("TextLabel",{
         Name="ButtonCaption",Position=UDim2.fromScale(0,0),
         Size=UDim2.fromScale(1,1),BackgroundTransparency=1,
@@ -209,7 +214,7 @@ local function buttonSurface(control,color1,color2)
         BorderSizePixel=0,
         Active=false,
         ZIndex=control.ZIndex+1
-    },control),8)
+    },control),math.min(ROUND.Pill,math.floor(control.Size.Y.Offset/2)))
     -- A shallow gradient gives depth without the template-like neon streaks.
     grad(surface,color1 or C.BLUE,color2 or C.PURPLE,8)
     return surface
@@ -285,7 +290,7 @@ notify=function(message,kind)
         Name="VPToast",AnchorPoint=Vector2.new(1,0),
         Position=UDim2.new(1,-18,0,-72),Size=UDim2.fromOffset(288,59),
         BackgroundColor3=C.SIDE,BorderSizePixel=0,ZIndex=100,
-    },ui),10)
+    },ui),ROUND.Compact)
     S.Toast=toast
     stroke(toast,C.STROKE,1).Transparency=.35
     local mark=bar(toast,0,9,3,41,tint)
@@ -310,7 +315,7 @@ local window=corner(make("Frame",{
     Size=UDim2.fromOffset(684,464),AnchorPoint=Vector2.new(.5,.5),
     Position=UDim2.fromScale(.5,.5),BackgroundColor3=C.BG,
     BorderSizePixel=0,ClipsDescendants=true,Active=true
-},ui),16)
+},ui),ROUND.Window)
 stroke(window,C.STROKE,1).Transparency=.25
 local topLight=bar(window,157,0,527,3,C.BLUE)
 local topGradient=grad(topLight,C.BLUE,C.PURPLE,5)
@@ -326,20 +331,25 @@ local function rescale()
     local requested=math.clamp(cfg.MenuScale or 1,.7,1.15)
     scale.Scale=math.clamp(math.min(requested,(vp.X-20)/684,(vp.Y-20)/464),.35,1.15)
 end
-local sidebar=make("Frame",{
+local sidebar=corner(make("Frame",{
     Position=UDim2.fromOffset(0,0),Size=UDim2.fromOffset(157,464),
     BackgroundColor3=C.SIDE,BorderSizePixel=0
-},window)
+},window),ROUND.Sidebar)
+-- Fill the rounded sidebar's inner right edge so the content divider stays straight.
+make("Frame",{
+    Position=UDim2.fromOffset(132,0),Size=UDim2.fromOffset(25,464),
+    BackgroundColor3=C.SIDE,BorderSizePixel=0
+},sidebar)
 bar(sidebar,156,0,1,464,C.STROKE)
 -- Simplified studio-brand tile: one mark, not a large animated illustration.
 local logo=corner(make("Frame",{
     Position=UDim2.fromOffset(15,17),Size=UDim2.fromOffset(32,32),
     BackgroundColor3=C.BLUE,BorderSizePixel=0
-},sidebar),10)
+},sidebar),12)
 local mark=txt(logo,"VP",0,4,32,22,13,true,C.DARK)
 mark.TextXAlignment=Enum.TextXAlignment.Center
 local brandName=txt(sidebar,"VISION PRO",53,13,100,24,12,true,C.WHITE)
-local brandSub=txt(sidebar,"DESKTOP V3  /  1.6.0",53,34,102,17,9,true,C.MUTED)
+local brandSub=txt(sidebar,"DESKTOP V3  /  1.6.1",53,34,102,17,9,true,C.MUTED)
 local sidebarLine=bar(sidebar,15,64,125,1,C.STROKE)
 sidebarLine.BackgroundTransparency=.4
 local tabs={"HOME","VISUALS","AIMBOT","SILENT","MISC","SETTINGS","ABOUT"}
@@ -354,12 +364,12 @@ for i,name in ipairs(tabs) do
     control.BackgroundTransparency=1
     local selected=corner(make("Frame",{Name="Selection",Position=UDim2.fromOffset(0,0),
         Size=UDim2.fromScale(1,1),BackgroundColor3=C.BLUE,
-        BorderSizePixel=0,Visible=false,Active=false},control),10)
+        BorderSizePixel=0,Visible=false,Active=false},control),15)
     local line=bar(control,0,8,3,21,tabColors[name])
     line.Visible=false
     local accentDot=corner(make("Frame",{Position=UDim2.fromOffset(11,9),
         Size=UDim2.fromOffset(21,21),BackgroundColor3=C.CARD,
-        BorderSizePixel=0,Active=false},control),7)
+        BorderSizePixel=0,Active=false},control),11)
     local glyph=icon(control,tabIcons[name],10,7)
     glyph.Size=UDim2.fromOffset(24,24)
     local title=txt(control,tabTitles[name],44,7,88,24,12,true,C.MUTED)
@@ -388,7 +398,7 @@ local pageCounter=txt(header,"01 / 07   -   WORKSPACE",12,4,220,16,10,true,C.MUT
 local v3Badge=corner(make("Frame",{
     Position=UDim2.fromOffset(292,5),Size=UDim2.fromOffset(94,19),
     BackgroundColor3=C.CARD,BorderSizePixel=0
-},header),7)
+},header),10)
 local v3BadgeText=txt(v3Badge,"SPECTRA V3",11,1,77,16,9,true,C.CYAN)
 v3BadgeText.TextXAlignment=Enum.TextXAlignment.Center
 local pageTitle=txt(header,"Accueil",12,18,340,28,21,true,C.WHITE)
@@ -413,7 +423,7 @@ local footer=make("Frame",{Position=UDim2.fromOffset(170,427),
     Size=UDim2.fromOffset(505,28),BackgroundTransparency=1},window)
 local footerLine=bar(footer,0,0,504,1,C.STROKE)
 footerLine.BackgroundTransparency=.54
-local foot=txt(footer,"SPECTRA  /  VISION PRO  /  v1.6.0",3,7,340,18,10,true,C.MUTED)
+local foot=txt(footer,"SPECTRA  /  VISION PRO  /  v1.6.1",3,7,340,18,10,true,C.MUTED)
 local fpsText=txt(footer,"-- FPS",390,7,105,18,10,true,C.GREEN)
 fpsText.TextXAlignment=Enum.TextXAlignment.Right
 local pages,orders={},{ }
@@ -485,7 +495,7 @@ local function action(page,title,detail,caption,callback)
         Size=UDim2.new(1,-2,0,63),
         LayoutOrder=order(page),BackgroundColor3=C.CARD,
         BorderSizePixel=0
-    },pages[page]),10)
+    },pages[page]),ROUND.Card)
     local rim=stroke(row,C.STROKE,1)
     rim.Transparency=.65
     local dot=corner(make("Frame",{
@@ -537,6 +547,8 @@ end
 local function toggle(page,key,title,detail)
     local row=btn(pages[page],"",0,0,502,60,C.CARD)
     row.Size=UDim2.new(1,-2,0,60)
+    local toggleCorners=row:FindFirstChildOfClass("UICorner")
+    if toggleCorners then toggleCorners.CornerRadius=UDim.new(0,ROUND.Card) end
     row.LayoutOrder=order(page)
     row.BackgroundTransparency=.20
     local rim=stroke(row,C.STROKE,1)
@@ -591,12 +603,12 @@ end
 local function choices(page,title,key,options)
     local row=corner(make("Frame",{Size=UDim2.new(1,-2,0,79),
         LayoutOrder=order(page),BackgroundColor3=C.CARD,
-        BorderSizePixel=0},pages[page]),10)
+        BorderSizePixel=0},pages[page]),ROUND.Card)
     stroke(row,C.STROKE,1).Transparency=.76
     txt(row,title,14,6,460,21,12,true,C.WHITE)
     local holder=corner(make("Frame",{Position=UDim2.fromOffset(12,34),
         Size=UDim2.new(1,-24,0,35),BackgroundColor3=C.DARK,
-        BorderSizePixel=0},row),8)
+        BorderSizePixel=0},row),ROUND.Compact)
     local items={}
     for i,opt in ipairs(options) do
         local count=#options
@@ -625,7 +637,7 @@ end
 local function slider(page,key,title,low,high,step,unit)
     local row=corner(make("Frame",{Size=UDim2.new(1,-2,0,71),
         LayoutOrder=order(page),BackgroundColor3=C.CARD,
-        BorderSizePixel=0},pages[page]),10)
+        BorderSizePixel=0},pages[page]),ROUND.Card)
     txt(row,title,14,5,316,23,12,true,C.WHITE)
     local value=txt(row,"",357,6,125,22,11,true,S.Accent)
     table.insert(S.AccentLabels,value)
@@ -1113,7 +1125,7 @@ marker.AnchorPoint=Vector2.new(.5,.5)
 marker.TextXAlignment=Enum.TextXAlignment.Center
 marker.Visible=false
 local gunHUD=corner(make("Frame",{AnchorPoint=Vector2.new(1,1),Position=UDim2.new(1,-24,1,-42),
-    Size=UDim2.fromOffset(204,67),BackgroundColor3=C.SIDE,BorderSizePixel=0,Visible=false},ui),12)
+    Size=UDim2.fromOffset(204,67),BackgroundColor3=C.SIDE,BorderSizePixel=0,Visible=false},ui),ROUND.Card)
 grad(gunHUD,Color3.fromRGB(34,43,68),Color3.fromRGB(29,50,73),12)
 stroke(gunHUD,C.STROKE,1).Transparency=.3
 local gunHudAccent=bar(gunHUD,0,11,3,44,C.PURPLE)
@@ -1412,7 +1424,7 @@ section("HOME","PROTECTION ACTIVE")
 local protectionCard=corner(make("Frame",{
     LayoutOrder=order("HOME"),Size=UDim2.new(1,-2,0,91),
     BackgroundColor3=C.SIDE,BorderSizePixel=0
-},pages.HOME),12)
+},pages.HOME),ROUND.Card)
 stroke(protectionCard,C.STROKE,1).Transparency=.36
 local protectionAccent=bar(protectionCard,0,12,3,68,C.GREEN)
 table.insert(S.AccentBars,protectionAccent)
@@ -1450,7 +1462,7 @@ section("HOME","STATUT EN DIRECT")
 local homeStatus=corner(make("Frame",{
     LayoutOrder=order("HOME"),Size=UDim2.new(1,-2,0,73),
     BackgroundColor3=C.SIDE,BorderSizePixel=0
-},pages.HOME),11)
+},pages.HOME),ROUND.Card)
 grad(homeStatus,C.CARD,C.SIDE,7)
 stroke(homeStatus,C.STROKE,1).Transparency=.5
 local metricsLine=bar(homeStatus,13,38,476,1,C.STROKE)
@@ -1494,7 +1506,7 @@ toggle("SILENT","HitMarker","Indicateur d'impact","Afficher les impacts confirme
 toggle("SILENT","PreviewCircle","Afficher le rayon d'impact","Cercle du mode d'entrainement")
 toggle("SILENT","AutoRespawn","Reapparition automatique","Restaurer la cible apres 3 secondes")
 local hitsCard=corner(make("Frame",{LayoutOrder=order("SILENT"),Size=UDim2.new(1,-2,0,53),
-    BackgroundColor3=C.CARD,BorderSizePixel=0},pages.SILENT),12)
+    BackgroundColor3=C.CARD,BorderSizePixel=0},pages.SILENT),ROUND.Compact)
 hitInfo=txt(hitsCard,"HITS  0   /   SHOTS  0   /   KOs  0",13,9,460,31,13,true)
 action("SILENT","Equiper le pistolet","Clic gauche pour tirer sur les mannequins","EQUIP",equipGun)
 action("SILENT","Reinitialiser les PV","Restaurer les trois cibles a 100 PV","RESET",resetAllHP)
@@ -1520,7 +1532,7 @@ toggle("MISC","MoveHUD","Indicateurs de protection","Afficher l'etat des protect
 local miscPanel=corner(make("Frame",{
     LayoutOrder=order("MISC"),Size=UDim2.new(1,-2,0,65),
     BackgroundColor3=C.CARD,BorderSizePixel=0
-},pages.MISC),11)
+},pages.MISC),ROUND.Card)
 stroke(miscPanel,C.STROKE,1).Transparency=.58
 bar(miscPanel,0,9,3,48,C.GOLD)
 local miscStatus=txt(miscPanel,"ANTI FLING / MONITORING",13,5,460,24,11,true,C.CYAN)
@@ -1558,7 +1570,7 @@ local Http = game:GetService("HttpService")
 local aboutBuild=corner(make("Frame",{
     LayoutOrder=order("ABOUT"),Size=UDim2.new(1,-2,0,57),
     BackgroundColor3=C.CARD,BorderSizePixel=0
-},pages.ABOUT),11)
+},pages.ABOUT),ROUND.Card)
 stroke(aboutBuild,C.STROKE,1).Transparency=.55
 bar(aboutBuild,0,10,3,37,C.CYAN)
 corner(make("Frame",{
@@ -1570,7 +1582,7 @@ description(aboutBuild,"Entrainement local / mises a jour",28,28,320,19)
 local versionPill=corner(make("Frame",{
     Position=UDim2.new(1,-106,0,14),Size=UDim2.fromOffset(90,29),
     BackgroundColor3=C.DARK,BorderSizePixel=0
-},aboutBuild),8)
+},aboutBuild),14)
 stroke(versionPill,C.PURPLE,1).Transparency=.34
 local versionPillText=txt(versionPill,"v"..V,0,4,90,21,12,true,C.PURPLE)
 versionPillText.TextXAlignment=Enum.TextXAlignment.Center
@@ -1579,7 +1591,7 @@ section("ABOUT","GITHUB OTA")
 local otaPanel=corner(make("Frame",{
     LayoutOrder=order("ABOUT"),Size=UDim2.new(1,-2,0,114),
     BackgroundColor3=C.CARD,BorderSizePixel=0
-},pages.ABOUT),11)
+},pages.ABOUT),ROUND.Card)
 stroke(otaPanel,C.STROKE,1).Transparency=.60
 bar(otaPanel,0,11,3,92,C.PURPLE)
 txt(otaPanel,"Mises a jour GitHub",13,6,312,23,13,true,C.WHITE)
@@ -1600,7 +1612,7 @@ local modal=corner(make("Frame",{
     AnchorPoint=Vector2.new(.5,.5),Position=UDim2.fromScale(.5,.5),
     Size=UDim2.fromOffset(408,229),BackgroundColor3=C.SIDE,
     BorderSizePixel=0,ZIndex=201,Active=true
-},backdrop),15)
+},backdrop),ROUND.Modal)
 stroke(modal,C.STROKE,1).Transparency=.18
 local modalLine=bar(modal,16,0,375,3,C.PURPLE);modalLine.ZIndex=202
 grad(modalLine,C.BLUE,C.CYAN,8)
@@ -1609,7 +1621,7 @@ modalTitle.ZIndex=202
 local versionBox=corner(make("Frame",{
     Position=UDim2.fromOffset(18,53),Size=UDim2.fromOffset(372,36),
     BackgroundColor3=C.CARD,BorderSizePixel=0,ZIndex=202
-},modal),8)
+},modal),ROUND.Compact)
 versionBox.ZIndex=202
 local modalVersion=txt(versionBox,"",12,7,350,23,12,true,C.CYAN)
 modalVersion.ZIndex=202
@@ -1816,7 +1828,7 @@ section("ABOUT","NOUVEAUTES")
 local releasePanel=corner(make("Frame",{
     LayoutOrder=order("ABOUT"),Size=UDim2.new(1,-2,0,144),
     BackgroundColor3=C.CARD,BorderSizePixel=0
-},pages.ABOUT),11)
+},pages.ABOUT),ROUND.Card)
 local function releaseLine(index,version,heading,detail,color)
     local y=8+(index-1)*45
     corner(make("Frame",{
@@ -1831,9 +1843,9 @@ local function releaseLine(index,version,heading,detail,color)
         line.BackgroundTransparency=.76
     end
 end
-releaseLine(1,"1.6.0","DESIGN V3","Nouvelle interface / Anti Fling V3",C.CYAN)
-releaseLine(2,"1.5.0","MAJOR UPDATE","UI V2 / performance / notifications",C.PURPLE)
-releaseLine(3,"1.4.9","INTERFACE","Themes couleurs et animations",C.GOLD)
+releaseLine(1,"1.6.1","ROUNDED UI","Coins arrondis / boutons pill / cartes V3",C.CYAN)
+releaseLine(2,"1.6.0","DESIGN V3","Interface V3 / Anti Fling V3",C.PURPLE)
+releaseLine(3,"1.5.0","MAJOR UPDATE","Interface V2 / performance / notifications",C.GOLD)
 local aboutEnd=make("Frame",{
     LayoutOrder=order("ABOUT"),Size=UDim2.new(1,-2,0,34),
     BackgroundTransparency=1
@@ -1890,7 +1902,7 @@ local movementHud=corner(make("Frame",{
     Position=UDim2.fromOffset(20,140),
     Size=UDim2.fromOffset(238,59),BackgroundColor3=C.SIDE,
     BorderSizePixel=0,Visible=false
-},ui),11)
+},ui),ROUND.Card)
 grad(movementHud,C.CARD,C.SIDE,7)
 stroke(movementHud,C.STROKE,1).Transparency=.32
 local flightText=txt(movementHud,"LAUNCH / OFF",11,3,217,20,10,true,C.CYAN)

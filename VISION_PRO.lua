@@ -1,5 +1,5 @@
--- VISION_PRO_VERSION: 1.4.9
---[[ VISION PRO 1.4.9 | SPECTRA / STUDIO UI STABILITY R2
+-- VISION_PRO_VERSION: 1.5.0
+--[[ VISION PRO 1.5.0 | SPECTRA / MAJOR UI UPDATE
      LocalScript for authorized testing in your Roblox place.
      Aimbot / simulated Silent Aim work on locally spawned mannequins only.
      Camera assist and impact preview always start disabled.
@@ -16,7 +16,7 @@ local WS=game:GetService("Workspace")
 local Me=Players.LocalPlayer
 if not Me then return end
 local PG=Me:WaitForChild("PlayerGui")
-local V="1.4.9"
+local V="1.5.0"
 local GNAME="VISION_PRO_147_GUI"
 local ONAME="VISION_PRO_147_OVERLAY"
 local DNAME="VISION_PRO_147_DUMMIES"
@@ -56,7 +56,8 @@ local D={ESP=true,Box=true,BoxColor="BLEU",ThroughWalls=true,
     AntiAim=false,SpinThreshold=9,
     GuardCorrect=true,MoveHUD=true,
     GITHUB_OTA_URL="https://raw.githubusercontent.com/Azerty56123/vision-pro/main/VISION_PRO.lua",
-    Accent="VIOLET",RGB=false,Animations=true,MiniButton=false,Range=1200,
+    Accent="VIOLET",RGB=false,Animations=true,Notifications=true,MiniButton=false,
+    MenuScale=1,Shortcut="TAB",PerformanceMode="BALANCED",Range=1200,
     Thickness=.07,RenderRate=45,AdaptiveFPS=true}
 local cfg=table.clone(D)
 local old=env.VISION_PRO_147_PREFS or env.VISION_PRO_145_PREFS or env.VISION_PRO_144_PREFS or env.VISION_PRO_143_PREFS or env.VISION_PRO_142_PREFS or env.VISION_PRO_141_PREFS or env.VISION_PRO_140_PREFS or env.VISION_PRO_132_PREFS or env.VISION_PRO_131_PREFS or env.VISION_PRO_130_PREFS or env.VISION_PRO_127_PREFS or env.VISION_PRO_126_PREFS or env.VISION_PRO_125_PREFS or env.VISION_PRO_124_PREFS
@@ -71,6 +72,9 @@ end
 local function normalize()
     validOptions("BoxColor",{"BLEU","VIOLET","RGB"},"BLEU")
     validOptions("Accent",{"BLEU","VIOLET","CYAN","ROUGE","VERT","ROSE"},"VIOLET")
+    validOptions("PerformanceMode",{"LOW","BALANCED","HIGH"},"BALANCED")
+    validOptions("Shortcut",{"TAB","RIGHTSHIFT","F4"},"TAB")
+    cfg.MenuScale=math.clamp(tonumber(cfg.MenuScale) or 1,.7,1.15)
     validOptions("AimPart",{"HEAD","BODY"},"HEAD")
     validOptions("PreviewPart",{"HEAD","BODY"},"HEAD")
     for k,v in pairs({AimFOV={60,300},PreviewFOV={60,300},AimSmooth={.03,.45},Range={100,2500},Thickness={.03,.18},RenderRate={15,60},ShotDamage={10,50},FlyLaunchSpeed={60,250},FlingSpeed={100,350},SpinThreshold={5,25}}) do
@@ -134,9 +138,15 @@ local function logVisionError(scope,problem)
         warn("[VISION PRO "..V.." / "..tostring(scope).."] "..message)
     end
 end
+local notify=function()end
 local function safeAction(scope,fn)
     local ok,err=pcall(fn)
-    if not ok then logVisionError(scope,err) end
+    if not ok then
+        logVisionError(scope,err)
+        notify("Action failed: "..tostring(scope),"ERROR")
+    else
+        notify("Action done: "..tostring(scope),"SUCCESS")
+    end
 end
 local function make(kind,p,parent)
     local x=Instance.new(kind)
@@ -260,13 +270,41 @@ local function icon(parent,kind,x,y)
 end
 local overlay=make("ScreenGui",{Name=ONAME,DisplayOrder=850,IgnoreGuiInset=true,ResetOnSpawn=false},PG)
 local ui=make("ScreenGui",{Name=GNAME,DisplayOrder=900,IgnoreGuiInset=true,ResetOnSpawn=false},PG)
+notify=function(message,kind)
+    if not S.Alive or not cfg.Notifications or not ui.Parent then return end
+    if S.Toast and S.Toast.Parent then S.Toast:Destroy() end
+    local tint=kind=="ERROR" and C.RED or kind=="SUCCESS" and C.GREEN or S.Accent
+    local toast=corner(make("Frame",{
+        Name="VPToast",AnchorPoint=Vector2.new(1,0),
+        Position=UDim2.new(1,-18,0,-72),Size=UDim2.fromOffset(288,59),
+        BackgroundColor3=C.SIDE,BorderSizePixel=0,ZIndex=100,
+    },ui),10)
+    S.Toast=toast
+    stroke(toast,C.STROKE,1).Transparency=.35
+    local mark=bar(toast,0,9,3,41,tint)
+    mark.ZIndex=101
+    local heading=txt(toast,kind=="ERROR" and "ERROR" or kind=="SUCCESS" and "SUCCESS" or "VISION PRO",12,5,263,18,10,true,tint)
+    heading.ZIndex=101
+    local info=description(toast,tostring(message):sub(1,94),12,25,263,26)
+    info.ZIndex=101
+    info.TextWrapped=true
+    animateUI(toast,{Position=UDim2.new(1,-18,0,18)},.2)
+    task.delay(2.8,function()
+        if not toast.Parent then return end
+        animateUI(toast,{Position=UDim2.new(1,-18,0,-72)},.18)
+        task.delay(.22,function()
+            if toast.Parent then toast:Destroy() end
+            if S.Toast==toast then S.Toast=nil end
+        end)
+    end)
+end
 -- SPECTRA: purpose-built desktop control surface, not a dashboard grid.
 local window=corner(make("Frame",{
     Size=UDim2.fromOffset(684,464),AnchorPoint=Vector2.new(.5,.5),
     Position=UDim2.fromScale(.5,.5),BackgroundColor3=C.BG,
     BorderSizePixel=0,ClipsDescendants=true,Active=true
-},ui),14)
-stroke(window,C.STROKE,1).Transparency=.23
+},ui),12)
+stroke(window,C.STROKE,1).Transparency=.34
 local topLight=bar(window,157,0,527,2,C.BLUE)
 local topGradient=grad(topLight,C.BLUE,C.PURPLE,5)
 topLight.ZIndex=3
@@ -278,7 +316,8 @@ local function rescale()
     local camera=WS.CurrentCamera
     if not camera then return end
     local vp=camera.ViewportSize
-    scale.Scale=math.clamp(math.min(1,(vp.X-20)/684,(vp.Y-20)/464),.4,1)
+    local requested=math.clamp(cfg.MenuScale or 1,.7,1.15)
+    scale.Scale=math.clamp(math.min(requested,(vp.X-20)/684,(vp.Y-20)/464),.35,1.15)
 end
 local sidebar=make("Frame",{
     Position=UDim2.fromOffset(0,0),Size=UDim2.fromOffset(157,464),
@@ -293,11 +332,11 @@ local logo=corner(make("Frame",{
 local mark=txt(logo,"V",0,3,30,23,18,true,C.DARK)
 mark.TextXAlignment=Enum.TextXAlignment.Center
 local brandName=txt(sidebar,"VISION PRO",53,13,100,24,12,true,C.WHITE)
-local brandSub=txt(sidebar,"STUDIO  /  1.4.9",53,34,100,17,9,true,C.MUTED)
+local brandSub=txt(sidebar,"STUDIO  /  1.5.0",53,34,100,17,9,true,C.MUTED)
 local sidebarLine=bar(sidebar,15,64,125,1,C.STROKE)
 sidebarLine.BackgroundTransparency=.4
 local tabs={"HOME","VISUALS","AIMBOT","SILENT","MISC","SETTINGS","ABOUT"}
-local tabTitles={HOME="Accueil",VISUALS="Visuels",AIMBOT="Aimbot",SILENT="Silent Aim",MISC="Divers",SETTINGS="ParamÃ¨tres",ABOUT="About"}
+local tabTitles={HOME="Accueil",VISUALS="Visuels",AIMBOT="Aimbot",SILENT="Silent Aim",MISC="Divers",SETTINGS="Parametres",ABOUT="About"}
 local tabIcons={HOME="home",VISUALS="eye",AIMBOT="aim",SILENT="silent",MISC="misc",SETTINGS="settings",ABOUT="info"}
 local tabColors={HOME=C.BLUE,VISUALS=C.BLUE,AIMBOT=C.PURPLE,SILENT=C.PURPLE,
     MISC=C.CYAN,SETTINGS=C.BLUE,ABOUT=C.GREEN}
@@ -333,7 +372,7 @@ end
 bar(sidebar,15,398,125,1,C.STROKE)
 local onlineDot=corner(make("Frame",{Position=UDim2.fromOffset(16,413),
     Size=UDim2.fromOffset(7,7),BackgroundColor3=C.GREEN,BorderSizePixel=0},sidebar),5)
-txt(sidebar,"SESSION ACTIVE",31,406,120,22,10,true,C.TEXT)
+txt(sidebar,"VISION PRO READY",31,406,120,22,10,true,C.TEXT)
 local status=txt(sidebar,"TAB  /  AFFICHER",16,433,132,18,9,false,C.MUTED)
 -- Transparent header keeps the drag affordance; no large colored banner.
 local header=make("Frame",{Position=UDim2.fromOffset(168,8),
@@ -349,8 +388,8 @@ headerCyan.BackgroundTransparency=.66
 local runningDot=corner(make("Frame",{
     Position=UDim2.fromOffset(393,24),Size=UDim2.fromOffset(6,6),
     BackgroundColor3=C.GREEN,BorderSizePixel=0},header),4)
-local minimize=btn(header,"â",421,18,30,30,C.CARD)
-local close=btn(header,"Ã",457,18,30,30,C.CARD)
+local minimize=btn(header,"-",421,18,30,30,C.CARD)
+local close=btn(header,"X",457,18,30,30,C.CARD)
 buttonCaption(minimize).TextSize=18
 buttonCaption(close).TextSize=17
 local topDivider=bar(window,170,77,504,1,C.STROKE)
@@ -361,7 +400,7 @@ local footer=make("Frame",{Position=UDim2.fromOffset(170,427),
     Size=UDim2.fromOffset(505,28),BackgroundTransparency=1},window)
 local footerLine=bar(footer,0,0,504,1,C.STROKE)
 footerLine.BackgroundTransparency=.54
-local foot=txt(footer,"VISION PRO  /  v1.4.9   -   STUDIO UI",3,7,335,18,10,true,C.MUTED)
+local foot=txt(footer,"VISION PRO  /  v1.5.0   -   STUDIO UI",3,7,335,18,10,true,C.MUTED)
 local fpsText=txt(footer,"-- FPS",390,7,105,18,10,true,C.GREEN)
 fpsText.TextXAlignment=Enum.TextXAlignment.Right
 local pages,orders={},{ }
@@ -391,15 +430,21 @@ local function selectPage(name)
     end
     for n,item in pairs(nav) do
         local active=n==name
-        item.Selected.Visible=active
+        item.Selected.Visible=true
+        item.Line.Visible=true
         item.Selected.BackgroundColor3=S.Accent
-        item.Selected.BackgroundTransparency=.83
-        item.Line.Visible=active
-        item.Button.BackgroundTransparency=active and 0 or 1
-        item.Button.BackgroundColor3=active and C.CARD or C.SIDE
-        item.Title.TextColor3=active and C.WHITE or C.MUTED
-        item.Dot.BackgroundColor3=active and S.Accent or C.DARK
-        item.Dot.BackgroundTransparency=active and .06 or .24
+        item.Line.BackgroundColor3=S.Accent
+        animateUI(item.Selected,{BackgroundTransparency=active and .85 or 1},.16)
+        animateUI(item.Line,{BackgroundTransparency=active and 0 or 1},.16)
+        animateUI(item.Button,{
+            BackgroundTransparency=active and 0 or 1,
+            BackgroundColor3=active and C.CARD or C.SIDE,
+        },.16)
+        animateUI(item.Title,{TextColor3=active and C.WHITE or C.MUTED},.16)
+        animateUI(item.Dot,{
+            BackgroundColor3=active and S.Accent or C.DARK,
+            BackgroundTransparency=active and .06 or .24
+        },.16)
     end
     pageCounter.Text=string.format("%02d / 07   -   WORKSPACE",table.find(tabs,name) or 1)
     pageCounter.TextColor3=S.Accent
@@ -451,22 +496,22 @@ local function action(page,title,detail,caption,callback)
     end
     on(row.MouseEnter,function()
         if not S.Alive then return end
-        Tween:Create(row,TweenInfo.new(.12),{BackgroundColor3=C.HOVER}):Play()
+        animateUI(row,{BackgroundColor3=C.HOVER},.12)
         rim.Transparency=.27
     end)
     on(row.MouseLeave,function()
         if not S.Alive then return end
-        Tween:Create(row,TweenInfo.new(.12),{BackgroundColor3=C.CARD}):Play()
+        animateUI(row,{BackgroundColor3=C.CARD},.12)
         rim.Transparency=.78
     end)
     on(control.MouseEnter,function()
         if S.Alive then
-            control.BackgroundColor3=destructive and C.STROKE or C.CYAN
+            animateUI(control,{BackgroundColor3=destructive and C.STROKE or S.Accent:Lerp(C.WHITE,.16)},.12)
         end
     end)
     on(control.MouseLeave,function()
         if S.Alive then
-            control.BackgroundColor3=destructive and C.HOVER or C.BLUE
+            animateUI(control,{BackgroundColor3=destructive and C.HOVER or S.Accent},.12)
         end
     end)
     on(control.Activated,function()
@@ -509,6 +554,9 @@ local function toggle(page,key,title,detail)
     on(row.Activated,function()
         cfg[key]=not cfg[key]
         save()
+        if key~="Animations" then
+            notify(title.." / "..(cfg[key] and "ON" or "OFF"),"INFO")
+        end
         local enabled=cfg[key]
         stateText.Text=enabled and "ON" or "OFF"
         stateText.TextColor3=enabled and S.Accent or C.MUTED
@@ -516,12 +564,12 @@ local function toggle(page,key,title,detail)
         animateUI(knob,{Position=UDim2.fromOffset(enabled and 26 or 3,3)},.17)
     end)
     on(row.MouseEnter,function()
-        row.BackgroundTransparency=0
-        rim.Transparency=.47
+        animateUI(row,{BackgroundTransparency=0},.14)
+        animateUI(rim,{Transparency=.47},.14)
     end)
     on(row.MouseLeave,function()
-        row.BackgroundTransparency=.20
-        rim.Transparency=.82
+        animateUI(row,{BackgroundTransparency=.20},.14)
+        animateUI(rim,{Transparency=.82},.14)
     end)
     table.insert(S.AccentToggles,{Key=key,Track=track,Label=stateText})
     table.insert(S.Toggles,refreshToggle)
@@ -594,6 +642,7 @@ local function slider(page,key,title,low,high,step,unit)
         cfg[key]=math.clamp(math.floor((low+f*(high-low))/step+.5)*step,low,high)
         save()
         refreshSlider()
+        if key=="MenuScale" then rescale() end
     end
     on(zone.InputBegan,function(input)
         if input.UserInputType==Enum.UserInputType.MouseButton1
@@ -633,7 +682,7 @@ local function changeInfo()
     if weaponInfo then
         local state=S.EquipError and "EQUIP FAILED" or
             (S.Reloading and "RELOADING" or (S.Armed and "READY" or "HOLSTERED"))
-        weaponInfo.Text="Ammo: "..S.Ammo.." / 12  Â·  "..state
+        weaponInfo.Text="Ammo: "..S.Ammo.." / 12   /   "..state
     end
     if hitInfo then hitInfo.Text="HITS  "..S.Hits.."   /   SHOTS  "..S.Shots.."   /   KOs  "..S.KOs end
 end
@@ -951,9 +1000,12 @@ local function updateTargets()
                 edge.Item.Visible=d.Visible and cfg.Box
                 edge.Item.AlwaysOnTop=cfg.ThroughWalls
             end
-            if d.Visible and cfg.Box and os.clock()-d.LastGeometry>.20 then
-                updateGeometry(d,model,os.clock())
-                d.LastGeometry=os.clock()
+            local geometryGap=cfg.PerformanceMode=="LOW" and .38
+                or cfg.PerformanceMode=="HIGH" and .16 or .23
+            local geometryNow=os.clock()
+            if d.Visible and cfg.Box and geometryNow-d.LastGeometry>=geometryGap then
+                updateGeometry(d,model,geometryNow)
+                d.LastGeometry=geometryNow
             end
         else
             d.Visible=false
@@ -1055,7 +1107,7 @@ local gunHudAccent=bar(gunHUD,0,11,3,44,C.PURPLE)
 local gunHudSecond=bar(gunHUD,196,11,3,44,C.CYAN)
 txt(gunHUD,"VP-9 MKII  /  TRAINING",13,5,175,17,9,true,C.CYAN)
 local ammoText=txt(gunHUD,"12 / 12",13,20,169,24,19,true)
-local hintText=txt(gunHUD,"LMB FIRE  Â·  R RELOAD",13,47,180,17,9,false,C.TEXT)
+local hintText=txt(gunHUD,"LMB FIRE   /   R RELOAD",13,47,180,17,9,false,C.TEXT)
 local function setMenu(open)
     if not S.Alive then return end
     S.Open=open;window.Visible=open
@@ -1079,7 +1131,7 @@ local function reload()
     local ticket=S.GunGeneration
     task.delay(1.25,function()
         if S.Alive and ticket==S.GunGeneration then
-            S.Reloading=false;S.Ammo=12;hintText.Text="LMB FIRE  Â·  R RELOAD";updateGun()
+            S.Reloading=false;S.Ammo=12;hintText.Text="LMB FIRE   /   R RELOAD";updateGun()
         end
     end)
 end
@@ -1176,11 +1228,11 @@ local function shoot()
         local oldHP=dummyHP(model)
         local hpAfter=impactDummy(model,cfg.ShotDamage)
         impactPopup(model,oldHP-hpAfter)
-        hintText.Text="HIT  -"..(oldHP-hpAfter).."  Â·  "..hpAfter.." HP"
+        hintText.Text="HIT  -"..(oldHP-hpAfter).."   /   "..hpAfter.." HP"
         local shotID=S.Shots
         task.delay(.65,function()
             if S.Alive and S.Shots==shotID and not S.Reloading then
-                hintText.Text="LMB FIRE  Â·  R RELOAD"
+                hintText.Text="LMB FIRE   /   R RELOAD"
             end
         end)
         if cfg.HitMarker then
@@ -1190,7 +1242,7 @@ local function shoot()
         end
     end
     updateGun()
-    if S.Ammo==0 then hintText.Text="R  Â·  RELOAD" end
+    if S.Ammo==0 then hintText.Text="R   /   RELOAD" end
 end
 local function equipGun()
     local backpack=Me:FindFirstChildOfClass("Backpack")
@@ -1343,11 +1395,11 @@ on(Me.CharacterAdded,function()
 end)
 
 -- Pages: no giant introductory cards, no 2D/JSON options.
-section("HOME","ENTRAÃNEMENT")
-action("HOME","Pistolet de test","Ãquiper puis tirer avec le clic gauche","EQUIP",equipGun)
-action("HOME","Mannequins de test","CrÃ©er trois mannequins R6 locaux","SPAWN",spawnDummies)
+section("HOME","ENTRAINEMENT")
+action("HOME","Pistolet de test","Equiper puis tirer avec le clic gauche","EQUIP",equipGun)
+action("HOME","Mannequins de test","Creer trois mannequins R6 locaux","SPAWN",spawnDummies)
 action("HOME","Supprimer les mannequins","Retirer toutes les cibles locales","REMOVE",clearDummies)
-action("HOME","RÃ©initialiser les PV","Remettre les cibles Ã  100 PV","RESET",resetAllHP)
+action("HOME","Reinitialiser les PV","Remettre les cibles a 100 PV","RESET",resetAllHP)
 section("HOME","STATUT EN DIRECT")
 local homeStatus=corner(make("Frame",{
     LayoutOrder=order("HOME"),Size=UDim2.new(1,-2,0,73),
@@ -1357,70 +1409,66 @@ grad(homeStatus,C.CARD,C.SIDE,7)
 stroke(homeStatus,C.STROKE,1).Transparency=.5
 local metricsLine=bar(homeStatus,13,38,476,1,C.STROKE)
 dummyInfo=txt(homeStatus,"Targets: 0 / 3",13,8,220,25,12,true,C.WHITE)
-weaponInfo=description(homeStatus,"Ammo: 12 / 12  Â·  HOLSTERED",13,40,459,22)
-
-section("HOME","PROFILS")
-action("HOME","ESP / qualitÃ©","BoÃ®tes 3D, squelette et informations","APPLY",function()cfg.ESP=true;cfg.Box=true;cfg.Skeleton=true;save();refresh()end)
-action("HOME","ESP / performance","Affichage 3D plus lÃ©ger","APPLY",function()cfg.ESP=true;cfg.Box=true;cfg.Skeleton=false;cfg.Tracers=false;cfg.RenderRate=30;save();refresh()end)
+weaponInfo=description(homeStatus,"Ammo: 12 / 12   /   HOLSTERED",13,40,459,22)
 
 section("VISUALS","3D ESP")
-toggle("VISUALS","ESP","Activer les visuels","Activer ou dÃ©sactiver tout lâESP")
-toggle("VISUALS","Box","BoÃ®tes 3D","Affichage 3D uniquement")
-choices("VISUALS","Couleur des boÃ®tes","BoxColor",{"BLEU","VIOLET","RGB"})
-slider("VISUALS","Thickness","Ãpaisseur des contours",.03,.18,.01," studs")
+toggle("VISUALS","ESP","Activer les visuels","Activer ou desactiver tout l'ESP")
+toggle("VISUALS","Box","Boites 3D","Affichage 3D uniquement")
+choices("VISUALS","Couleur des boites","BoxColor",{"BLEU","VIOLET","RGB"})
+slider("VISUALS","Thickness","Epaisseur des contours",.03,.18,.01," studs")
 toggle("VISUALS","Skeleton","Skeleton","Articulations R6 et R15")
-toggle("VISUALS","Tracers","Tracers","TracÃ©s vers les cibles")
-toggle("VISUALS","Highlight","Contours lumineux","Surlignage lÃ©ger du personnage")
+toggle("VISUALS","Tracers","Tracers","Traces vers les cibles")
+toggle("VISUALS","Highlight","Contours lumineux","Surlignage leger du personnage")
 section("VISUALS","INFORMATIONS")
 toggle("VISUALS","Names","Afficher les noms","Nom au-dessus des cibles")
 toggle("VISUALS","Distance","Distance","Distance en studs")
 toggle("VISUALS","Health","Barre de vie","Afficher les points de vie")
 section("VISUALS","FILTRES")
-toggle("VISUALS","ThroughWalls","Ã travers les murs","Mode de test de visibilitÃ©")
-toggle("VISUALS","ShowAllies","Afficher les alliÃ©s","Inclure les membres de lâÃ©quipe")
-toggle("VISUALS","ShowNPC","Afficher les PNJ","Montrer les cibles dâentraÃ®nement")
-toggle("VISUALS","TeamColors","Couleurs des Ã©quipes","Couleurs selon lâÃ©quipe")
+toggle("VISUALS","ThroughWalls","A travers les murs","Mode de test de visibilite")
+toggle("VISUALS","ShowAllies","Afficher les allies","Inclure les membres de l'equipe")
+toggle("VISUALS","ShowNPC","Afficher les PNJ","Montrer les cibles d'entrainement")
+toggle("VISUALS","TeamColors","Couleurs des equipes","Couleurs selon l'equipe")
 
-section("AIMBOT","ENTRAÃNEMENT CAMÃRA")
-toggle("AIMBOT","Aim","Assistance camÃ©ra","Clic droit pour suivre un mannequin vivant")
-toggle("AIMBOT","ShowFOV","Afficher le rayon","Zone de sÃ©lection du viseur")
-choices("AIMBOT","Zone ciblÃ©e","AimPart",{"HEAD","BODY"})
-toggle("AIMBOT","AimLOS","VisibilitÃ© requise","Ignorer les cibles derriÃ¨re les murs")
+section("AIMBOT","ENTRAINEMENT CAMERA")
+toggle("AIMBOT","Aim","Assistance camera","Clic droit pour suivre un mannequin vivant")
+toggle("AIMBOT","ShowFOV","Afficher le rayon","Zone de selection du viseur")
+choices("AIMBOT","Zone ciblee","AimPart",{"HEAD","BODY"})
+toggle("AIMBOT","AimLOS","Visibilite requise","Ignorer les cibles derriere les murs")
 slider("AIMBOT","AimFOV","Rayon de ciblage",60,300,10," px")
-slider("AIMBOT","AimSmooth","FluiditÃ© du suivi",.03,.45,.02," s")
-action("AIMBOT","CrÃ©er les cibles","Trois mannequins espacÃ©s","SPAWN",spawnDummies)
+slider("AIMBOT","AimSmooth","Fluidite du suivi",.03,.45,.02," s")
+action("AIMBOT","Creer les cibles","Trois mannequins espaces","SPAWN",spawnDummies)
 
 section("SILENT","TIRS DE TEST")
-toggle("SILENT","Preview","Silent Aim simulÃ©","Agrandir la zone dâimpact sans bouger la camÃ©ra")
-toggle("SILENT","PreviewLOS","VisibilitÃ© requise","Ne pas traverser les murs solides")
-choices("SILENT","Zone dâimpact","PreviewPart",{"HEAD","BODY"})
+toggle("SILENT","Preview","Silent Aim simule","Agrandir la zone d'impact sans bouger la camera")
+toggle("SILENT","PreviewLOS","Visibilite requise","Ne pas traverser les murs solides")
+choices("SILENT","Zone d'impact","PreviewPart",{"HEAD","BODY"})
 slider("SILENT","PreviewFOV","Rayon des impacts",60,300,10," px")
-slider("SILENT","ShotDamage","DÃ©gÃ¢ts par tir sur mannequin",10,50,5," HP")
-toggle("SILENT","HitMarker","Indicateur dâimpact","Afficher les impacts confirmÃ©s")
-toggle("SILENT","PreviewCircle","Afficher le rayon dâimpact","Cercle du mode dâentraÃ®nement")
-toggle("SILENT","AutoRespawn","RÃ©apparition automatique","Restaurer la cible aprÃ¨s 3 secondes")
+slider("SILENT","ShotDamage","Degats par tir sur mannequin",10,50,5," HP")
+toggle("SILENT","HitMarker","Indicateur d'impact","Afficher les impacts confirmes")
+toggle("SILENT","PreviewCircle","Afficher le rayon d'impact","Cercle du mode d'entrainement")
+toggle("SILENT","AutoRespawn","Reapparition automatique","Restaurer la cible apres 3 secondes")
 local hitsCard=corner(make("Frame",{LayoutOrder=order("SILENT"),Size=UDim2.new(1,-2,0,53),
     BackgroundColor3=C.CARD,BorderSizePixel=0},pages.SILENT),12)
 hitInfo=txt(hitsCard,"HITS  0   /   SHOTS  0   /   KOs  0",13,9,460,31,13,true)
-action("SILENT","Ãquiper le pistolet","Clic gauche pour tirer sur les mannequins","EQUIP",equipGun)
-action("SILENT","RÃ©initialiser les PV","Restaurer les trois cibles Ã  100 PV","RESET",resetAllHP)
-action("SILENT","RÃ©initialiser les stats","Effacer tirs, impacts et KOs","RESET",function()
+action("SILENT","Equiper le pistolet","Clic gauche pour tirer sur les mannequins","EQUIP",equipGun)
+action("SILENT","Reinitialiser les PV","Restaurer les trois cibles a 100 PV","RESET",resetAllHP)
+action("SILENT","Reinitialiser les stats","Effacer tirs, impacts et KOs","RESET",function()
     S.Hits=0;S.Shots=0;S.KOs=0;S.Damage=0;changeInfo()
 end)
 
 -- MISC: optional protections against abnormal incoming physics impulses.
 -- These guards NEVER deliberately rotate the character.
 section("MISC","PROTECTIONS PHYSIQUES")
-toggle("MISC","AntiFly","Anti-projection","DÃ©tecter une projection vers le haut")
+toggle("MISC","AntiFly","Anti-projection","Detecter une projection vers le haut")
 slider("MISC","FlyLaunchSpeed","Limite de vitesse verticale",60,250,10," studs/s")
-toggle("MISC","AntiFling","Anti-fling","Surveiller les projections latÃ©rales")
+toggle("MISC","AntiFling","Anti-fling","Surveiller les projections laterales")
 slider("MISC","FlingSpeed","Limite des projections",100,350,10," studs/s")
 section("MISC","ANTI-ROTATION")
-toggle("MISC","AntiAim","Anti-rotation","Limiter les rotations forcÃ©es")
-slider("MISC","SpinThreshold","SensibilitÃ©",5,25,1," rad/s")
-section("MISC","RÃACTIONS")
+toggle("MISC","AntiAim","Anti-rotation","Limiter les rotations forcees")
+slider("MISC","SpinThreshold","Sensibilite",5,25,1," rad/s")
+section("MISC","REACTIONS")
 toggle("MISC","GuardCorrect","Corriger les anomalies","Limiter les mouvements anormaux locaux")
-toggle("MISC","MoveHUD","Indicateurs de protection","Afficher lâÃ©tat des protections")
+toggle("MISC","MoveHUD","Indicateurs de protection","Afficher l'etat des protections")
 local miscPanel=corner(make("Frame",{
     LayoutOrder=order("MISC"),Size=UDim2.new(1,-2,0,65),
     BackgroundColor3=C.CARD,BorderSizePixel=0
@@ -1430,7 +1478,7 @@ bar(miscPanel,0,9,3,48,C.GOLD)
 local miscStatus=txt(miscPanel,"ALL GUARDS / OFF",13,5,460,24,11,true,C.CYAN)
 local miscHint=description(miscPanel,"Local mitigation only. Server-side protection is still required.",13,32,467,24)
 S.MovementStatus=miscStatus
-action("MISC","RÃ©initialiser les alertes","DÃ©sactiver et vider les compteurs","RESET",function()
+action("MISC","Reinitialiser les alertes","Desactiver et vider les compteurs","RESET",function()
     cfg.AntiFly=false;cfg.AntiFling=false;cfg.AntiAim=false
     S.FlyFlags=0;S.FlingFlags=0;S.SpinFlags=0
     S.FlySamples=0;S.FlingSamples=0;S.SpinSamples=0
@@ -1439,15 +1487,19 @@ action("MISC","RÃ©initialiser les alertes","DÃ©sactiver et vider les compteu
 end)
 
 section("SETTINGS","PERFORMANCES")
-toggle("SETTINGS","AdaptiveFPS","RafraÃ®chissement adaptatif","Adapter le rendu aux FPS")
-slider("SETTINGS","RenderRate","FrÃ©quence dâaffichage",15,60,5," Hz")
+choices("SETTINGS","Mode performance","PerformanceMode",{"LOW","BALANCED","HIGH"})
+toggle("SETTINGS","AdaptiveFPS","Rafraichissement adaptatif","Adapter le rendu aux FPS")
+slider("SETTINGS","RenderRate","Frequence d'affichage",15,60,5," Hz")
 slider("SETTINGS","Range","Distance ESP",100,2500,100," studs")
 section("SETTINGS","APPARENCE")
+slider("SETTINGS","MenuScale","Taille du menu",.7,1.15,.05," x")
+choices("SETTINGS","Raccourci du menu","Shortcut",{"TAB","RIGHTSHIFT","F4"})
 choices("SETTINGS","Couleur d'accent","Accent",{"BLEU","VIOLET","CYAN","ROUGE","VERT","ROSE"})
-toggle("SETTINGS","RGB","Accent RGB","Animer lÃ©gÃ¨rement les accents")
+toggle("SETTINGS","RGB","Accent RGB","Animer legerement les accents")
 toggle("SETTINGS","Animations","Animations de l'interface","Transitions et survols discrets")
-toggle("SETTINGS","MiniButton","Bouton flottant","Raccourci quand le menu est fermÃ©")
-action("SETTINGS","Restaurer les paramÃ¨tres","Revenir aux paramÃ¨tres par dÃ©faut","RESET",function()
+toggle("SETTINGS","Notifications","Notifications","Afficher les confirmations et alertes")
+toggle("SETTINGS","MiniButton","Bouton flottant","Raccourci quand le menu est ferme")
+action("SETTINGS","Restaurer les parametres","Revenir aux parametres par defaut","RESET",function()
     for k,v in pairs(D) do cfg[k]=v end
     normalize();save();refresh()
 end)
@@ -1464,8 +1516,8 @@ corner(make("Frame",{
     Position=UDim2.fromOffset(14,17),Size=UDim2.fromOffset(8,8),
     BackgroundColor3=C.GREEN,BorderSizePixel=0
 },aboutBuild),5)
-txt(aboutBuild,"VERSION INSTALLÃE",28,8,230,22,12,true,C.WHITE)
-description(aboutBuild,"EntraÃ®nement local / mises Ã  jour",28,28,320,19)
+txt(aboutBuild,"VERSION INSTALLEE",28,8,230,22,12,true,C.WHITE)
+description(aboutBuild,"Entrainement local / mises a jour",28,28,320,19)
 local versionPill=corner(make("Frame",{
     Position=UDim2.new(1,-106,0,14),Size=UDim2.fromOffset(90,29),
     BackgroundColor3=C.DARK,BorderSizePixel=0
@@ -1481,9 +1533,9 @@ local otaPanel=corner(make("Frame",{
 },pages.ABOUT),11)
 stroke(otaPanel,C.STROKE,1).Transparency=.60
 bar(otaPanel,0,11,3,92,C.PURPLE)
-txt(otaPanel,"Mises Ã  jour GitHub",13,6,312,23,13,true,C.WHITE)
-description(otaPanel,"VÃ©rifier la derniÃ¨re version publiÃ©e sur GitHub.",13,28,466,19)
-local verifyButton=btn(otaPanel,"VERIFY",347,53,135,36,C.BLUE)
+txt(otaPanel,"Mises a jour GitHub",13,6,312,23,13,true,C.WHITE)
+description(otaPanel,"Verifier la derniere version publiee sur GitHub.",13,28,466,19)
+local verifyButton=btn(otaPanel,"CHECK UPDATE",347,53,135,36,C.BLUE)
 buttonCaption(verifyButton).TextColor3=C.DARK
 local otaStatus=description(otaPanel,"Ready / Installed: v"..V,13,54,324,42)
 otaStatus.TextWrapped=true
@@ -1595,8 +1647,9 @@ local function compareVersion(new,old)
     return 0
 end
 local function versionInCode(code)
-    -- Keep either the marker or local V visible when obfuscating future builds.
-    return code:match("%-%-%s*VISION_PRO_VERSION:%s*(%d+%.%d+%.%d+)")
+    -- Inspect only the beginning of the known trusted file, not arbitrary comments.
+    if type(code)~="string" then return nil end
+    return code:sub(1,350):match("^%-%-%s*VISION_PRO_VERSION:%s*(%d+%.%d+%.%d+)")
         or code:match('local%s+V%s*=%s*"(%d+%.%d+%.%d+)"')
         or code:match("local%s+V%s*=%s*'(%d+%.%d+%.%d+)'" )
 end
@@ -1656,18 +1709,20 @@ on(verifyButton.Activated,function()
         end
         if cmp==0 then
             setStatus("UP TO DATE / v"..V.." is the latest.",C.GREEN)
+            notify("Latest version already installed","SUCCESS")
         elseif cmp<0 then
             setStatus("NEWER LOCAL BUILD / GitHub has v"..remote,C.GOLD)
         else
             pendingSource=response
             pendingVersion=remote
             pendingUrl=raw
-            modalVersion.Text="INSTALLED v"..V.."   â   AVAILABLE v"..remote
-            modalInfo.Text="A newer build was found on your configured GitHub repository. Do you want to apply v"..remote.."?"
+            modalVersion.Text="INSTALLED v"..V.."  ->  AVAILABLE v"..remote
+            modalInfo.Text="GitHub update: v"..remote.." ("..math.floor(#response/1024+.5).." KB). Apply only if you trust this release?"
             setStatus("UPDATE AVAILABLE / v"..remote.." / Confirm below.",C.GREEN)
             S.OtaConfirmOpen=true
             scaleModal()
             backdrop.Visible=true
+            notify("Update v"..remote.." available","INFO")
         end
     end)
 end)
@@ -1708,7 +1763,7 @@ on(applyButton.Activated,function()
     end)
 end)
 
-section("ABOUT","NOUVEAUTÃS")
+section("ABOUT","NOUVEAUTES")
 local releasePanel=corner(make("Frame",{
     LayoutOrder=order("ABOUT"),Size=UDim2.new(1,-2,0,144),
     BackgroundColor3=C.CARD,BorderSizePixel=0
@@ -1727,14 +1782,14 @@ local function releaseLine(index,version,heading,detail,color)
         line.BackgroundTransparency=.76
     end
 end
-releaseLine(1,"1.4.9","INTERFACE","Animations / 6 couleurs / RGB harmonise",C.CYAN)
-releaseLine(2,"1.4.8","ABOUT","Diagnostic et session actuelle supprimes",C.PURPLE)
-releaseLine(3,"1.4.7","STUDIO UI","Navigation et interrupteurs",C.GOLD)
+releaseLine(1,"1.5.0","MAJOR UPDATE","UI V2 / performance / notifications / OTA V2",C.CYAN)
+releaseLine(2,"1.4.9","INTERFACE","Themes couleurs et animations",C.PURPLE)
+releaseLine(3,"1.4.8","ABOUT","Nettoyage de la page About",C.GOLD)
 local aboutEnd=make("Frame",{
     LayoutOrder=order("ABOUT"),Size=UDim2.new(1,-2,0,34),
     BackgroundTransparency=1
 },pages.ABOUT)
-description(aboutEnd,"LOCAL TRAINING ONLY Â· No server-side game damage",12,4,470,24)
+description(aboutEnd,"LOCAL TRAINING ONLY  /  No server-side game damage",12,4,470,24)
 
 end -- About scope
 
@@ -1751,10 +1806,20 @@ local function toggleMenu()
     S.LastTab=os.clock();setMenu(not S.Open)
 end
 CAS:BindActionAtPriority(TAB_ACTION,function(_,state)
-    if UIS:GetFocusedTextBox() then return Enum.ContextActionResult.Pass end
+    if cfg.Shortcut~="TAB" or UIS:GetFocusedTextBox() then
+        return Enum.ContextActionResult.Pass
+    end
     if state==Enum.UserInputState.Begin then toggleMenu() end
     return Enum.ContextActionResult.Sink
 end,false,10000,Enum.KeyCode.Tab)
+on(UIS.InputBegan,function(input,processed)
+    if processed or UIS:GetFocusedTextBox() then return end
+    if cfg.Shortcut=="RIGHTSHIFT" and input.KeyCode==Enum.KeyCode.RightShift then
+        toggleMenu()
+    elseif cfg.Shortcut=="F4" and input.KeyCode==Enum.KeyCode.F4 then
+        toggleMenu()
+    end
+end)
 local dragging=false;local dragInput,dragStart,dragPos
 on(header.InputBegan,function(input)
     if input.UserInputType~=Enum.UserInputType.MouseButton1 and input.UserInputType~=Enum.UserInputType.Touch then return end
@@ -1973,7 +2038,9 @@ on(Run.Heartbeat,function(dt)
         if not ok then logVisionError("Misc",err) end
         movementClock=0
     end
-    if dataClock>.15 then
+    local updateInterval=cfg.PerformanceMode=="LOW" and .3
+        or cfg.PerformanceMode=="HIGH" and .12 or .18
+    if dataClock>=updateInterval then
         local ok,err=pcall(updateTargets)
         if not ok then logVisionError("ESP",err) end
         dataClock=0
@@ -1983,7 +2050,9 @@ end)
 on(Run.RenderStepped,function(dt)
     if not S.Alive then return end
     fpsClock+=dt;renderClock+=dt;frames+=1
-    local rate=cfg.RenderRate
+    local cap=cfg.PerformanceMode=="LOW" and 20
+        or cfg.PerformanceMode=="HIGH" and 60 or 40
+    local rate=math.min(cfg.RenderRate,cap)
     if cfg.AdaptiveFPS and S.FPS<30 then rate=math.min(rate,15)
     elseif cfg.AdaptiveFPS and S.FPS<48 then rate=math.min(rate,30) end
     if renderClock>=1/rate then

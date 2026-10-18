@@ -5,7 +5,7 @@
      Camera assist and impact preview always start disabled.
      Local HP is a training display, not actual server damage.
 ]]
-local function bootVisionPro()
+local function runVisionProUnlocked()
 if not game:IsLoaded() then game.Loaded:Wait() end
 local Players=game:GetService("Players")
 local UIS=game:GetService("UserInputService")
@@ -2547,6 +2547,231 @@ on(Run.RenderStepped,function(dt)
 end)
 print("VISION PRO "..V.." - NOVA / PRIVATE BETA RELEASE")
 
+end -- runVisionProUnlocked
+
+-- V4 BETA GATE: A key is checked by the owner's PRIVATE Roblox server script.
+-- There is no secret in this client, no "magic" local valid key and no bypass.
+-- Use VISION_BETA_SERVER.lua as a private ServerScriptService Script.
+local function bootVisionPro()
+    if not game:IsLoaded() then game.Loaded:Wait() end
+    local Players=game:GetService("Players")
+    local ReplicatedStorage=game:GetService("ReplicatedStorage")
+    local Tween=game:GetService("TweenService")
+    local player=Players.LocalPlayer
+    if not player then return end
+    local playerGui=player:WaitForChild("PlayerGui")
+
+    local old=playerGui:FindFirstChild("VISION_PRO_V4_BETA_GATE")
+    if old then old:Destroy() end
+    local gate=Instance.new("ScreenGui")
+    gate.Name="VISION_PRO_V4_BETA_GATE"
+    gate.ResetOnSpawn=false
+    gate.IgnoreGuiInset=true
+    gate.DisplayOrder=1500
+    gate.ZIndexBehavior=Enum.ZIndexBehavior.Sibling
+    gate.Parent=playerGui
+
+    local function elem(class,props,parent)
+        local object=Instance.new(class)
+        for key,value in pairs(props or {}) do object[key]=value end
+        object.Parent=parent
+        return object
+    end
+    local function radius(frame,number)
+        elem("UICorner",{CornerRadius=UDim.new(0,number)},frame)
+        return frame
+    end
+    local bg=elem("Frame",{
+        Size=UDim2.fromScale(1,1),
+        BackgroundColor3=Color3.fromRGB(6,10,18),
+        BackgroundTransparency=.08,BorderSizePixel=0
+    },gate)
+    local card=radius(elem("Frame",{
+        AnchorPoint=Vector2.new(.5,.5),
+        Position=UDim2.fromScale(.5,.5),
+        Size=UDim2.fromOffset(446,399),
+        BackgroundColor3=Color3.fromRGB(20,29,44),
+        BorderSizePixel=0
+    },bg),19)
+    elem("UIStroke",{
+        Color=Color3.fromRGB(65,89,120),
+        Thickness=1,Transparency=.3
+    },card)
+    local resize=elem("UIScale",{Scale=1},card)
+    local viewport=workspace.CurrentCamera and workspace.CurrentCamera.ViewportSize
+    if viewport then
+        resize.Scale=math.clamp(math.min(
+            (viewport.X-30)/446,(viewport.Y-30)/399,1),.5,1)
+    end
+    local top=radius(elem("Frame",{
+        Position=UDim2.fromOffset(22,21),
+        Size=UDim2.fromOffset(42,42),
+        BackgroundColor3=Color3.fromRGB(90,169,255),
+        BorderSizePixel=0
+    },card),12)
+    local vp=elem("TextLabel",{
+        Position=UDim2.fromScale(0,0),Size=UDim2.fromScale(1,1),
+        BackgroundTransparency=1,Font=Enum.Font.GothamBold,
+        Text="VP",TextSize=14,TextColor3=Color3.fromRGB(13,24,40)
+    },top)
+    local eyebrow=elem("TextLabel",{
+        Position=UDim2.fromOffset(77,22),
+        Size=UDim2.fromOffset(311,18),BackgroundTransparency=1,
+        Text="VISION PRO  /  PRIVATE RELEASE",
+        TextXAlignment=Enum.TextXAlignment.Left,
+        Font=Enum.Font.GothamBold,TextSize=10,
+        TextColor3=Color3.fromRGB(112,191,247)
+    },card)
+    local version=elem("TextLabel",{
+        Position=UDim2.fromOffset(78,41),
+        Size=UDim2.fromOffset(288,21),BackgroundTransparency=1,
+        Text="NOVA V4.0  -  BETA ACCESS",
+        TextXAlignment=Enum.TextXAlignment.Left,
+        Font=Enum.Font.GothamMedium,TextSize=11,
+        TextColor3=Color3.fromRGB(161,181,208)
+    },card)
+    local title=elem("TextLabel",{
+        Position=UDim2.fromOffset(24,91),
+        Size=UDim2.fromOffset(397,42),BackgroundTransparency=1,
+        Text="Active ton acces beta",
+        TextXAlignment=Enum.TextXAlignment.Left,
+        Font=Enum.Font.GothamBold,TextSize=23,
+        TextColor3=Color3.fromRGB(249,251,255)
+    },card)
+    local subtitle=elem("TextLabel",{
+        Position=UDim2.fromOffset(25,136),
+        Size=UDim2.fromOffset(394,39),BackgroundTransparency=1,
+        Text="Saisis une cle fournie par le createur.\nLa validation se fait sur le serveur Roblox.",
+        TextXAlignment=Enum.TextXAlignment.Left,
+        TextYAlignment=Enum.TextYAlignment.Top,
+        TextWrapped=true,Font=Enum.Font.Gotham,
+        TextSize=12,TextColor3=Color3.fromRGB(157,176,202)
+    },card)
+    local fieldLabel=elem("TextLabel",{
+        Position=UDim2.fromOffset(25,192),
+        Size=UDim2.fromOffset(220,20),
+        BackgroundTransparency=1,Text="CLE D'ACTIVATION",
+        TextXAlignment=Enum.TextXAlignment.Left,
+        Font=Enum.Font.GothamBold,TextSize=10,
+        TextColor3=Color3.fromRGB(176,199,223)
+    },card)
+    local field=radius(elem("TextBox",{
+        Position=UDim2.fromOffset(23,220),
+        Size=UDim2.fromOffset(400,48),
+        BackgroundColor3=Color3.fromRGB(12,19,30),
+        BorderSizePixel=0,
+        ClearTextOnFocus=false,Text="",PlaceholderText="VP4-XXXX-XXXX-XXXX",
+        PlaceholderColor3=Color3.fromRGB(110,130,154),
+        TextColor3=Color3.fromRGB(248,251,255),
+        TextXAlignment=Enum.TextXAlignment.Left,TextSize=14,
+        Font=Enum.Font.GothamMedium
+    },card),11)
+    elem("UIPadding",{PaddingLeft=UDim.new(0,15),PaddingRight=UDim.new(0,15)},field)
+    local fieldStroke=elem("UIStroke",{
+        Color=Color3.fromRGB(69,91,117),
+        Thickness=1,Transparency=.3
+    },field)
+    local activate=radius(elem("TextButton",{
+        Position=UDim2.fromOffset(23,282),
+        Size=UDim2.fromOffset(400,44),
+        BackgroundColor3=Color3.fromRGB(91,171,255),
+        BorderSizePixel=0,AutoButtonColor=false,
+        Font=Enum.Font.GothamBold,TextSize=13,
+        TextColor3=Color3.fromRGB(12,22,36),
+        Text="ACTIVER LA BETA"
+    },card),10)
+    local status=elem("TextLabel",{
+        Position=UDim2.fromOffset(24,338),
+        Size=UDim2.fromOffset(395,37),
+        Text="Connexion au serveur beta...",
+        TextWrapped=true,TextYAlignment=Enum.TextYAlignment.Top,
+        TextXAlignment=Enum.TextXAlignment.Left,
+        BackgroundTransparency=1,Font=Enum.Font.GothamMedium,
+        TextSize=11,TextColor3=Color3.fromRGB(156,175,198)
+    },card)
+    local busy=false
+    local unlocked=false
+    local function message(text,color)
+        if gate.Parent then
+            status.Text=text
+            status.TextColor3=color or Color3.fromRGB(156,175,198)
+        end
+    end
+    local function openUnlocked()
+        if unlocked then return end
+        unlocked=true
+        if gate.Parent then gate:Destroy() end
+        task.defer(function()
+            local good,problem=xpcall(runVisionProUnlocked,function(err)
+                if type(debug)=="table" and type(debug.traceback)=="function" then
+                    return debug.traceback(tostring(err),2)
+                end
+                return tostring(err)
+            end)
+            if not good then
+                warn("[VISION PRO V4 / UNLOCKED STARTUP] "..tostring(problem))
+            end
+        end)
+    end
+    local function request(action,key)
+        if busy or unlocked then return end
+        busy=true
+        activate.Text="VERIFICATION..."
+        activate.BackgroundColor3=Color3.fromRGB(95,121,153)
+        message("Verification de l'acces beta...")
+        task.spawn(function()
+            local remote=ReplicatedStorage:FindFirstChild("VisionProBetaAccess")
+            if not remote then
+                remote=ReplicatedStorage:WaitForChild("VisionProBetaAccess",8)
+            end
+            if not gate.Parent or unlocked then return end
+            if not remote or not remote:IsA("RemoteFunction") then
+                message("Service beta absent. Installer VISION_BETA_SERVER.lua dans ServerScriptService.",
+                    Color3.fromRGB(255,176,120))
+                busy=false
+                activate.Text="REESSAYER"
+                activate.BackgroundColor3=Color3.fromRGB(91,171,255)
+                return
+            end
+            local ok,response=pcall(function()
+                return remote:InvokeServer(action,key)
+            end)
+            if not gate.Parent or unlocked then return end
+            if ok and type(response)=="table" and response.ok==true then
+                message("Acces autorise. Chargement...")
+                openUnlocked()
+                return
+            end
+            local err="Verification refusee"
+            if ok and type(response)=="table" and type(response.message)=="string" then
+                err=response.message
+            elseif not ok then
+                err="Impossible de contacter le serveur beta"
+            end
+            message(err,Color3.fromRGB(255,139,158))
+            busy=false
+            activate.Text="ACTIVER LA BETA"
+            activate.BackgroundColor3=Color3.fromRGB(91,171,255)
+        end)
+    end
+    activate.Activated:Connect(function()
+        if #field.Text<8 then
+            message("Entre une cle beta valide avant de continuer.",
+                Color3.fromRGB(255,139,158))
+            return
+        end
+        request("activate",field.Text)
+    end)
+    field.FocusLost:Connect(function(enter)
+        if enter and not busy then
+            if #field.Text>=8 then
+                request("activate",field.Text)
+            else
+                message("Cle trop courte.",Color3.fromRGB(255,139,158))
+            end
+        end
+    end)
+    request("status","")
 end -- bootVisionPro
 local ok,err=xpcall(bootVisionPro,function(problem)
     local message=tostring(problem)

@@ -10,18 +10,16 @@ Il utilise simplement les trois endpoints administrateur déjà présents sur to
 
 Aucune modification du Worker, de D1 ou de `VISION_PRO.lua` n'est nécessaire.
 
-## Fonctionnalités
+## Seulement deux commandes Discord
 
-| Commande | Action |
+| Commande | Fonction |
 | --- | --- |
-| `/panel` | Panneau privé avec boutons et création par formulaire |
-| `/key generate` | Générer une clé personnalisée |
-| `/key list` | Parcourir les clés avec pages et filtre d'état |
-| `/key info` | Voir l'état, la durée et les activations d'une clé |
-| `/key revoke` | Révoquer une clé **après confirmation** |
-| `/stats` | Statistiques |
-| `/status` | État de l'API V4 |
-| `/help` | Guide des commandes |
+| `/panel` | Ouvrir le panneau de gestion privé avec tous les boutons |
+| `/status` | Vérifier que le bot et l'API V4 fonctionnent |
+
+Le panneau `/panel` permet de **créer**, **lister**, **filtrer**, **consulter les statistiques**, **voir les détails** et **révoquer** une clé (avec confirmation), sans utiliser d'autres commandes.
+
+Les anciennes commandes `/key`, `/stats` et `/help` ont été retirées. Après la mise à jour du bot, exécute `npm run deploy` une seule fois pour les retirer de ton serveur Discord.
 
 Toutes les réponses sont **privées (ephemeral)**, même les clés nouvellement créées. La gestion est réservée au compte `DISCORD_OWNER_ID`, avec un rôle optionnel `DISCORD_ADMIN_ROLE_ID`. Le bot n'utilise pas l'intent « Message Content ».
 
@@ -71,7 +69,7 @@ npm start
 - `npm start` lance le bot. Garde le processus actif sur ton hébergeur.
 - `npm run check` vérifie la syntaxe des fichiers.
 
-Pour le tester, tape `/panel` dans ton serveur. Tu dois voir les boutons **Créer une clé**, **Mes clés** et **Statistiques**.
+Pour le tester, tape `/panel` dans ton serveur. Tu dois voir les boutons **Créer une clé**, **Mes clés**, **Statistiques**, **Révoquer** et **Détails d’une clé**.
 
 ## Hébergement
 
@@ -91,5 +89,5 @@ Cloudflare reste uniquement la **source des clés déjà existantes**. Ton bot t
 - Les clés entières ne peuvent être affichées qu'au moment de leur création.
 - Le bot n'a pas besoin de démarrer un serveur HTTP public.
 - Évite d'accorder `DISCORD_ADMIN_ROLE_ID` à un rôle public.
-- `/key revoke` demande une confirmation ; la révocation est définitive.
+- Le bouton **Révoquer** demande une confirmation ; la révocation est définitive.
 - Si le bot répond que le jeton est incorrect, vérifie `VISION_ADMIN_TOKEN` et `VISION_API_URL`, puis redémarre le bot.

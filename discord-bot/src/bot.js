@@ -2,7 +2,7 @@ import 'dotenv/config';
 import {
   ActionRowBuilder, ButtonBuilder, ButtonStyle, Client, EmbedBuilder,
   Events, GatewayIntentBits, MessageFlags, ModalBuilder,
-  TextInputBuilder, TextInputStyle
+  StringSelectMenuBuilder, TextInputBuilder, TextInputStyle
 } from 'discord.js';
 import { checkApiConfig, fetchKeys, generateKey, revokeKey, ApiError } from './api.js';
 
@@ -66,16 +66,20 @@ const states = {
 function panel(userId) {
   return {
     embeds: [makeEmbed('VISION PRO   |   Administration',
-      'Gère les accès de ta bêta V4 directement sur Discord.\n\n' +
+      'Gère les clés de ta bêta V4 directement depuis Discord.\n\n' +
       '🔑 **Clés** — créer, consulter et révoquer\n' +
-      '📊 **Statistiques** — consulter les activations\n' +
-      '🔒 **Sécurité** — commandes privées, permissions limitées\n\n' +
-      'Connecté à la même API que ton générateur web.')],
-    components: [buttons(
-      action('Créer une clé', 'vp:create:' + userId, ButtonStyle.Primary),
-      action('Mes clés', 'vp:panel:list:' + userId),
-      action('Statistiques', 'vp:panel:stats:' + userId)
-    )]
+      '📊 **Statistiques** — voir les activations\n' +
+      '🔒 **Sécurité** — réponses privées et accès limité\n\n' +
+      'Toutes les fonctions sont accessibles avec les boutons ci-dessous.')],
+    components: [
+      buttons(
+        action('Créer une clé', 'vp:create:' + userId, ButtonStyle.Primary),
+        action('Mes clés', 'vp:panel:list:' + userId),
+        action('Statistiques', 'vp:panel:stats:' + userId),
+        action('Révoquer', 'vp:showrevoke:' + userId, ButtonStyle.Danger)
+      ),
+      buttons(action('Détails d’une clé', 'vp:showinfo:' + userId))
+    ]
   };
 }
 
@@ -85,35 +89,53 @@ async function keyList(userId, filter = 'all', page = 0) {
   const filtered = all.filter(k => filter === 'all' || keyStatus(k) === filter);
   const maxPage = Math.max(0, Math.ceil(filtered.length / 5) - 1);
   const p = Math.max(0, Math.min(page, maxPage));
-  const data = filtered.slice(p * 5, p * 5 + 5);
-  const lines = data.map(k => '**' + clean(k.label) + '**  ·  ' + states[keyStatus(k)] +
+  const entries = filtered.slice(p * 5, p * 5 + 5);
+  const lines = entries.map(k =>
+    '**' + clean(k.label) + '** · ' + states[keyStatus(k)] +
     '\n' + BACKTICK + k.id + BACKTICK +
-    '  ·  ' + k.uses + '/' + (k.maxActivations || '∞') +
-    ' activations  ·  ' + date(k.expiresAt));
-  const warning = all.length >= 250 ? '\n\n⚠️ Limite API : 250 clés les plus récentes.' : '';
+    ' · ' + k.uses + '/' + (k.maxActivations || '∞') +
+    ' activations · ' + date(k.expiresAt)
+  );
+  const warning = all.length >= 250 ? '\n\n⚠️ 250 dernières clés seulement (limite de l’API).' : '';
   return {
     embeds: [makeEmbed('Mes clés   /   ' + filtered.length + ' résultat(s)',
       (lines.join('\n\n') || 'Aucune clé pour ce filtre.') +
-      '\n\nPage ' + (p + 1) + ' / ' + (maxPage + 1) + warning)],
-    components: [buttons(
-      action('◀', 'vp:list:' + userId + ':' + filter + ':' + (p - 1), ButtonStyle.Secondary, p === 0),
-      action('Actualiser', 'vp:list:' + userId + ':' + filter + ':' + p),
-      action('▶', 'vp:list:' + userId + ':' + filter + ':' + (p + 1), ButtonStyle.Secondary, p >= maxPage),
-      action('Créer', 'vp:create:' + userId, ButtonStyle.Primary)
-    )]
+      '\n\nPage ' + (p + 1) + '/' + (maxPage + 1) + warning)],
+    components: [
+      buttons(
+        action('◀', 'vp:list:' + userId + ':' + filter + ':' + (p - 1), ButtonStyle.Secondary, p === 0),
+        action('Actualiser', 'vp:list:' + userId + ':' + filter + ':' + p),
+        action('▶', 'vp:list:' + userId + ':' + filter + ':' + (p + 1), ButtonStyle.Secondary, p === maxPage),
+        action('Créer', 'vp:create:' + userId, ButtonStyle.Primary),
+        action('Retour', 'vp:panel:home:' + userId)
+      ),
+      new ActionRowBuilder().addComponents(
+        new StringSelectMenuBuilder()
+          .setCustomId('vp:filter:' + userId)
+          .setPlaceholder('Filtrer les clés')
+          .addOptions([
+            { label: 'Toutes', value: 'all', default: filter === 'all' },
+            { label: 'Actives', value: 'active', default: filter === 'active' },
+            { label: 'Bientôt expirées', value: 'soon', default: filter === 'soon' },
+            { label: 'Expirées', value: 'expired', default: filter === 'expired' },
+            { label: 'Épuisées', value: 'exhausted', default: filter === 'exhausted' },
+            { label: 'Révoquées', value: 'revoked', default: filter === 'revoked' }
+          ])
+      )
+    ]
   };
 }
 
 async function stats(userId) {
   const { keys } = await fetchKeys();
   const all = Array.isArray(keys) ? keys : [];
-  const count = state => all.filter(k => keyStatus(k) === state).length;
+  const count = status => all.filter(k => keyStatus(k) === status).length;
   const active = count('active') + count('soon');
   const used = all.reduce((sum, k) => sum + (Number(k.uses) || 0), 0);
   return {
     embeds: [makeEmbed('Statistiques   /   BETA V4',
-      'Données de la base du générateur VISION PRO.' +
-      (all.length >= 250 ? '\n\n⚠️ Uniquement les 250 clés les plus récentes.' : ''), COLORS.cyan)
+      'Données du générateur VISION PRO.' +
+      (all.length >= 250 ? '\n\n⚠️ 250 dernières clés uniquement.' : ''), COLORS.cyan)
       .addFields(
         { name: 'Actives', value: String(active), inline: true },
         { name: 'Total', value: String(all.length), inline: true },
@@ -124,7 +146,8 @@ async function stats(userId) {
     components: [buttons(
       action('Actualiser', 'vp:panel:stats:' + userId),
       action('Voir les clés', 'vp:panel:list:' + userId),
-      action('Créer', 'vp:create:' + userId, ButtonStyle.Primary)
+      action('Créer', 'vp:create:' + userId, ButtonStyle.Primary),
+      action('Retour', 'vp:panel:home:' + userId)
     )]
   };
 }
@@ -175,56 +198,26 @@ function errorMessage(error) {
   return 'Une erreur est survenue. Vérifie les paramètres et les logs du bot.';
 }
 
+function idModal(userId, purpose) {
+  const isRevoke = purpose === 'revoke';
+  return new ModalBuilder()
+    .setCustomId('vp:modal:' + (isRevoke ? 'revoke' : 'info') + ':' + userId)
+    .setTitle(isRevoke ? 'Révoquer une clé' : 'Détails d’une clé')
+    .addComponents(
+      buttons(new TextInputBuilder()
+        .setCustomId('id')
+        .setLabel('ID de la clé (16 caractères)')
+        .setPlaceholder('Ex. A1B2C3D4E5F60708')
+        .setStyle(TextInputStyle.Short)
+        .setRequired(true)
+        .setMinLength(16)
+        .setMaxLength(16))
+    );
+}
+
 async function onCommand(i) {
-  const uid = i.user.id;
-  if (i.commandName === 'panel') return i.reply(hidden(panel(uid)));
-  if (i.commandName === 'help') {
-    return i.reply(hidden({ embeds: [makeEmbed('Aide  /  VISION PRO',
-      '**/panel** — panneau interactif\n' +
-      '**/key generate** — créer une clé\n' +
-      '**/key list** — liste, filtres et pages\n' +
-      '**/key info** — détails d’une clé\n' +
-      '**/key revoke** — révocation avec confirmation\n' +
-      '**/stats** — statistiques\n' +
-      '**/status** — état du service\n\n' +
-      'Toutes les réponses sont privées.', COLORS.cyan)] }));
-  }
-  if (i.commandName === 'key') {
-    const sub = i.options.getSubcommand();
-    if (sub === 'revoke') {
-      const id = i.options.getString('id', true).toUpperCase();
-      if (!KEY_ID.test(id)) return i.reply(hidden({ content: 'ID invalide (16 caractères hexadécimaux).' }));
-      return i.reply(hidden({
-        embeds: [makeEmbed('Confirmer la révocation',
-          'La clé ' + BACKTICK + id + BACKTICK + ' sera définitivement désactivée.', COLORS.amber)],
-        components: [buttons(
-          action('Confirmer', 'vp:revoke:yes:' + id + ':' + uid, ButtonStyle.Danger),
-          action('Annuler', 'vp:revoke:no:' + id + ':' + uid)
-        )]
-      }));
-    }
-    await i.deferReply({ flags: MessageFlags.Ephemeral });
-    if (sub === 'generate') {
-      const key = await generateKey(
-        i.options.getString('nom') || 'Beta V4',
-        i.options.getInteger('jours') ?? 30,
-        i.options.getInteger('activations') ?? 0
-      );
-      return i.editReply({ embeds: [newKeyEmbed(key)] });
-    }
-    if (sub === 'list') return i.editReply(await keyList(uid, i.options.getString('etat') || 'all'));
-    if (sub === 'info') {
-      const id = i.options.getString('id', true).toUpperCase();
-      if (!KEY_ID.test(id)) return i.editReply('Identifiant incorrect.');
-      const data = await fetchKeys();
-      const found = data.keys.find(key => key.id === id);
-      return i.editReply(found ? { embeds: [keyDetails(found)] } :
-        { content: 'ID introuvable parmi les 250 clés les plus récentes.' });
-    }
-  }
-  if (i.commandName === 'stats') {
-    await i.deferReply({ flags: MessageFlags.Ephemeral });
-    return i.editReply(await stats(uid));
+  if (i.commandName === 'panel') {
+    return i.reply(hidden(panel(i.user.id)));
   }
   if (i.commandName === 'status') {
     await i.deferReply({ flags: MessageFlags.Ephemeral });
@@ -239,21 +232,30 @@ async function onCommand(i) {
 async function onButton(i) {
   const parts = i.customId.split(':');
   if (parts[0] !== 'vp') return;
-  const uid = parts[1] === 'list' ? parts[2] :
+
+  // Every button belongs to the admin who opened the private panel.
+  const userId = parts[1] === 'list' ? parts[2] :
     parts[1] === 'revoke' ? parts[4] :
     parts[1] === 'panel' ? parts[3] : parts[2];
-  if (uid !== i.user.id) return i.reply(hidden({ content: 'Ce panneau appartient à un autre administrateur.' }));
-  if (parts[1] === 'create') return i.showModal(createModal(uid));
+
+  if (userId !== i.user.id) {
+    return i.reply(hidden({ content: 'Ce panneau appartient à un autre administrateur.' }));
+  }
+  if (parts[1] === 'create') return i.showModal(createModal(userId));
+  if (parts[1] === 'showinfo') return i.showModal(idModal(userId, 'info'));
+  if (parts[1] === 'showrevoke') return i.showModal(idModal(userId, 'revoke'));
+
   if (parts[1] === 'list' && FILTERS.includes(parts[3])) {
     const page = Number(parts[4]);
     if (!Number.isInteger(page) || page < 0 || page > 1000) return;
     await i.deferUpdate();
-    return i.editReply(await keyList(uid, parts[3], page));
+    return i.editReply(await keyList(userId, parts[3], page));
   }
   if (parts[1] === 'panel') {
     await i.deferUpdate();
-    if (parts[2] === 'list') return i.editReply(await keyList(uid));
-    if (parts[2] === 'stats') return i.editReply(await stats(uid));
+    if (parts[2] === 'list') return i.editReply(await keyList(userId));
+    if (parts[2] === 'stats') return i.editReply(await stats(userId));
+    if (parts[2] === 'home') return i.editReply(panel(userId));
   }
   if (parts[1] === 'revoke') {
     if (parts[2] === 'no') return i.update({
@@ -273,8 +275,38 @@ async function onButton(i) {
 
 async function onModal(i) {
   if (!i.customId.startsWith('vp:modal:')) return;
-  const userId = i.customId.slice('vp:modal:'.length);
-  if (i.user.id !== userId) return i.reply(hidden({ content: 'Formulaire non autorisé.' }));
+
+  const parts = i.customId.split(':');
+  const purpose = parts.length === 4 ? parts[2] : 'create';
+  const userId = parts.length === 4 ? parts[3] : parts[2];
+  if (i.user.id !== userId) {
+    return i.reply(hidden({ content: 'Formulaire non autorisé.' }));
+  }
+
+  if (purpose === 'info' || purpose === 'revoke') {
+    const id = i.fields.getTextInputValue('id').trim().toUpperCase();
+    if (!KEY_ID.test(id)) {
+      return i.reply(hidden({ content: 'ID incorrect : 16 caractères hexadécimaux requis.' }));
+    }
+    if (purpose === 'revoke') {
+      return i.reply(hidden({
+        embeds: [makeEmbed('Confirmer la révocation',
+          'La clé ' + BACKTICK + id + BACKTICK + ' sera définitivement désactivée.', COLORS.amber)],
+        components: [buttons(
+          action('Confirmer', 'vp:revoke:yes:' + id + ':' + userId, ButtonStyle.Danger),
+          action('Annuler', 'vp:revoke:no:' + id + ':' + userId)
+        )]
+      }));
+    }
+    await i.deferReply({ flags: MessageFlags.Ephemeral });
+    const { keys } = await fetchKeys();
+    const found = (keys || []).find(key => key.id === id);
+    return i.editReply(found
+      ? { embeds: [keyDetails(found)] }
+      : { content: 'Clé introuvable parmi les 250 plus récentes. Vérifie son ID sur le site.' });
+  }
+
+  if (purpose !== 'create') return;
   const name = i.fields.getTextInputValue('name').trim();
   const days = i.fields.getTextInputValue('days').trim();
   const uses = i.fields.getTextInputValue('uses').trim();
@@ -287,8 +319,22 @@ async function onModal(i) {
   return i.editReply({ embeds: [newKeyEmbed(key)] });
 }
 
+async function onSelectMenu(i) {
+  if (!i.customId.startsWith('vp:filter:')) return;
+  const owner = i.customId.slice('vp:filter:'.length);
+  if (owner !== i.user.id) {
+    return i.reply(hidden({ content: 'Ce panneau appartient à un autre administrateur.' }));
+  }
+  const filter = i.values[0];
+  if (!FILTERS.includes(filter)) {
+    return i.reply(hidden({ content: 'Filtre inconnu.' }));
+  }
+  await i.deferUpdate();
+  return i.editReply(await keyList(owner, filter, 0));
+}
+
 client.on(Events.InteractionCreate, async i => {
-  if (!i.isChatInputCommand() && !i.isButton() && !i.isModalSubmit()) return;
+  if (!i.isChatInputCommand() && !i.isButton() && !i.isModalSubmit() && !i.isStringSelectMenu()) return;
   if (!authorized(i)) {
     return void await i.reply(hidden({
       embeds: [makeEmbed('Accès refusé',
@@ -299,6 +345,7 @@ client.on(Events.InteractionCreate, async i => {
     if (i.isChatInputCommand()) await onCommand(i);
     else if (i.isButton()) await onButton(i);
     else if (i.isModalSubmit()) await onModal(i);
+    else if (i.isStringSelectMenu()) await onSelectMenu(i);
   } catch (error) {
     console.error('[VISION PRO] Erreur :', error instanceof ApiError ? error.message : error);
     const response = { embeds: [makeEmbed('Erreur', errorMessage(error), COLORS.red)], components: [] };

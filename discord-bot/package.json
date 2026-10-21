@@ -1,0 +1,19 @@
+{
+  "name": "vision-pro-discord-bot",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Self-hosted VISION PRO V4 Discord management bot",
+  "engines": {
+    "node": ">=24.17.0"
+  },
+  "scripts": {
+    "start": "node src/bot.js",
+    "deploy": "node src/deploy-commands.js",
+    "check": "node --check src/api.js && node --check src/commands.js && node --check src/bot.js && node --check src/deploy-commands.js"
+  },
+  "dependencies": {
+    "discord.js": "^14.27.0",
+    "dotenv": "^17.2.3"
+  }
+}

@@ -587,7 +587,7 @@ local function section(page,text)
         },target),ROUND.Card)
         stroke(panel,C.STROKE,1).Transparency=.42
         make("UIPadding",{
-            PaddingTop=UDim.new(0,7),PaddingBottom=UDim.new(0,12),
+            PaddingTop=UDim.new(0,4),PaddingBottom=UDim.new(0,8),
             PaddingLeft=UDim.new(0,11),PaddingRight=UDim.new(0,11)
         },panel)
         make("UIListLayout",{

@@ -611,7 +611,7 @@ local function action(page,title,detail,caption,callback)
     local compact=groupState[page]~=nil
     local danger=caption=="RESET" or caption=="REMOVE" or caption=="CLEAR"
     local row=corner(make("Frame",{
-        LayoutOrder=order(page),Size=UDim2.new(1,-2,0,61),
+        LayoutOrder=order(page),Size=UDim2.new(1,-2,0,35),
         BackgroundColor3=C.CARD,BorderSizePixel=0
     },widgetParent(page)),ROUND.Compact)
     local outline=stroke(row,C.STROKE,1);outline.Transparency=.70

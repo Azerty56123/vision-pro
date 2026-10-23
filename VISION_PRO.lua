@@ -2609,7 +2609,7 @@ local function bootVisionPro()
     },card)
     elem("TextLabel",{
         Position=UDim2.fromOffset(25,45),Size=UDim2.fromOffset(368,18),
-        BackgroundTransparency=1,Text="ECLIPSE  /  KEY AUTHENTICATION",
+        BackgroundTransparency=1,Text="CLASSIC  /  KEY ACCESS",
         TextXAlignment=Enum.TextXAlignment.Left,TextSize=10,
         Font=Enum.Font.GothamMedium,
         TextColor3=Color3.fromRGB(149,163,188)

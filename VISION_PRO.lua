@@ -2619,7 +2619,7 @@ local function bootVisionPro()
     },card),6)
     elem("TextLabel",{
         Size=UDim2.fromScale(1,1),BackgroundTransparency=1,
-        Text="BETA V4.1",TextSize=10,Font=Enum.Font.GothamBold,
+        Text="BETA V4.2",TextSize=10,Font=Enum.Font.GothamBold,
         TextColor3=Color3.fromRGB(171,188,255)
     },badge)
     elem("Frame",{

@@ -2595,6 +2595,7 @@ local function bootVisionPro()
         Position=UDim2.fromOffset(24,25),Size=UDim2.fromOffset(38,38),
         BackgroundColor3=Color3.fromRGB(58,216,174),BorderSizePixel=0
     },card),7)
+    vpTile.Visible=false
     elem("TextLabel",{
         Size=UDim2.fromScale(1,1),BackgroundTransparency=1,
         Text="V",TextSize=24,Font=Enum.Font.GothamBold,

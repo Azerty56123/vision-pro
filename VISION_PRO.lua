@@ -2608,7 +2608,7 @@ local function bootVisionPro()
         Font=Enum.Font.GothamBold,TextColor3=Color3.fromRGB(245,247,252)
     },card)
     elem("TextLabel",{
-        Position=UDim2.fromOffset(75,45),Size=UDim2.fromOffset(318,18),
+        Position=UDim2.fromOffset(25,45),Size=UDim2.fromOffset(368,18),
         BackgroundTransparency=1,Text="ECLIPSE  /  KEY AUTHENTICATION",
         TextXAlignment=Enum.TextXAlignment.Left,TextSize=10,
         Font=Enum.Font.GothamMedium,

@@ -2084,7 +2084,7 @@ local function releaseLine(index,version,heading,detail,color)
         line.BackgroundTransparency=.76
     end
 end
-releaseLine(1,"4.0.2","STUDIO UI","Navigation laterale et interface simplifiee",C.CYAN)
+releaseLine(1,"4.1.0","ECLIPSE UI","Refonte des onglets et controles en deux colonnes",C.CYAN)
 releaseLine(2,"3.4.0","MODERN SWITCH","Derniere interface de la serie V3",C.PURPLE)
 releaseLine(3,"3.3.0","WORKBENCH","Ancienne disposition de l accueil",C.GOLD)
 local aboutEnd=make("Frame",{
@@ -2106,7 +2106,7 @@ local function refreshDiagnostics()
 end
 
 -- Close/minimize, keyboard, camera and render lifecycle.
-local mini=btn(ui,"VP",19,90,46,38,C.BLUE);mini.Visible=false
+local mini=btn(ui,"VP",19,90,45,35,C.BLUE);mini.Visible=false
 buttonCaption(mini).TextColor3=C.DARK
 on(mini.Activated,function()setMenu(true)end)
 on(minimize.Activated,function()setMenu(false)end)
@@ -2554,7 +2554,7 @@ on(Run.RenderStepped,function(dt)
         fpsClock=0;frames=0;rescale();refreshDiagnostics()
     end
 end)
-print("VISION PRO "..V.." - STUDIO / PRIVATE BETA RELEASE")
+print("VISION PRO "..V.." - ECLIPSE / PRIVATE BETA RELEASE")
 
 end -- runVisionProUnlocked
 
@@ -2591,144 +2591,119 @@ local function bootVisionPro()
         elem("UICorner",{CornerRadius=UDim.new(0,number)},frame)
         return frame
     end
-    -- Matching activation screen: a quiet split-pane entry, no art assets.
+    -- ECLIPSE activation: a new compact centered modal with no external UI.
     local bg=elem("Frame",{
         Size=UDim2.fromScale(1,1),
-        BackgroundColor3=Color3.fromRGB(8,12,15),
-        BackgroundTransparency=.12,BorderSizePixel=0
+        BackgroundColor3=Color3.fromRGB(5,7,12),
+        BackgroundTransparency=.09,BorderSizePixel=0
     },gate)
     local card=radius(elem("Frame",{
-        AnchorPoint=Vector2.new(.5,.5),
-        Position=UDim2.fromScale(.5,.5),
-        Size=UDim2.fromOffset(640,380),
-        BackgroundColor3=Color3.fromRGB(24,30,34),
+        AnchorPoint=Vector2.new(.5,.5),Position=UDim2.fromScale(.5,.5),
+        Size=UDim2.fromOffset(526,362),
+        BackgroundColor3=Color3.fromRGB(19,23,32),
         BorderSizePixel=0,ClipsDescendants=true
-    },bg),12)
+    },bg),10)
     elem("UIStroke",{
-        Color=Color3.fromRGB(64,77,79),
-        Thickness=1,Transparency=.23
+        Color=Color3.fromRGB(70,77,108),Thickness=1,Transparency=.17
     },card)
     local resize=elem("UIScale",{Scale=1},card)
     local viewport=workspace.CurrentCamera and workspace.CurrentCamera.ViewportSize
     if viewport then
         resize.Scale=math.clamp(math.min(
-            (viewport.X-28)/640,(viewport.Y-28)/380,1),.35,1)
+            (viewport.X-28)/526,(viewport.Y-28)/362,1),.35,1)
     end
-    local left=elem("Frame",{
-        Position=UDim2.fromOffset(0,0),
-        Size=UDim2.fromOffset(212,380),
-        BackgroundColor3=Color3.fromRGB(17,22,26),
+    elem("Frame",{
+        Size=UDim2.fromOffset(526,4),
+        BackgroundColor3=Color3.fromRGB(146,165,255),
         BorderSizePixel=0
     },card)
+    local vpTile=radius(elem("Frame",{
+        Position=UDim2.fromOffset(24,25),Size=UDim2.fromOffset(38,38),
+        BackgroundColor3=Color3.fromRGB(146,165,255),BorderSizePixel=0
+    },card),7)
+    elem("TextLabel",{
+        Size=UDim2.fromScale(1,1),BackgroundTransparency=1,
+        Text="V",TextSize=24,Font=Enum.Font.GothamBold,
+        TextColor3=Color3.fromRGB(15,19,33)
+    },vpTile)
+    elem("TextLabel",{
+        Position=UDim2.fromOffset(74,21),Size=UDim2.fromOffset(311,22),
+        BackgroundTransparency=1,Text="VISION PRO",
+        TextXAlignment=Enum.TextXAlignment.Left,TextSize=15,
+        Font=Enum.Font.GothamBold,TextColor3=Color3.fromRGB(245,247,252)
+    },card)
+    elem("TextLabel",{
+        Position=UDim2.fromOffset(75,45),Size=UDim2.fromOffset(318,18),
+        BackgroundTransparency=1,Text="ECLIPSE  /  KEY AUTHENTICATION",
+        TextXAlignment=Enum.TextXAlignment.Left,TextSize=10,
+        Font=Enum.Font.GothamMedium,
+        TextColor3=Color3.fromRGB(149,163,188)
+    },card)
+    local badge=radius(elem("Frame",{
+        Position=UDim2.fromOffset(419,29),Size=UDim2.fromOffset(81,25),
+        BackgroundColor3=Color3.fromRGB(32,39,64),BorderSizePixel=0
+    },card),6)
+    elem("TextLabel",{
+        Size=UDim2.fromScale(1,1),BackgroundTransparency=1,
+        Text="BETA V4.1",TextSize=10,Font=Enum.Font.GothamBold,
+        TextColor3=Color3.fromRGB(171,188,255)
+    },badge)
     elem("Frame",{
-        Position=UDim2.fromOffset(211,0),
-        Size=UDim2.fromOffset(1,380),
-        BackgroundColor3=Color3.fromRGB(63,75,78),
-        BackgroundTransparency=.4,BorderSizePixel=0
-    },card)
-    local top=radius(elem("Frame",{
-        Position=UDim2.fromOffset(24,26),
-        Size=UDim2.fromOffset(42,42),
-        BackgroundColor3=Color3.fromRGB(111,205,196),
-        BorderSizePixel=0
-    },left),8)
-    elem("TextLabel",{
-        Position=UDim2.fromScale(0,0),Size=UDim2.fromScale(1,1),
-        BackgroundTransparency=1,Font=Enum.Font.GothamBold,
-        Text="VP",TextSize=16,TextColor3=Color3.fromRGB(14,22,22)
-    },top)
-    elem("TextLabel",{
-        Position=UDim2.fromOffset(24,89),Size=UDim2.fromOffset(170,33),
-        BackgroundTransparency=1,
-        Text="VISION PRO",TextXAlignment=Enum.TextXAlignment.Left,
-        Font=Enum.Font.GothamBold,TextSize=18,
-        TextColor3=Color3.fromRGB(244,246,246)
-    },left)
-    elem("TextLabel",{
-        Position=UDim2.fromOffset(25,124),Size=UDim2.fromOffset(162,18),
-        BackgroundTransparency=1,
-        Text="STUDIO / V4.0.2",TextXAlignment=Enum.TextXAlignment.Left,
-        Font=Enum.Font.GothamMedium,TextSize=10,
-        TextColor3=Color3.fromRGB(111,205,196)
-    },left)
-    elem("Frame",{
-        Position=UDim2.fromOffset(24,162),Size=UDim2.fromOffset(160,1),
-        BackgroundColor3=Color3.fromRGB(65,76,79),BorderSizePixel=0
-    },left)
-    elem("TextLabel",{
-        Position=UDim2.fromOffset(24,184),Size=UDim2.fromOffset(161,73),
-        BackgroundTransparency=1,
-        Text="Une interface claire.\nDes outils reunis.\nUn acces prive.",
-        TextXAlignment=Enum.TextXAlignment.Left,
-        TextYAlignment=Enum.TextYAlignment.Top,
-        TextWrapped=true,Font=Enum.Font.Gotham,
-        TextSize=12,TextColor3=Color3.fromRGB(168,183,186)
-    },left)
-    elem("TextLabel",{
-        Position=UDim2.fromOffset(24,339),Size=UDim2.fromOffset(163,20),
-        BackgroundTransparency=1,
-        Text="01  /  ACTIVATION",TextXAlignment=Enum.TextXAlignment.Left,
-        Font=Enum.Font.GothamMedium,TextSize=10,
-        TextColor3=Color3.fromRGB(111,205,196)
-    },left)
-    elem("TextLabel",{
-        Position=UDim2.fromOffset(239,31),Size=UDim2.fromOffset(350,38),
-        BackgroundTransparency=1,Text="Acces a la beta",
-        TextXAlignment=Enum.TextXAlignment.Left,Font=Enum.Font.GothamBold,
-        TextSize=25,TextColor3=Color3.fromRGB(245,247,247)
+        Position=UDim2.fromOffset(24,81),Size=UDim2.fromOffset(476,1),
+        BackgroundColor3=Color3.fromRGB(51,57,77),BorderSizePixel=0
     },card)
     elem("TextLabel",{
-        Position=UDim2.fromOffset(240,78),Size=UDim2.fromOffset(362,51),
-        BackgroundTransparency=1,TextWrapped=true,
-        Text="Entre ta cle VISION PRO pour ouvrir le panneau de controle.",
-        TextXAlignment=Enum.TextXAlignment.Left,
-        TextYAlignment=Enum.TextYAlignment.Top,Font=Enum.Font.Gotham,
-        TextSize=13,TextColor3=Color3.fromRGB(162,178,179)
+        Position=UDim2.fromOffset(24,98),Size=UDim2.fromOffset(465,30),
+        BackgroundTransparency=1,Text="Activation de la beta",
+        TextSize=21,TextXAlignment=Enum.TextXAlignment.Left,
+        Font=Enum.Font.GothamBold,TextColor3=Color3.fromRGB(247,248,251)
     },card)
     elem("TextLabel",{
-        Position=UDim2.fromOffset(240,152),
-        Size=UDim2.fromOffset(354,20),
-        BackgroundTransparency=1,Text="CLE D'ACTIVATION",
-        TextXAlignment=Enum.TextXAlignment.Left,Font=Enum.Font.GothamMedium,
-        TextSize=11,TextColor3=Color3.fromRGB(202,215,214)
+        Position=UDim2.fromOffset(25,133),Size=UDim2.fromOffset(469,38),
+        BackgroundTransparency=1,Text="Saisis une cle valide pour acceder aux outils de test.",
+        TextSize=12,TextXAlignment=Enum.TextXAlignment.Left,
+        Font=Enum.Font.Gotham,TextColor3=Color3.fromRGB(153,167,192)
+    },card)
+    elem("TextLabel",{
+        Position=UDim2.fromOffset(24,179),Size=UDim2.fromOffset(250,18),
+        BackgroundTransparency=1,Text="CLE D'ACCES",
+        TextSize=10,TextXAlignment=Enum.TextXAlignment.Left,
+        Font=Enum.Font.GothamBold,
+        TextColor3=Color3.fromRGB(188,200,224)
     },card)
     local field=radius(elem("TextBox",{
-        Position=UDim2.fromOffset(238,181),
-        Size=UDim2.fromOffset(375,49),
-        BackgroundColor3=Color3.fromRGB(14,19,22),
-        BorderSizePixel=0,
-        ClearTextOnFocus=false,Text="",PlaceholderText="VP4-XXXXXXXX-XXXXXXXX-...",
-        PlaceholderColor3=Color3.fromRGB(115,135,136),
-        TextColor3=Color3.fromRGB(245,247,247),
+        Position=UDim2.fromOffset(24,205),Size=UDim2.fromOffset(476,43),
+        BackgroundColor3=Color3.fromRGB(12,15,23),
+        BorderSizePixel=0,ClearTextOnFocus=false,Text="",
+        PlaceholderText="VP4-XXXXXXXX-XXXXXXXX-...",
+        PlaceholderColor3=Color3.fromRGB(116,130,157),
+        TextColor3=Color3.fromRGB(242,246,254),
         TextXAlignment=Enum.TextXAlignment.Left,TextSize=13,
         Font=Enum.Font.GothamMedium
-    },card),7)
+    },card),6)
     elem("UIPadding",{
-        PaddingLeft=UDim.new(0,14),PaddingRight=UDim.new(0,14)
+        PaddingLeft=UDim.new(0,13),PaddingRight=UDim.new(0,13)
     },field)
     local fieldStroke=elem("UIStroke",{
-        Color=Color3.fromRGB(75,91,91),
-        Thickness=1,Transparency=.30
+        Color=Color3.fromRGB(71,83,109),Thickness=1,Transparency=.25
     },field)
     local activate=radius(elem("TextButton",{
-        Position=UDim2.fromOffset(238,248),
-        Size=UDim2.fromOffset(375,45),
-        BackgroundColor3=Color3.fromRGB(111,205,196),
+        Position=UDim2.fromOffset(24,265),
+        Size=UDim2.fromOffset(476,41),
+        BackgroundColor3=Color3.fromRGB(146,165,255),
         BorderSizePixel=0,AutoButtonColor=false,
         Font=Enum.Font.GothamBold,TextSize=12,
-        TextColor3=Color3.fromRGB(14,22,22),
-        Text="VALIDER MA CLE"
-    },card),7)
+        TextColor3=Color3.fromRGB(17,21,34),
+        Text="VERIFIER LA CLE"
+    },card),6)
     local status=elem("TextLabel",{
-        Position=UDim2.fromOffset(240,309),
-        Size=UDim2.fromOffset(365,42),
-        Text="La verification est effectuee en ligne.",
+        Position=UDim2.fromOffset(24,317),Size=UDim2.fromOffset(472,29),
+        Text="Verification en ligne avec Cloudflare.",
         TextWrapped=true,TextYAlignment=Enum.TextYAlignment.Top,
         TextXAlignment=Enum.TextXAlignment.Left,
         BackgroundTransparency=1,Font=Enum.Font.GothamMedium,
-        TextSize=11,TextColor3=Color3.fromRGB(157,175,176)
+        TextSize=11,TextColor3=Color3.fromRGB(148,163,188)
     },card)
-
     local busy=false
     local unlocked=false
     local function message(text,color)
@@ -2817,14 +2792,14 @@ local function bootVisionPro()
                 end
             end
             if accepted then
-                message("Cle valide. Ouverture de CONTROL V4...")
+                message("Cle valide. Ouverture de VISION PRO...")
                 openUnlocked()
                 return
             end
             message(statusText,Color3.fromRGB(255,139,158))
             busy=false
-            activate.Text="VALIDER MA CLE"
-            activate.BackgroundColor3=Color3.fromRGB(111,205,196)
+            activate.Text="VERIFIER LA CLE"
+            activate.BackgroundColor3=Color3.fromRGB(146,165,255)
         end)
     end
     activate.Activated:Connect(function()
@@ -2855,5 +2830,5 @@ local ok,err=xpcall(bootVisionPro,function(problem)
     return message
 end)
 if not ok then
-    warn("[VISION PRO 4.0.2 / STARTUP] "..tostring(err))
+    warn("[VISION PRO 4.1.0 / STARTUP] "..tostring(err))
 end

@@ -229,7 +229,7 @@ local function btn(parent,s,x,y,w,h,background)
         Name="ButtonCaption",Position=UDim2.fromScale(0,0),
         Size=UDim2.fromScale(1,1),BackgroundTransparency=1,
         Text=s,TextColor3=C.WHITE,TextSize=11,
-        Font=Enum.Font.GothamMedium,Active=false,
+        Font=Enum.Font.Code,Active=false,
         TextXAlignment=Enum.TextXAlignment.Center,
         TextYAlignment=Enum.TextYAlignment.Center,
         ZIndex=control.ZIndex+2

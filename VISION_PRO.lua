@@ -2602,7 +2602,7 @@ local function bootVisionPro()
         TextColor3=Color3.fromRGB(15,19,33)
     },vpTile)
     elem("TextLabel",{
-        Position=UDim2.fromOffset(74,21),Size=UDim2.fromOffset(311,22),
+        Position=UDim2.fromOffset(24,21),Size=UDim2.fromOffset(361,22),
         BackgroundTransparency=1,Text="VISION PRO",
         TextXAlignment=Enum.TextXAlignment.Left,TextSize=15,
         Font=Enum.Font.GothamBold,TextColor3=Color3.fromRGB(245,247,252)

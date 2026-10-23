@@ -752,6 +752,7 @@ local function slider(page,key,title,low,high,step,unit)
         AnchorPoint=Vector2.new(.5,.5),Size=UDim2.fromOffset(12,12),
         BackgroundColor3=C.WHITE,BorderSizePixel=0
     },rail),6)
+    thumb.Visible=false
     local function refreshSlider()
         local current=tonumber(cfg[key]) or D[key]
         current=math.clamp(current==current and current or D[key],low,high)

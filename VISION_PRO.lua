@@ -603,7 +603,7 @@ local function section(page,text)
         Position=UDim2.new(0,2,1,-2),Size=UDim2.new(1,-4,0,1),
         BackgroundColor3=tabColors[page],BorderSizePixel=0
     },row)
-    local title=txt(row,text:upper(),13,6,610,21,10,true,C.MUTED)
+    local title=txt(row,text,7,0,610,21,11,false,C.WHITE)
     title.Size=UDim2.new(1,-21,0,21)
     return row
 end

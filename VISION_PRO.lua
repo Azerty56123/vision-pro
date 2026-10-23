@@ -740,8 +740,8 @@ local function slider(page,key,title,low,high,step,unit)
         BackgroundTransparency=1,Active=true
     },row)
     local rail=corner(make("Frame",{
-        Position=UDim2.new(0,0,.5,-2),
-        Size=UDim2.new(1,0,0,4),
+        Position=UDim2.new(0,0,.5,-7),
+        Size=UDim2.new(1,0,0,14),
         BackgroundColor3=C.DARK,BorderSizePixel=0
     },zone),2)
     local fill=corner(make("Frame",{

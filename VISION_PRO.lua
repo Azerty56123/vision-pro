@@ -588,47 +588,69 @@ for n,item in pairs(nav) do
 end
 
 local function order(page) orders[page]+=1 return orders[page] end
+-- ECLIPSE: compact control renderers shared across all seven pages.
+local function widgetParent(page)
+    local group=groupState[page]
+    return group and group.Current or pages[page]
+end
 local function section(page,text)
+    local group=groupState[page]
+    if group then
+        group.Count+=1
+        local target=group.Columns[(group.Count-1)%2+1]
+        local panel=corner(make("Frame",{
+            Name="Groupbox_"..tostring(group.Count),
+            LayoutOrder=group.Count,Size=UDim2.new(1,0,0,0),
+            AutomaticSize=Enum.AutomaticSize.Y,BackgroundColor3=C.SIDE,
+            BorderSizePixel=0
+        },target),ROUND.Card)
+        stroke(panel,C.STROKE,1).Transparency=.42
+        make("UIPadding",{
+            PaddingTop=UDim.new(0,7),PaddingBottom=UDim.new(0,12),
+            PaddingLeft=UDim.new(0,11),PaddingRight=UDim.new(0,11)
+        },panel)
+        make("UIListLayout",{
+            SortOrder=Enum.SortOrder.LayoutOrder,Padding=UDim.new(0,3)
+        },panel)
+        group.Current=panel
+    end
     local row=make("Frame",{
-        Size=UDim2.new(1,-2,0,35),LayoutOrder=order(page),
-        BackgroundTransparency=1
-    },pages[page])
-    local tag=corner(make("Frame",{
-        Position=UDim2.fromOffset(0,14),
-        Size=UDim2.fromOffset(3,13),
+        Name="SectionHeading",Size=UDim2.new(1,-2,0,31),
+        LayoutOrder=order(page),BackgroundTransparency=1
+    },widgetParent(page))
+    local bar=make("Frame",{
+        Position=UDim2.fromOffset(2,12),Size=UDim2.fromOffset(3,10),
         BackgroundColor3=tabColors[page],BorderSizePixel=0
-    },row),2)
-    txt(row,text:upper(),13,9,680,22,10,true,C.MUTED)
+    },row)
+    local title=txt(row,text:upper(),13,6,610,21,10,true,C.MUTED)
+    title.Size=UDim2.new(1,-21,0,21)
+    return row
 end
 local function action(page,title,detail,caption,callback)
-    local danger=caption=="RESET" or caption=="REMOVE"
+    local compact=groupState[page]~=nil
+    local danger=caption=="RESET" or caption=="REMOVE" or caption=="CLEAR"
     local row=corner(make("Frame",{
-        Size=UDim2.new(1,-2,0,70),LayoutOrder=order(page),
+        LayoutOrder=order(page),Size=UDim2.new(1,-2,0,61),
         BackgroundColor3=C.CARD,BorderSizePixel=0
-    },pages[page]),ROUND.Card)
-    local rim=stroke(row,C.STROKE,1)
-    rim.Transparency=.72
-    local heading=txt(row,title,17,9,480,25,12,true,C.WHITE)
-    heading.Size=UDim2.new(1,-208,0,25)
-    local hint=description(row,detail,17,35,480,20)
-    hint.Size=UDim2.new(1,-208,0,20)
-    local control=btn(row,caption,0,0,128,35,
+    },widgetParent(page)),ROUND.Compact)
+    local outline=stroke(row,C.STROKE,1);outline.Transparency=.70
+    local titleLabel=txt(row,title,13,9,compact and 240 or 545,23,12,true,C.WHITE)
+    titleLabel.Size=UDim2.new(1,compact and -127 or -199,0,23)
+    local descLabel=description(row,detail,13,31,compact and 240 or 545,20)
+    descLabel.Size=UDim2.new(1,compact and -127 or -199,0,20)
+    local control=btn(row,caption,0,0,compact and 98 or 137,32,
         danger and C.DARK or S.Accent)
-    control.Position=UDim2.new(1,-146,.5,-17)
-    local captionLabel=buttonCaption(control)
-    captionLabel.Font=Enum.Font.GothamBold
-    captionLabel.TextSize=11
-    captionLabel.TextColor3=danger and C.RED or C.DARK
-    if danger then
-        stroke(control,C.RED,1).Transparency=.43
-    else
-        table.insert(S.AccentButtons,control)
-    end
+    control.Position=UDim2.new(1,compact and -110 or -151,.5,-16)
+    local label=buttonCaption(control)
+    label.TextColor3=danger and C.RED or C.DARK
+    label.TextSize=10
+    if danger then stroke(control,C.RED,1).Transparency=.50
+    else table.insert(S.AccentButtons,control) end
     on(row.MouseEnter,function()
-        if S.Alive then animateUI(rim,{Transparency=.39},.12) end
+        if S.Alive then animateUI(outline,{Transparency=.34},.12) end
     end)
     on(row.MouseLeave,function()
-        if S.Alive then animateUI(rim,{Transparency=.79},.12) end
+        if S.Alive then animateUI(outline,{Transparency=.70},.12) end
     end)
     on(control.Activated,function()
         if S.Alive then safeAction("Bouton "..title,callback) end
@@ -637,152 +659,130 @@ local function action(page,title,detail,caption,callback)
 end
 local function toggle(page,key,title,detail)
     local row=corner(make("TextButton",{
-        Size=UDim2.new(1,-2,0,72),LayoutOrder=order(page),
+        LayoutOrder=order(page),Size=UDim2.new(1,-2,0,64),
         BackgroundColor3=C.CARD,BorderSizePixel=0,
         Text="",AutoButtonColor=false,Active=true
-    },pages[page]),ROUND.Card)
-    local rim=stroke(row,C.STROKE,1)
-    rim.Transparency=.80
-    local heading=txt(row,title,17,10,465,25,12,true,C.WHITE)
-    heading.Size=UDim2.new(1,-210,0,25)
-    local hint=description(row,detail,17,39,465,20)
-    hint.Size=UDim2.new(1,-210,0,20)
-    local status=txt(row,"OFF",0,26,60,18,10,true,C.MUTED)
-    status.Position=UDim2.new(1,-163,0,26)
-    status.TextXAlignment=Enum.TextXAlignment.Right
+    },widgetParent(page)),ROUND.Compact)
+    local outline=stroke(row,C.STROKE,1);outline.Transparency=.77
+    local heading=txt(row,title,13,7,250,24,12,true,C.WHITE)
+    heading.Size=UDim2.new(1,-92,0,24)
+    local detailLabel=description(row,detail,13,33,260,20)
+    detailLabel.Size=UDim2.new(1,-92,0,20)
     local track=corner(make("Frame",{
-        Position=UDim2.new(1,-85,.5,-15),
-        Size=UDim2.fromOffset(58,30),
+        Position=UDim2.new(1,-66,.5,-12),Size=UDim2.fromOffset(51,25),
         BackgroundColor3=C.DARK,BorderSizePixel=0,Active=false
-    },row),15)
-    local trackBorder=stroke(track,C.STROKE,1)
-    trackBorder.Transparency=.60
+    },row),ROUND.Pill)
+    local trackOutline=stroke(track,C.STROKE,1);trackOutline.Transparency=.43
     local knob=corner(make("Frame",{
-        Position=UDim2.fromOffset(4,4),Size=UDim2.fromOffset(22,22),
-        BackgroundColor3=C.WHITE,BorderSizePixel=0,Active=false
-    },track),11)
-    local protect=key=="AntiFly" or key=="AntiFling"
-        or key=="SafeRecovery" or key=="GuardCorrect" or key=="AntiAim"
-    local function refreshToggle(animate)
+        Position=UDim2.fromOffset(4,4),Size=UDim2.fromOffset(17,17),
+        BackgroundColor3=C.TEXT,BorderSizePixel=0,Active=false
+    },track),5)
+    local protective=key=="AntiFly" or key=="AntiFling" or key=="SafeRecovery"
+        or key=="GuardCorrect" or key=="AntiAim"
+    local function update(animate)
         local enabled=cfg[key]==true
-        local hue=protect and C.GREEN or S.Accent
-        local target=enabled and hue or C.DARK
-        local position=UDim2.fromOffset(enabled and 32 or 4,4)
+        local accent=protective and C.GREEN or S.Accent
+        local bg=enabled and accent or C.DARK
+        local newPos=UDim2.fromOffset(enabled and 30 or 4,4)
         if animate then
-            animateUI(track,{BackgroundColor3=target},.17)
-            animateUI(knob,{Position=position},.17)
+            animateUI(track,{BackgroundColor3=bg},.13)
+            animateUI(knob,{Position=newPos},.13)
         else
-            track.BackgroundColor3=target
-            knob.Position=position
+            track.BackgroundColor3=bg;knob.Position=newPos
         end
-        trackBorder.Color=enabled and hue or C.STROKE
-        trackBorder.Transparency=enabled and .48 or .67
-        status.Text=enabled and "ON" or "OFF"
-        status.TextColor3=enabled and hue or C.MUTED
+        knob.BackgroundColor3=enabled and C.DARK or C.TEXT
+        trackOutline.Color=enabled and accent or C.STROKE
     end
     on(row.Activated,function()
-        cfg[key]=not cfg[key]
-        save();refreshToggle(true)
+        if not S.Alive then return end
+        cfg[key]=not cfg[key];save();update(true)
         if key~="Animations" then
             notify(title.." / "..(cfg[key] and "ON" or "OFF"),"INFO")
         end
     end)
     on(row.MouseEnter,function()
-        if S.Alive then animateUI(rim,{Transparency=.38},.12) end
+        if S.Alive then animateUI(outline,{Transparency=.33},.10) end
     end)
     on(row.MouseLeave,function()
-        if S.Alive then animateUI(rim,{Transparency=.80},.12) end
+        if S.Alive then animateUI(outline,{Transparency=.77},.10) end
     end)
-    table.insert(S.Toggles,function()refreshToggle(false)end)
-    refreshToggle(false)
+    table.insert(S.Toggles,function()update(false)end)
+    update(false)
 end
 local function choices(page,title,key,options)
     local row=corner(make("Frame",{
-        Size=UDim2.new(1,-2,0,83),LayoutOrder=order(page),
+        LayoutOrder=order(page),Size=UDim2.new(1,-2,0,82),
         BackgroundColor3=C.CARD,BorderSizePixel=0
-    },pages[page]),ROUND.Card)
-    stroke(row,C.STROKE,1).Transparency=.81
-    local heading=txt(row,title,17,9,700,24,12,true,C.WHITE)
-    heading.Size=UDim2.new(1,-34,0,24)
+    },widgetParent(page)),ROUND.Compact)
+    stroke(row,C.STROKE,1).Transparency=.74
+    local heading=txt(row,title,13,8,580,21,12,true,C.WHITE)
+    heading.Size=UDim2.new(1,-24,0,21)
     local holder=corner(make("Frame",{
-        Position=UDim2.fromOffset(15,40),
-        Size=UDim2.new(1,-30,0,31),
-        BackgroundColor3=C.DARK,BorderSizePixel=0
-    },row),10)
+        Position=UDim2.fromOffset(11,39),
+        Size=UDim2.new(1,-22,0,32),BackgroundColor3=C.DARK,
+        BorderSizePixel=0
+    },row),ROUND.Pill)
     local count=#options
     local controls={}
-    for index,option in ipairs(options) do
-        local button=btn(holder,option,0,3,30,25,C.DARK)
-        button.Position=UDim2.new((index-1)/count,4,0,3)
-        button.Size=UDim2.new(1/count,-8,0,25)
+    for i,option in ipairs(options) do
+        local button=btn(holder,option,0,3,22,26,C.DARK)
+        button.Position=UDim2.new((i-1)/count,3,0,3)
+        button.Size=UDim2.new(1/count,-6,0,26)
         buttonCaption(button).TextSize=count>4 and 9 or 10
         controls[option]=button
         on(button.Activated,function()
             cfg[key]=option
             if key=="Accent" then cfg.RGB=false end
             save()
-            for _,update in ipairs(S.Selectors) do update() end
-            for _,update in ipairs(S.Toggles) do update() end
+            for _,fn in ipairs(S.Selectors) do fn() end
+            for _,fn in ipairs(S.Toggles) do fn() end
         end)
     end
     table.insert(S.Selectors,function()
         for option,button in pairs(controls) do
-            local chosen=cfg[key]==option
-            button.BackgroundColor3=chosen and S.Accent or C.DARK
-            buttonCaption(button).TextColor3=chosen and C.DARK or C.MUTED
+            local active=cfg[key]==option
+            button.BackgroundColor3=active and S.Accent or C.DARK
+            buttonCaption(button).TextColor3=active and C.DARK or C.MUTED
         end
     end)
 end
 local function slider(page,key,title,low,high,step,unit)
-    if type(D[key])~="number" then
-        error("Unknown numeric slider setting: "..tostring(key))
-    end
-    if type(low)~="number" or type(high)~="number"
-        or type(step)~="number" or low>=high or step<=0 then
-        error("Invalid slider bounds: "..tostring(key))
-    end
-    local previous=tonumber(cfg[key])
-    cfg[key]=math.clamp(previous and previous==previous and previous or D[key],
-        low,high)
+    if type(D[key])~="number" then error("Unknown numeric slider: "..tostring(key)) end
+    if type(low)~="number" or type(high)~="number" or type(step)~="number"
+        or low>=high or step<=0 then error("Invalid slider bounds: "..tostring(key)) end
+    cfg[key]=math.clamp(tonumber(cfg[key]) or D[key],low,high)
     local row=corner(make("Frame",{
-        Size=UDim2.new(1,-2,0,82),LayoutOrder=order(page),
+        LayoutOrder=order(page),Size=UDim2.new(1,-2,0,74),
         BackgroundColor3=C.CARD,BorderSizePixel=0
-    },pages[page]),ROUND.Card)
-    stroke(row,C.STROKE,1).Transparency=.81
-    local heading=txt(row,title,17,9,500,24,12,true,C.WHITE)
-    heading.Size=UDim2.new(1,-195,0,24)
-    local valueFrame=corner(make("Frame",{
-        Position=UDim2.new(1,-127,0,9),
-        Size=UDim2.fromOffset(110,25),BackgroundColor3=C.DARK,
-        BorderSizePixel=0
-    },row),8)
-    local value=txt(valueFrame,"",5,3,101,19,11,true,C.CYAN)
+    },widgetParent(page)),ROUND.Compact)
+    stroke(row,C.STROKE,1).Transparency=.74
+    local heading=txt(row,title,13,7,250,22,12,true,C.WHITE)
+    heading.Size=UDim2.new(1,-154,0,22)
+    local value=txt(row,"",0,8,114,21,11,true,C.CYAN)
+    value.Position=UDim2.new(1,-130,0,8)
     value.TextXAlignment=Enum.TextXAlignment.Right
     table.insert(S.AccentLabels,value)
     local zone=make("Frame",{
-        Position=UDim2.fromOffset(19,47),
-        Size=UDim2.new(1,-38,0,25),
+        Position=UDim2.fromOffset(16,39),Size=UDim2.new(1,-32,0,27),
         BackgroundTransparency=1,Active=true
     },row)
     local rail=corner(make("Frame",{
-        Position=UDim2.new(0,0,.5,-3),
-        Size=UDim2.new(1,0,0,6),
+        Position=UDim2.new(0,0,.5,-2),
+        Size=UDim2.new(1,0,0,4),
         BackgroundColor3=C.DARK,BorderSizePixel=0
-    },zone),3)
+    },zone),2)
     local fill=corner(make("Frame",{
-        Size=UDim2.fromScale(0,1),
-        BackgroundColor3=S.Accent,BorderSizePixel=0
-    },rail),3)
+        Size=UDim2.fromScale(0,1),BackgroundColor3=S.Accent,BorderSizePixel=0
+    },rail),2)
     table.insert(S.SliderFills,fill)
     local thumb=corner(make("Frame",{
-        AnchorPoint=Vector2.new(.5,.5),Size=UDim2.fromOffset(16,16),
+        AnchorPoint=Vector2.new(.5,.5),Size=UDim2.fromOffset(12,12),
         BackgroundColor3=C.WHITE,BorderSizePixel=0
-    },rail),8)
-    stroke(thumb,C.STROKE,1).Transparency=.53
+    },rail),6)
     local function refreshSlider()
-        local current=tonumber(cfg[key])
-        if not current or current~=current then current=D[key];cfg[key]=current end
-        current=math.clamp(current,low,high)
+        local current=tonumber(cfg[key]) or D[key]
+        current=math.clamp(current==current and current or D[key],low,high)
+        cfg[key]=current
         local fraction=math.clamp((current-low)/(high-low),0,1)
         fill.Size=UDim2.fromScale(fraction,1)
         thumb.Position=UDim2.fromScale(fraction,.5)
@@ -791,16 +791,15 @@ local function slider(page,key,title,low,high,step,unit)
     end
     local function set(x)
         if zone.AbsoluteSize.X<2 then return end
-        local t=math.clamp((x-zone.AbsolutePosition.X)/zone.AbsoluteSize.X,0,1)
-        cfg[key]=math.clamp(
-            math.floor((low+t*(high-low))/step+.5)*step,low,high)
+        local fraction=math.clamp((x-zone.AbsolutePosition.X)/zone.AbsoluteSize.X,0,1)
+        cfg[key]=math.clamp(math.floor((low+fraction*(high-low))/step+.5)*step,low,high)
         save();refreshSlider()
         if key=="MenuScale" then rescale() end
         if key=="UIRoundness" then refreshRoundness() end
     end
     on(zone.InputBegan,function(input)
-        if input.UserInputType==Enum.UserInputType.MouseButton1
-            or input.UserInputType==Enum.UserInputType.Touch then
+        if input.UserInputType==Enum.UserInputType.MouseButton1 or
+            input.UserInputType==Enum.UserInputType.Touch then
             S.MouseDrag={Touch=input.UserInputType==Enum.UserInputType.Touch,
                 Input=input,Set=set}
             set(input.Position.X)
@@ -1716,6 +1715,7 @@ choices("AIMBOT","Zone ciblee","AimPart",{"HEAD","BODY"})
 toggle("AIMBOT","AimLOS","Visibilite requise","Ignorer les cibles derriere les murs")
 slider("AIMBOT","AimFOV","Rayon de ciblage",60,300,10," px")
 slider("AIMBOT","AimSmooth","Fluidite du suivi",.03,.45,.02," s")
+section("AIMBOT","CIBLES DE TEST")
 action("AIMBOT","Creer les cibles","Trois mannequins espaces","SPAWN",spawnDummies)
 
 section("SILENT","SIMULATION D IMPACTS")

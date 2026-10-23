@@ -627,7 +627,7 @@ local function action(page,title,detail,caption,callback)
     label.TextColor3=danger and C.RED or C.TEXT
     label.TextSize=10
     if danger then stroke(control,C.RED,1).Transparency=.50
-    else table.insert(S.AccentButtons,control) end
+    else stroke(control,C.STROKE,1).Transparency=.50 end
     on(row.MouseEnter,function()
         if S.Alive then animateUI(outline,{Transparency=.34},.12) end
     end)

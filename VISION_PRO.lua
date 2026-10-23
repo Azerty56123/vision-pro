@@ -179,7 +179,7 @@ local function on(event,cb)
     table.insert(S.Connections,con)
     return con
 end
--- NOVA V4: radius tokens shared by all custom controls.
+-- CONTROL V4: radius tokens shared by all custom controls.
 local ROUND={Window=12,Sidebar=8,Card=9,Compact=7,Modal=12,Pill=7}
 local function corner(x,r)
     local radius=r
@@ -1580,7 +1580,7 @@ on(Me.CharacterAdded,function()
     end)
 end)
 
--- NOVA V4: quick access to local guard controls.
+-- CONTROL V4: quick access to local guard controls.
 section("HOME","PILOTAGE")
 local protectionCard=corner(make("Frame",{
     LayoutOrder=order("HOME"),Size=UDim2.new(1,-2,0,122),
@@ -2126,9 +2126,9 @@ on(UIS.InputBegan,function(input,processed)
     end
 end)
 local dragging=false;local dragInput,dragStart,dragPos
-on(header.InputBegan,function(input)
+on(masthead.InputBegan,function(input)
     if input.UserInputType~=Enum.UserInputType.MouseButton1 and input.UserInputType~=Enum.UserInputType.Touch then return end
-    if input.Position.X>header.AbsolutePosition.X+header.AbsoluteSize.X*.76 then return end
+    if input.Position.X>masthead.AbsolutePosition.X+masthead.AbsoluteSize.X*.76 then return end
     dragging=true;dragInput=input;dragStart=input.Position;dragPos=window.Position
 end)
 on(UIS.InputChanged,function(input)
@@ -2810,7 +2810,7 @@ local function bootVisionPro()
                 end
             end
             if accepted then
-                message("Cle valide. Ouverture de NOVA V4...")
+                message("Cle valide. Ouverture de CONTROL V4...")
                 openUnlocked()
                 return
             end

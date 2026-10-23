@@ -293,7 +293,7 @@ async function login(event){
   $("token").value="";$("loginView").hidden=true;$("dashboard").hidden=false;$("logout").hidden=false;
   $("connection").classList.add("connected");$("connection").lastChild.textContent="Connecté";render();
  }catch(e){$("loginError").textContent=e.message||"Connexion refusée."}
- finally{state.busy=false;$("loginButton").disabled=false;$("loginButton").textContent="Accéder au tableau de bord →"}
+ finally{state.busy=false;$("loginButton").disabled=false;$("loginButton").textContent="Ouvrir le tableau de bord →"}
 }
 function closeDialog(){
  if(state.busy)return;

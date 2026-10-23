@@ -1,5 +1,5 @@
--- VISION_PRO_VERSION: 4.1.0
---[[ VISION PRO 4.1.0 | ECLIPSE / VISUAL REBUILD WITH SERVER BETA ACCESS
+-- VISION_PRO_VERSION: 4.2.0
+--[[ VISION PRO 4.2.0 | CLASSIC / VISUAL REBUILD WITH SERVER BETA ACCESS
      LocalScript for authorized testing in your Roblox place.
      Aimbot / simulated Silent Aim work on locally spawned mannequins only.
      Camera assist and impact preview always start disabled.
@@ -18,7 +18,7 @@ local Me=Players.LocalPlayer
 if not Me then return end
 local PG=Me:WaitForChild("PlayerGui")
 -- CoreGui is Roblox-owned. All custom UI belongs in PlayerGui.
-local V="4.1.0"
+local V="4.2.0"
 local GNAME="VISION_PRO_147_GUI"
 local ONAME="VISION_PRO_147_OVERLAY"
 local DNAME="VISION_PRO_147_DUMMIES"
@@ -107,23 +107,23 @@ save()
 local C={
     -- CONTROL: neutral graphite, crisp typography, and restrained accents.
     -- No shadows or gradients; color communicates state, not decoration.
-    BG=Color3.fromRGB(11,13,18),
-    SIDE=Color3.fromRGB(16,19,27),
-    CARD=Color3.fromRGB(23,27,37),
-    HOVER=Color3.fromRGB(37,41,57),
-    STROKE=Color3.fromRGB(51,56,73),
-    WHITE=Color3.fromRGB(245,247,252),
-    TEXT=Color3.fromRGB(204,211,229),
-    MUTED=Color3.fromRGB(131,141,164),
-    PURPLE=Color3.fromRGB(151,164,255),
-    BLUE=Color3.fromRGB(146,165,255),
-    CYAN=Color3.fromRGB(142,186,251),
-    GREEN=Color3.fromRGB(126,214,171),
-    RED=Color3.fromRGB(243,130,153),
-    DARK=Color3.fromRGB(13,16,24),
-    GOLD=Color3.fromRGB(241,198,131),
-    PINK=Color3.fromRGB(221,149,209),
-    ORANGE=Color3.fromRGB(240,170,127)
+    BG=Color3.fromRGB(17,17,17),
+    SIDE=Color3.fromRGB(23,23,23),
+    CARD=Color3.fromRGB(29,29,29),
+    HOVER=Color3.fromRGB(40,40,40),
+    STROKE=Color3.fromRGB(67,67,67),
+    WHITE=Color3.fromRGB(226,226,226),
+    TEXT=Color3.fromRGB(197,197,197),
+    MUTED=Color3.fromRGB(147,147,147),
+    PURPLE=Color3.fromRGB(92,206,196),
+    BLUE=Color3.fromRGB(58,216,174),
+    CYAN=Color3.fromRGB(58,216,174),
+    GREEN=Color3.fromRGB(69,227,131),
+    RED=Color3.fromRGB(232,95,105),
+    DARK=Color3.fromRGB(12,12,12),
+    GOLD=Color3.fromRGB(222,188,95),
+    PINK=Color3.fromRGB(58,216,174),
+    ORANGE=Color3.fromRGB(215,161,91)
 }
 local accentChoices={BLEU=C.BLUE,VIOLET=C.PURPLE,CYAN=C.CYAN,ROUGE=C.RED,VERT=C.GREEN,ROSE=C.PINK}
 local S={Alive=true,Open=true,Page="HOME",Connections={},Players={},Targets={},Dummies={},
@@ -180,7 +180,7 @@ local function on(event,cb)
     return con
 end
 -- CONTROL V4: radius tokens shared by all custom controls.
-local ROUND={Window=9,Sidebar=5,Card=6,Compact=5,Modal=9,Pill=5}
+local ROUND={Window=2,Sidebar=2,Card=1,Compact=1,Modal=2,Pill=1}
 local function corner(x,r)
     local radius=r
     if radius>=8 and radius<100 then
@@ -380,15 +380,15 @@ notify=function(message,kind)
         end
     end)
 end
--- ECLIPSE / V4.1 : new compact two-column hub architecture.
--- Original implementation with familiar tabs and grouped controls.
-local W,H=900,594
+-- CLASSIC V4.2: faithful compact script-hub layout inspired by LinoriaLib.
+-- Monochrome flat surfaces, thin borders, tabs, and tight groupboxes.
+local W,H=778,557
 local window=corner(make("Frame",{
-    Name="VisionEclipse",Size=UDim2.fromOffset(W,H),
+    Name="VisionClassic",Size=UDim2.fromOffset(W,H),
     AnchorPoint=Vector2.new(.5,.5),Position=UDim2.fromScale(.5,.5),
     BackgroundColor3=C.BG,BorderSizePixel=0,Active=true,ClipsDescendants=true
 },ui),ROUND.Window)
-stroke(window,C.STROKE,1).Transparency=.11
+stroke(window,C.STROKE,1).Transparency=0
 local scale=make("UIScale",{Scale=1},window)
 local function rescale()
     local camera=WS.CurrentCamera
@@ -398,113 +398,95 @@ local function rescale()
     scale.Scale=math.clamp(math.min(desired,(viewport.X-24)/W,
         (viewport.Y-24)/H),.32,1.1)
 end
--- Branding and window controls sit above the tabs.
+
+-- Small ordinary title bar: no logo tile, hero title, or marketing copy.
 local header=make("Frame",{
-    Name="EclipseBar",Position=UDim2.fromOffset(17,7),
-    Size=UDim2.fromOffset(866,48),BackgroundTransparency=1,Active=true
+    Name="ClassicTitlebar",Position=UDim2.fromOffset(8,5),
+    Size=UDim2.fromOffset(762,27),BackgroundTransparency=1,Active=true
 },window)
 local logo=corner(make("Frame",{
-    Position=UDim2.fromOffset(0,7),Size=UDim2.fromOffset(34,34),
+    Position=UDim2.fromOffset(0,8),Size=UDim2.fromOffset(6,12),
     BackgroundColor3=C.BLUE,BorderSizePixel=0
-},header),ROUND.Compact)
-local brand=txt(logo,"V",0,4,34,24,20,true,C.DARK)
-brand.TextXAlignment=Enum.TextXAlignment.Center
-local brandTitle=txt(header,"VISION PRO",45,4,210,23,14,true,C.WHITE)
-local brandDetails=description(header,"ECLIPSE   /   PRIVATE ACCESS",45,26,250,15)
-local topSignal=corner(make("Frame",{
-    Position=UDim2.fromOffset(635,22),Size=UDim2.fromOffset(7,7),
-    BackgroundColor3=C.GREEN,BorderSizePixel=0
-},header),4)
-txt(header,"BETA ACTIVE",650,16,98,20,10,true,C.GREEN)
-local minimize=btn(header,"-",777,8,35,32,C.CARD)
-local close=btn(header,"X",825,8,35,32,C.CARD)
-buttonCaption(minimize).TextSize=16
-buttonCaption(close).TextSize=12
+},header),1)
+local pageTitle=txt(header,"VISION PRO  |  Private beta",13,4,398,21,13,true,C.WHITE)
+local pageCounter=txt(header,"4.2.0",514,6,87,18,10,false,C.MUTED)
+local minimize=btn(header,"-",687,1,30,24,C.SIDE)
+local close=btn(header,"X",727,1,30,24,C.SIDE)
+buttonCaption(minimize).TextSize=15
+buttonCaption(close).TextSize=11
 buttonCaption(close).TextColor3=C.RED
 make("Frame",{
-    Position=UDim2.fromOffset(0,57),Size=UDim2.fromOffset(W,1),
-    BackgroundColor3=C.STROKE,BackgroundTransparency=.31,BorderSizePixel=0
+    Position=UDim2.fromOffset(6,33),Size=UDim2.fromOffset(766,1),
+    BackgroundColor3=C.STROKE,BorderSizePixel=0
 },window)
 
--- Script-hub tabs: one horizontal row, no decorative navigation tiles.
 local tabs={"HOME","VISUALS","AIMBOT","SILENT","MISC","SETTINGS","ABOUT"}
 local tabTitles={
-    HOME="Dashboard",VISUALS="Visuals",AIMBOT="Aimbot",
-    SILENT="Silent",MISC="Protection",SETTINGS="Settings",ABOUT="About"
+    HOME="Main",VISUALS="Visuals",AIMBOT="Aimbot",
+    SILENT="Silent Aim",MISC="Misc",SETTINGS="Settings",ABOUT="About"
 }
 local tabColors={
-    HOME=C.BLUE,VISUALS=C.CYAN,AIMBOT=C.PURPLE,
-    SILENT=C.PINK,MISC=C.GREEN,SETTINGS=C.BLUE,ABOUT=C.CYAN
+    HOME=C.BLUE,VISUALS=C.BLUE,AIMBOT=C.BLUE,
+    SILENT=C.BLUE,MISC=C.BLUE,SETTINGS=C.BLUE,ABOUT=C.BLUE
 }
 local nav={}
 local tabsBar=make("Frame",{
-    Name="HubTabs",Position=UDim2.fromOffset(18,67),
-    Size=UDim2.fromOffset(864,41),BackgroundTransparency=1
+    Name="ClassicTabs",Position=UDim2.fromOffset(11,39),
+    Size=UDim2.fromOffset(755,29),BackgroundTransparency=1
 },window)
+local tabWidths={67,82,83,102,63,97,68}
+local tabStart=0
 for i,name in ipairs(tabs) do
-    local control=btn(tabsBar,tabTitles[name],(i-1)*122,0,116,38,C.BG)
+    local width=tabWidths[i]
+    local control=btn(tabsBar,tabTitles[name],tabStart,0,width,26,C.BG)
+    control.ClipsDescendants=true
     local caption=buttonCaption(control)
+    caption.Font=Enum.Font.Code
     caption.TextColor3=C.MUTED
-    caption.TextSize=11
+    caption.TextSize=12
     local line=make("Frame",{
-        Position=UDim2.new(0,12,1,-2),Size=UDim2.new(1,-24,0,2),
-        BackgroundColor3=tabColors[name],Visible=false,BorderSizePixel=0
+        Position=UDim2.new(0,0,1,-2),Size=UDim2.new(1,0,0,2),
+        BackgroundColor3=C.BLUE,Visible=false,BorderSizePixel=0
     },control)
-    nav[name]={Button=control,Title=caption,Indicator=line,Color=tabColors[name]}
+    local edge=stroke(control,C.STROKE,1);edge.Transparency=.25
+    nav[name]={Button=control,Title=caption,Indicator=line,Color=C.BLUE}
     on(control.MouseEnter,function()
         if S.Alive and S.Page~=name then
-            animateUI(control,{BackgroundColor3=C.CARD},.10)
+            control.BackgroundColor3=C.HOVER
         end
     end)
     on(control.MouseLeave,function()
-        if S.Alive and S.Page~=name then
-            animateUI(control,{BackgroundColor3=C.BG},.10)
-        end
+        if S.Alive and S.Page~=name then control.BackgroundColor3=C.BG end
     end)
+    tabStart+=width+3
 end
 make("Frame",{
-    Position=UDim2.fromOffset(18,109),Size=UDim2.fromOffset(864,1),
-    BackgroundColor3=C.STROKE,BackgroundTransparency=.42,BorderSizePixel=0
+    Position=UDim2.fromOffset(11,70),Size=UDim2.fromOffset(755,1),
+    BackgroundColor3=C.STROKE,BorderSizePixel=0
 },window)
 
--- Context title, concise subtitle and page number.
-local titleRow=make("Frame",{
-    Name="PageHeading",Position=UDim2.fromOffset(24,120),
-    Size=UDim2.fromOffset(849,69),BackgroundTransparency=1
-},window)
-local pageCounter=txt(titleRow,"MODULE  01 / 07",0,0,250,17,9,true,C.CYAN)
-local pageTitle=txt(titleRow,"Dashboard",0,18,573,34,22,true,C.WHITE)
-local pageDesc=description(titleRow,"Outils et statistiques",0,49,665,18)
-local v3Badge=corner(make("Frame",{
-    Position=UDim2.fromOffset(752,12),Size=UDim2.fromOffset(95,28),
-    BackgroundColor3=C.CARD,BorderSizePixel=0
-},titleRow),ROUND.Compact)
-stroke(v3Badge,C.STROKE,1).Transparency=.45
-local v3BadgeText=txt(v3Badge,"v4.1.0",0,6,95,17,10,true,C.TEXT)
-v3BadgeText.TextXAlignment=Enum.TextXAlignment.Center
-
--- Each section of the dense option tabs is a real groupbox. All other
--- tabs remain full-width for their custom dashboards and diagnostic widgets.
+-- The user sees controls right away: no oversized page heading.
 local body=make("Frame",{
-    Position=UDim2.fromOffset(24,198),Size=UDim2.fromOffset(853,358),
+    Position=UDim2.fromOffset(12,79),Size=UDim2.fromOffset(753,446),
     BackgroundTransparency=1,BorderSizePixel=0
 },window)
-local dualPages={VISUALS=true,AIMBOT=true,SETTINGS=true}
+local dualPages={HOME=false,VISUALS=true,AIMBOT=true,
+    SILENT=false,MISC=false,SETTINGS=true,ABOUT=false}
 local groupState={}
 local pages,orders,pageLayouts={},{},{}
 for _,name in ipairs(tabs) do
     orders[name]=0
     local sc=make("ScrollingFrame",{
-        Name=name,Size=UDim2.fromScale(1,1),
-        BackgroundTransparency=1,BorderSizePixel=0,
-        AutomaticCanvasSize=Enum.AutomaticSize.Y,CanvasSize=UDim2.new(),
-        ScrollBarThickness=3,ScrollBarImageColor3=C.STROKE,
-        ScrollingDirection=Enum.ScrollingDirection.Y,ScrollingEnabled=true,
-        Visible=false
+        Name=name,Size=UDim2.fromScale(1,1),BackgroundTransparency=1,
+        BorderSizePixel=0,AutomaticCanvasSize=Enum.AutomaticSize.Y,
+        CanvasSize=UDim2.new(),ScrollBarThickness=3,
+        ScrollBarImageColor3=C.STROKE,
+        ScrollingDirection=Enum.ScrollingDirection.Y,
+        ScrollingEnabled=true,Visible=false
     },body)
     make("UIPadding",{
-        PaddingTop=UDim.new(0,2),PaddingBottom=UDim.new(0,15),
-        PaddingLeft=UDim.new(0,2),PaddingRight=UDim.new(0,12)
+        PaddingTop=UDim.new(0,2),PaddingBottom=UDim.new(0,14),
+        PaddingLeft=UDim.new(0,2),PaddingRight=UDim.new(0,8)
     },sc)
     pages[name]=sc
     if dualPages[name] then
@@ -513,48 +495,53 @@ for _,name in ipairs(tabs) do
             AutomaticSize=Enum.AutomaticSize.Y,BackgroundTransparency=1
         },sc)
         local columns={}
-        for colIndex=1,2 do
+        for index=1,2 do
             local column=make("Frame",{
-                Name=colIndex==1 and "LeftGroupboxes" or "RightGroupboxes",
-                Position=UDim2.new((colIndex-1)*.5,colIndex==2 and 5 or 0,0,0),
+                Name=index==1 and "Left" or "Right",
+                Position=UDim2.new((index-1)*.5,index==2 and 5 or 0,0,0),
                 Size=UDim2.new(.5,-7,0,0),
-                AutomaticSize=Enum.AutomaticSize.Y,BackgroundTransparency=1
+                AutomaticSize=Enum.AutomaticSize.Y,
+                BackgroundTransparency=1
             },holder)
             local layout=make("UIListLayout",{
-                SortOrder=Enum.SortOrder.LayoutOrder,Padding=UDim.new(0,11)
+                SortOrder=Enum.SortOrder.LayoutOrder,Padding=UDim.new(0,9)
             },column)
             table.insert(pageLayouts,layout)
-            columns[colIndex]=column
+            columns[index]=column
         end
         groupState[name]={Columns=columns,Current=nil,Count=0}
     else
         pageLayouts[name]=make("UIListLayout",{
-            SortOrder=Enum.SortOrder.LayoutOrder,Padding=UDim.new(0,9)
+            SortOrder=Enum.SortOrder.LayoutOrder,Padding=UDim.new(0,7)
         },sc)
     end
 end
 local footer=make("Frame",{
-    Position=UDim2.fromOffset(24,565),Size=UDim2.fromOffset(853,20),
+    Position=UDim2.fromOffset(12,531),Size=UDim2.fromOffset(753,20),
     BackgroundTransparency=1
 },window)
+make("Frame",{
+    Position=UDim2.fromOffset(0,0),Size=UDim2.new(1,0,0,1),
+    BackgroundColor3=C.STROKE,BorderSizePixel=0
+},footer)
 local onlineDot=corner(make("Frame",{
-    Position=UDim2.fromOffset(2,6),Size=UDim2.fromOffset(7,7),
+    Position=UDim2.fromOffset(5,8),Size=UDim2.fromOffset(6,6),
     BackgroundColor3=C.GREEN,BorderSizePixel=0
-},footer),4)
+},footer),1)
 local runningDot=onlineDot
-local guardStatusSidebar=txt(footer,"GUARD / ON",17,0,160,18,10,true,C.GREEN)
-txt(footer,"VISION PRO  /  ECLIPSE",347,0,210,18,10,false,C.MUTED)
-txt(footer,"TAB / OPEN",702,0,101,18,9,false,C.MUTED)
-local fpsText=txt(footer,"-- FPS",793,0,60,18,10,true,C.TEXT)
+local guardStatusSidebar=txt(footer,"Protection: ON",18,2,124,17,10,false,C.GREEN)
+local pageDesc=txt(footer,"Ready",148,2,472,17,10,false,C.MUTED)
+local v3BadgeText=txt(footer,"V4.2.0",649,2,51,17,10,true,C.MUTED)
+local fpsText=txt(footer,"-- FPS",705,2,46,17,10,false,C.MUTED)
 fpsText.TextXAlignment=Enum.TextXAlignment.Right
 local subtitles={
-    HOME="Commandes rapides et etat des modules",
-    VISUALS="Affichage et informations en deux colonnes",
-    AIMBOT="Cibles locales et assistance camera",
-    SILENT="Simulation des impacts d'entrainement",
-    MISC="Protection contre les mouvements anormaux",
-    SETTINGS="Performance et personnalisation",
-    ABOUT="Diagnostics et mises a jour"
+    HOME="Local training dashboard",
+    VISUALS="Visual settings",
+    AIMBOT="Training targets only",
+    SILENT="Local impact preview",
+    MISC="Local physics protection",
+    SETTINGS="Interface settings",
+    ABOUT="Diagnostic and updates"
 }
 local function selectPage(name)
     if not S.Alive or not pages[name] then return end
@@ -565,17 +552,11 @@ local function selectPage(name)
     end
     for key,item in pairs(nav) do
         local active=key==name
-        item.Button.BackgroundColor3=active and C.HOVER or C.BG
+        item.Button.BackgroundColor3=active and C.CARD or C.BG
         item.Title.TextColor3=active and C.WHITE or C.MUTED
         item.Indicator.Visible=active
     end
-    pageCounter.Text=string.format("MODULE  %02d / 07",table.find(tabs,name) or 1)
-    pageCounter.TextColor3=tabColors[name]
-    pageTitle.Text=({
-        HOME="Dashboard",VISUALS="Visuals / ESP",
-        AIMBOT="Aimbot / Training",SILENT="Silent / Impacts",
-        MISC="Protection",SETTINGS="Settings",ABOUT="Informations"
-    })[name]
+    pageCounter.Text="4.2.0  /  "..tabTitles[name]
     pageDesc.Text=subtitles[name]
     runningDot.BackgroundColor3=S.Errors==0 and C.GREEN or C.GOLD
 end
@@ -2084,7 +2065,7 @@ local function releaseLine(index,version,heading,detail,color)
         line.BackgroundTransparency=.76
     end
 end
-releaseLine(1,"4.1.0","ECLIPSE UI","Refonte des onglets et controles en deux colonnes",C.CYAN)
+releaseLine(1,"4.2.0","CLASSIC UI","Navigation et controles classiques compacts",C.CYAN)
 releaseLine(2,"3.4.0","MODERN SWITCH","Derniere interface de la serie V3",C.PURPLE)
 releaseLine(3,"3.3.0","WORKBENCH","Ancienne disposition de l accueil",C.GOLD)
 local aboutEnd=make("Frame",{
@@ -2554,7 +2535,7 @@ on(Run.RenderStepped,function(dt)
         fpsClock=0;frames=0;rescale();refreshDiagnostics()
     end
 end)
-print("VISION PRO "..V.." - ECLIPSE / PRIVATE BETA RELEASE")
+print("VISION PRO "..V.." - CLASSIC / PRIVATE BETA RELEASE")
 
 end -- runVisionProUnlocked
 
@@ -2830,5 +2811,5 @@ local ok,err=xpcall(bootVisionPro,function(problem)
     return message
 end)
 if not ok then
-    warn("[VISION PRO 4.1.0 / STARTUP] "..tostring(err))
+    warn("[VISION PRO 4.2.0 / STARTUP] "..tostring(err))
 end

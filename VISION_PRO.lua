@@ -208,7 +208,7 @@ end
 local function txt(parent,s,x,y,w,h,size,bold,col)
     return make("TextLabel",{BackgroundTransparency=1,Position=UDim2.fromOffset(x,y),Size=UDim2.fromOffset(w,h),
         Text=s,TextColor3=col or C.WHITE,TextSize=size or 12,
-        Font=bold and Enum.Font.GothamMedium or Enum.Font.Gotham,
+        Font=Enum.Font.Code,
         TextXAlignment=Enum.TextXAlignment.Left,TextTruncate=Enum.TextTruncate.AtEnd},parent)
 end
 local function animateUI(object,properties,duration)

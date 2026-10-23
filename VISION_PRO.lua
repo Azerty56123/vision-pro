@@ -600,7 +600,7 @@ local function section(page,text)
         LayoutOrder=order(page),BackgroundTransparency=1
     },widgetParent(page))
     local bar=make("Frame",{
-        Position=UDim2.fromOffset(2,12),Size=UDim2.fromOffset(3,10),
+        Position=UDim2.new(0,2,1,-2),Size=UDim2.new(1,-4,0,1),
         BackgroundColor3=tabColors[page],BorderSizePixel=0
     },row)
     local title=txt(row,text:upper(),13,6,610,21,10,true,C.MUTED)

@@ -145,6 +145,74 @@ tr:hover td{background:#1e2933}
  .panel-header{padding:17px}.footer,.panel-foot{flex-wrap:wrap}.login-card{padding:25px}
  .dialog{padding:20px}.rail-foot{display:none}.days-presets{flex-wrap:wrap}
 }
+/* CLASSIC SKIN / visual parity with the compact VISION PRO hub. */
+:root{
+ font-family:Consolas,"Courier New",monospace;
+ --bg:#111;--rail:#171717;--pane:#181818;--card:#1d1d1d;
+ --raised:#252525;--border:#444;--line:#353535;
+ --text:#ddd;--muted:#aaa;--dim:#888;
+ --accent:#3ad8ae;--accent-soft:#18332b;
+ --good:#45e383;--red:#e96571;--orange:#d7aa66
+}
+body{font-size:12px}
+.app-shell{max-width:1030px;min-height:100vh;margin:auto;display:block}
+.rail{padding:11px 18px;height:54px;border:1px solid var(--border);
+ border-bottom:0;flex-direction:row;align-items:center;gap:20px}
+.logo{padding:0;gap:9px}
+.logo-square{width:23px;height:23px;border-radius:1px;font-size:10px}
+.logo-small{font-size:9px}
+.rail-menu{display:block}
+.rail-heading,.rail-foot{display:none}
+.rail-entry{height:28px;padding:0 10px;border-radius:1px;font-size:11px}
+.top{height:42px;border:1px solid var(--border);padding:0 20px}
+.wrap{width:calc(100% - 28px);max-width:1000px}
+main{padding:19px 0 30px}
+h1{font-size:22px;letter-spacing:0;font-weight:700}
+.hero{margin-bottom:16px}
+.hero p{font-size:11px}
+.eyebrow{letter-spacing:.03em;font-size:10px}
+.metrics{gap:8px;margin-bottom:12px}
+.metric{padding:12px;min-height:76px;border-radius:1px}
+.metric::before{width:100%;height:1px;left:0}
+.metric-number{font-size:23px;margin-top:6px}
+.panel{border-radius:1px}
+.panel-header{padding:12px}
+.panel-header h2{font-size:12px}
+.panel-header p{font-size:10px}
+.primary,.secondary,.input,.select,.badge,.login-card,.dialog,
+.login-icon,.reveal-toggle,.preset,.created,.toast,.x-btn{
+ border-radius:1px
+}
+.primary,.secondary{min-height:30px;padding:6px 11px}
+.primary{color:#10291e}
+.primary:hover{background:#67edc8}
+.secondary:hover{background:#303030;border-color:#666}
+.input,.select{min-height:29px;background:#101010}
+.search .input{width:200px}
+th,td{padding:10px 13px}
+th{font-size:10px}
+td{font-size:11px}
+tr:hover td{background:#242424}
+.panel-foot{padding:9px 12px}
+.login-view{min-height:calc(100vh - 170px)}
+.login-card{width:min(100%,410px);padding:23px}
+.login-icon{width:27px;height:27px;margin-bottom:11px}
+.login-card h1{font-size:22px}
+.login-card p{margin-bottom:18px}
+.login-input .input{height:39px}
+.login-card .primary{min-height:36px}
+.dialog{padding:19px;border-radius:1px;box-shadow:none}
+.dialog-head h2{font-size:16px}
+.form-field{margin-bottom:12px}
+.form-field .input{min-height:32px}
+.dialog-actions{padding-top:12px}
+@media(max-width:810px){
+ .rail{padding:9px 12px;height:auto;border-bottom:0}
+ .rail-menu{display:none}
+ .top{height:42px;padding:0 11px}
+ .wrap{width:calc(100% - 22px)}
+ .metrics{gap:6px}
+}
 </style>
 </head>
 <body>

@@ -691,8 +691,8 @@ local function choices(page,title,key,options)
     local heading=txt(row,title,13,8,580,21,12,true,C.WHITE)
     heading.Size=UDim2.new(1,-24,0,21)
     local holder=corner(make("Frame",{
-        Position=UDim2.fromOffset(11,39),
-        Size=UDim2.new(1,-22,0,32),BackgroundColor3=C.DARK,
+        Position=UDim2.fromOffset(6,25),
+        Size=UDim2.new(1,-12,0,26),BackgroundColor3=C.DARK,
         BorderSizePixel=0
     },row),ROUND.Pill)
     local count=#options

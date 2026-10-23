@@ -618,6 +618,7 @@ local function action(page,title,detail,caption,callback)
     local titleLabel=txt(row,title,13,9,compact and 240 or 545,23,12,true,C.WHITE)
     titleLabel.Size=UDim2.new(1,compact and -127 or -199,0,23)
     local descLabel=description(row,detail,13,31,compact and 240 or 545,20)
+    descLabel.Visible=false
     descLabel.Size=UDim2.new(1,compact and -127 or -199,0,20)
     local control=btn(row,caption,0,0,compact and 98 or 137,32,
         danger and C.DARK or S.Accent)

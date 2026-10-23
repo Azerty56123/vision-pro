@@ -1627,10 +1627,10 @@ local quickActions=make("Frame",{
     BackgroundTransparency=1
 },pages.HOME)
 local quickItems={
-    {"01","Arme d'entrainement","Equiper le pistolet","EQUIP",equipGun,false},
-    {"02","Mannequins","Placer 3 cibles locales","SPAWN",spawnDummies,false},
-    {"03","Nettoyer","Retirer les mannequins","CLEAR",clearDummies,true},
-    {"04","Restaurer","Reinitialiser les PV","RESET",resetAllHP,true}
+    {"01","Arme d'entrainement","Equiper le pistolet","EQUIPER",equipGun,false},
+    {"02","Mannequins","Placer 3 cibles locales","CREER",spawnDummies,false},
+    {"03","Nettoyer","Retirer les mannequins","RETIRER",clearDummies,true},
+    {"04","Restaurer","Reinitialiser les PV","RESTAURER",resetAllHP,true}
 }
 for i,item in ipairs(quickItems) do
     local x=((i-1)%2)*.5
@@ -1642,8 +1642,10 @@ for i,item in ipairs(quickItems) do
     },quickActions),ROUND.Card)
     stroke(tile,C.STROKE,1).Transparency=.80
     local number=txt(tile,item[1],14,9,31,22,11,true,C.CYAN)
-    txt(tile,item[2],46,8,315,25,12,true,C.WHITE)
-    description(tile,item[3],46,34,310,18)
+    local tileTitle=txt(tile,item[2],46,8,160,25,12,true,C.WHITE)
+    tileTitle.Size=UDim2.new(1,-61,0,25)
+    local tileDetail=description(tile,item[3],46,34,160,18)
+    tileDetail.Size=UDim2.new(1,-61,0,18)
     local runButton=btn(tile,item[4],0,52,95,24,
         item[6] and C.DARK or C.BLUE)
     runButton.Position=UDim2.new(1,-110,0,52)
@@ -1674,9 +1676,9 @@ local ammoCard=corner(make("Frame",{
 },homeStatus),11)
 stroke(targetsCard,C.STROKE,1).Transparency=.72
 stroke(ammoCard,C.STROKE,1).Transparency=.72
-txt(targetsCard,"CIBLES DISPONIBLES",15,9,226,20,10,true,C.MUTED)
+txt(targetsCard,"CIBLES DISPONIBLES",15,9,260,20,10,true,C.MUTED)
 dummyInfo=txt(targetsCard,"Targets: 0 / 3",15,34,223,29,16,true,C.CYAN)
-txt(ammoCard,"MUNITIONS",15,9,226,20,10,true,C.MUTED)
+txt(ammoCard,"MUNITIONS",15,9,260,20,10,true,C.MUTED)
 weaponInfo=txt(ammoCard,"Ammo: 12 / 12",15,34,223,29,14,true,C.WHITE)
 
 section("VISUALS","AFFICHAGE 3D")

@@ -736,7 +736,7 @@ local function slider(page,key,title,low,high,step,unit)
     value.TextXAlignment=Enum.TextXAlignment.Right
     table.insert(S.AccentLabels,value)
     local zone=make("Frame",{
-        Position=UDim2.fromOffset(16,39),Size=UDim2.new(1,-32,0,27),
+        Position=UDim2.fromOffset(9,29),Size=UDim2.new(1,-18,0,22),
         BackgroundTransparency=1,Active=true
     },row)
     local rail=corner(make("Frame",{

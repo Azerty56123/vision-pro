@@ -688,7 +688,7 @@ local function choices(page,title,key,options)
         BackgroundColor3=C.CARD,BorderSizePixel=0
     },widgetParent(page)),ROUND.Compact)
     stroke(row,C.STROKE,1).Transparency=.74
-    local heading=txt(row,title,13,8,580,21,12,true,C.WHITE)
+    local heading=txt(row,title,6,2,580,21,12,false,C.TEXT)
     heading.Size=UDim2.new(1,-24,0,21)
     local holder=corner(make("Frame",{
         Position=UDim2.fromOffset(6,25),

@@ -639,56 +639,47 @@ local function action(page,title,detail,caption,callback)
     return control
 end
 local function toggle(page,key,title,detail)
-    local row=corner(make("TextButton",{
-        LayoutOrder=order(page),Size=UDim2.new(1,-2,0,64),
-        BackgroundColor3=C.CARD,BorderSizePixel=0,
+    local row=make("TextButton",{
+        LayoutOrder=order(page),Size=UDim2.new(1,-2,0,27),
+        BackgroundTransparency=1,BorderSizePixel=0,
         Text="",AutoButtonColor=false,Active=true
-    },widgetParent(page)),ROUND.Compact)
-    local outline=stroke(row,C.STROKE,1);outline.Transparency=.77
-    local heading=txt(row,title,13,7,250,24,12,true,C.WHITE)
-    heading.Size=UDim2.new(1,-92,0,24)
-    local detailLabel=description(row,detail,13,33,260,20)
-    detailLabel.Size=UDim2.new(1,-92,0,20)
-    local track=corner(make("Frame",{
-        Position=UDim2.new(1,-66,.5,-12),Size=UDim2.fromOffset(51,25),
+    },widgetParent(page))
+    local square=make("Frame",{
+        Position=UDim2.fromOffset(6,7),Size=UDim2.fromOffset(13,13),
         BackgroundColor3=C.DARK,BorderSizePixel=0,Active=false
-    },row),ROUND.Pill)
-    local trackOutline=stroke(track,C.STROKE,1);trackOutline.Transparency=.43
-    local knob=corner(make("Frame",{
-        Position=UDim2.fromOffset(4,4),Size=UDim2.fromOffset(17,17),
-        BackgroundColor3=C.TEXT,BorderSizePixel=0,Active=false
-    },track),5)
-    local protective=key=="AntiFly" or key=="AntiFling" or key=="SafeRecovery"
-        or key=="GuardCorrect" or key=="AntiAim"
-    local function update(animate)
+    },row)
+    local squareBorder=stroke(square,C.STROKE,1)
+    local checked=txt(square,"",0,-1,13,14,11,true,C.DARK)
+    checked.TextXAlignment=Enum.TextXAlignment.Center
+    local caption=txt(row,title,27,5,270,19,12,false,C.TEXT)
+    caption.Size=UDim2.new(1,-32,0,19)
+    caption.Font=Enum.Font.Code
+    local protective=key=="AntiFly" or key=="AntiFling"
+        or key=="SafeRecovery" or key=="GuardCorrect" or key=="AntiAim"
+    local function update()
         local enabled=cfg[key]==true
-        local accent=protective and C.GREEN or S.Accent
-        local bg=enabled and accent or C.DARK
-        local newPos=UDim2.fromOffset(enabled and 30 or 4,4)
-        if animate then
-            animateUI(track,{BackgroundColor3=bg},.13)
-            animateUI(knob,{Position=newPos},.13)
-        else
-            track.BackgroundColor3=bg;knob.Position=newPos
-        end
-        knob.BackgroundColor3=enabled and C.DARK or C.TEXT
-        trackOutline.Color=enabled and accent or C.STROKE
+        local color=protective and C.GREEN or S.Accent
+        square.BackgroundColor3=enabled and color or C.DARK
+        squareBorder.Color=enabled and color or C.STROKE
+        checked.Text=enabled and "x" or ""
+        caption.TextColor3=enabled and C.WHITE or C.TEXT
     end
+    on(row.MouseEnter,function()
+        if S.Alive then row.BackgroundColor3=C.HOVER;row.BackgroundTransparency=.3 end
+    end)
+    on(row.MouseLeave,function()
+        row.BackgroundTransparency=1
+    end)
     on(row.Activated,function()
         if not S.Alive then return end
-        cfg[key]=not cfg[key];save();update(true)
+        cfg[key]=not cfg[key]
+        save();update()
         if key~="Animations" then
             notify(title.." / "..(cfg[key] and "ON" or "OFF"),"INFO")
         end
     end)
-    on(row.MouseEnter,function()
-        if S.Alive then animateUI(outline,{Transparency=.33},.10) end
-    end)
-    on(row.MouseLeave,function()
-        if S.Alive then animateUI(outline,{Transparency=.77},.10) end
-    end)
-    table.insert(S.Toggles,function()update(false)end)
-    update(false)
+    table.insert(S.Toggles,update)
+    update()
 end
 local function choices(page,title,key,options)
     local row=corner(make("Frame",{

@@ -725,7 +725,7 @@ local function slider(page,key,title,low,high,step,unit)
         or low>=high or step<=0 then error("Invalid slider bounds: "..tostring(key)) end
     cfg[key]=math.clamp(tonumber(cfg[key]) or D[key],low,high)
     local row=corner(make("Frame",{
-        LayoutOrder=order(page),Size=UDim2.new(1,-2,0,74),
+        LayoutOrder=order(page),Size=UDim2.new(1,-2,0,56),
         BackgroundColor3=C.CARD,BorderSizePixel=0
     },widgetParent(page)),ROUND.Compact)
     stroke(row,C.STROKE,1).Transparency=.74

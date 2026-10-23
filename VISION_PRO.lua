@@ -2568,7 +2568,7 @@ local function bootVisionPro()
     -- ECLIPSE activation: a new compact centered modal with no external UI.
     local bg=elem("Frame",{
         Size=UDim2.fromScale(1,1),
-        BackgroundColor3=Color3.fromRGB(5,7,12),
+        BackgroundColor3=Color3.fromRGB(9,9,9),
         BackgroundTransparency=.09,BorderSizePixel=0
     },gate)
     local card=radius(elem("Frame",{

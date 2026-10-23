@@ -700,7 +700,7 @@ local function choices(page,title,key,options)
     for i,option in ipairs(options) do
         local button=btn(holder,option,0,3,22,26,C.DARK)
         button.Position=UDim2.new((i-1)/count,3,0,3)
-        button.Size=UDim2.new(1/count,-6,0,26)
+        button.Size=UDim2.new(1/count,-6,0,21)
         buttonCaption(button).TextSize=count>4 and 9 or 10
         controls[option]=button
         on(button.Activated,function()

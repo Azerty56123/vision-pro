@@ -2576,7 +2576,7 @@ local function bootVisionPro()
         Size=UDim2.fromOffset(526,362),
         BackgroundColor3=Color3.fromRGB(23,23,23),
         BorderSizePixel=0,ClipsDescendants=true
-    },bg),10)
+    },bg),2)
     elem("UIStroke",{
         Color=Color3.fromRGB(70,77,108),Thickness=1,Transparency=.17
     },card)

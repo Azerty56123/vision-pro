@@ -2587,12 +2587,12 @@ local function bootVisionPro()
     end
     elem("Frame",{
         Size=UDim2.fromOffset(526,4),
-        BackgroundColor3=Color3.fromRGB(146,165,255),
+        BackgroundColor3=Color3.fromRGB(58,216,174),
         BorderSizePixel=0
     },card)
     local vpTile=radius(elem("Frame",{
         Position=UDim2.fromOffset(24,25),Size=UDim2.fromOffset(38,38),
-        BackgroundColor3=Color3.fromRGB(146,165,255),BorderSizePixel=0
+        BackgroundColor3=Color3.fromRGB(58,216,174),BorderSizePixel=0
     },card),7)
     elem("TextLabel",{
         Size=UDim2.fromScale(1,1),BackgroundTransparency=1,
@@ -2663,7 +2663,7 @@ local function bootVisionPro()
     local activate=radius(elem("TextButton",{
         Position=UDim2.fromOffset(24,265),
         Size=UDim2.fromOffset(476,41),
-        BackgroundColor3=Color3.fromRGB(146,165,255),
+        BackgroundColor3=Color3.fromRGB(58,216,174),
         BorderSizePixel=0,AutoButtonColor=false,
         Font=Enum.Font.GothamBold,TextSize=12,
         TextColor3=Color3.fromRGB(17,21,34),
@@ -2772,7 +2772,7 @@ local function bootVisionPro()
             message(statusText,Color3.fromRGB(255,139,158))
             busy=false
             activate.Text="VERIFIER LA CLE"
-            activate.BackgroundColor3=Color3.fromRGB(146,165,255)
+            activate.BackgroundColor3=Color3.fromRGB(58,216,174)
         end)
     end
     activate.Activated:Connect(function()

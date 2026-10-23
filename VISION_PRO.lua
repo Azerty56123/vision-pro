@@ -1,5 +1,5 @@
--- VISION_PRO_VERSION: 4.0.1
---[[ VISION PRO 4.0.1 | CONTROL / VISUAL REBUILD WITH SERVER BETA ACCESS
+-- VISION_PRO_VERSION: 4.0.2
+--[[ VISION PRO 4.0.2 | STUDIO / VISUAL REBUILD WITH SERVER BETA ACCESS
      LocalScript for authorized testing in your Roblox place.
      Aimbot / simulated Silent Aim work on locally spawned mannequins only.
      Camera assist and impact preview always start disabled.
@@ -18,7 +18,7 @@ local Me=Players.LocalPlayer
 if not Me then return end
 local PG=Me:WaitForChild("PlayerGui")
 -- CoreGui is Roblox-owned. All custom UI belongs in PlayerGui.
-local V="4.0.1"
+local V="4.0.2"
 local GNAME="VISION_PRO_147_GUI"
 local ONAME="VISION_PRO_147_OVERLAY"
 local DNAME="VISION_PRO_147_DUMMIES"
@@ -380,15 +380,15 @@ notify=function(message,kind)
         end
     end)
 end
--- CONTROL UI / V4.0.1: functional, single-surface desktop layout.
--- Flat navigation, restrained color, compact spacing; no fake glow or shadow.
+-- STUDIO UI V4.0.2: original left rail inspired by community design examples.
+-- Intentional spacing, flat surfaces, no gradients, no third-party UI libraries.
 local W,H=864,604
 local window=corner(make("Frame",{
-    Name="VisionControlV4",Size=UDim2.fromOffset(W,H),
+    Name="VisionStudioV4",Size=UDim2.fromOffset(W,H),
     AnchorPoint=Vector2.new(.5,.5),Position=UDim2.fromScale(.5,.5),
     BackgroundColor3=C.BG,BorderSizePixel=0,Active=true,ClipsDescendants=true
 },ui),ROUND.Window)
-stroke(window,C.STROKE,1).Transparency=.25
+stroke(window,C.STROKE,1).Transparency=.30
 local scale=make("UIScale",{Scale=1},window)
 local function rescale()
     local camera=WS.CurrentCamera
@@ -398,42 +398,29 @@ local function rescale()
     scale.Scale=math.clamp(math.min(desired,(viewport.X-28)/W,
         (viewport.Y-28)/H),.32,1.1)
 end
-
--- Application masthead.
-local masthead=make("Frame",{
-    Name="ControlMasthead",Position=UDim2.fromOffset(22,13),
-    Size=UDim2.fromOffset(820,56),BackgroundTransparency=1,
-},window)
-local logo=corner(make("Frame",{
-    Position=UDim2.fromOffset(0,4),Size=UDim2.fromOffset(40,40),
-    BackgroundColor3=C.BLUE,BorderSizePixel=0
-},masthead),8)
-local logotype=txt(logo,"VP",0,8,40,23,16,true,C.DARK)
-logotype.TextXAlignment=Enum.TextXAlignment.Center
-local brandName=txt(masthead,"VISION PRO",53,2,241,27,18,true,C.WHITE)
-local brandSub=description(masthead,"CONTROL   /   PRIVATE BETA",54,29,261,18)
-local topDot=corner(make("Frame",{
-    Position=UDim2.fromOffset(552,22),Size=UDim2.fromOffset(7,7),
-    BackgroundColor3=C.GREEN,BorderSizePixel=0
-},masthead),4)
-local topStatus=txt(masthead,"ACCES ACTIF",565,16,128,18,10,true,C.GREEN)
-local minimize=btn(masthead,"-",733,8,35,35,C.CARD)
-local close=btn(masthead,"X",780,8,35,35,C.CARD)
-buttonCaption(minimize).TextSize=17
-buttonCaption(close).TextSize=12
-buttonCaption(close).TextColor3=C.RED
-
--- Compact horizontal navigation. Seven modules always visible.
-local tabBar=corner(make("Frame",{
-    Name="ControlNavigation",Position=UDim2.fromOffset(22,77),
-    Size=UDim2.fromOffset(820,49),BackgroundColor3=C.SIDE,
-    BorderSizePixel=0
+local sidebar=corner(make("Frame",{
+    Name="StudioNavigation",Position=UDim2.fromOffset(12,12),
+    Size=UDim2.fromOffset(196,580),BackgroundColor3=C.SIDE,BorderSizePixel=0
 },window),ROUND.Sidebar)
-stroke(tabBar,C.STROKE,1).Transparency=.67
+stroke(sidebar,C.STROKE,1).Transparency=.72
+local logo=corner(make("Frame",{
+    Position=UDim2.fromOffset(15,16),Size=UDim2.fromOffset(39,39),
+    BackgroundColor3=C.BLUE,BorderSizePixel=0
+},sidebar),ROUND.Compact)
+local logoCaption=txt(logo,"VP",0,7,39,25,16,true,C.DARK)
+logoCaption.TextXAlignment=Enum.TextXAlignment.Center
+txt(sidebar,"VISION PRO",65,14,120,24,13,true,C.WHITE)
+description(sidebar,"STUDIO / V4.0.2",66,39,119,17)
+make("Frame",{
+    Position=UDim2.fromOffset(16,77),Size=UDim2.fromOffset(164,1),
+    BackgroundColor3=C.STROKE,BackgroundTransparency=.48,BorderSizePixel=0
+},sidebar)
+txt(sidebar,"NAVIGATION",17,90,159,22,10,true,C.MUTED)
+
 local tabs={"HOME","VISUALS","AIMBOT","SILENT","MISC","SETTINGS","ABOUT"}
 local tabTitles={
     HOME="Accueil",VISUALS="Visuels",AIMBOT="Camera",
-    SILENT="Impacts",MISC="Protection",SETTINGS="Reglages",ABOUT="Infos"
+    SILENT="Impacts",MISC="Protection",SETTINGS="Reglages",ABOUT="Informations"
 }
 local tabIcons={
     HOME="home",VISUALS="eye",AIMBOT="aim",SILENT="silent",
@@ -445,74 +432,85 @@ local tabColors={
 }
 local nav={}
 for i,name in ipairs(tabs) do
-    local button=btn(tabBar,"",5+(i-1)*116,5,111,39,C.SIDE)
+    local button=btn(sidebar,"",11,123+(i-1)*52,174,43,C.SIDE)
     buttonCaption(button).Visible=false
     local selection=corner(make("Frame",{
-        Position=UDim2.new(0,13,1,-3),Size=UDim2.new(1,-26,0,2),
+        Position=UDim2.fromOffset(0,10),Size=UDim2.fromOffset(3,23),
         BackgroundColor3=tabColors[name],BorderSizePixel=0,
         Visible=false,Active=false
     },button),2)
     local pictogramBackground=make("Frame",{
-        Position=UDim2.fromOffset(10,7),Size=UDim2.fromOffset(24,24),
+        Position=UDim2.fromOffset(13,10),Size=UDim2.fromOffset(24,24),
         BackgroundTransparency=1,BorderSizePixel=0,Active=false
     },button)
     local pictogram=icon(pictogramBackground,tabIcons[name],0,0,C.MUTED)
-    local title=txt(button,tabTitles[name],40,8,68,24,11,true,C.MUTED)
+    local title=txt(button,tabTitles[name],49,10,116,23,12,true,C.MUTED)
     title.TextYAlignment=Enum.TextYAlignment.Center
-    local rim=stroke(button,C.STROKE,1)
-    rim.Transparency=1
+    local rim=stroke(button,C.STROKE,1);rim.Transparency=1
     nav[name]={Button=button,Title=title,Icon=pictogram,
-        IconTile=pictogramBackground,Indicator=selection,
-        Outline=rim,Color=tabColors[name]}
+        IconTile=pictogramBackground,Indicator=selection,Outline=rim,
+        Color=tabColors[name]}
     on(button.MouseEnter,function()
         if S.Alive and S.Page~=name then
-            animateUI(button,{BackgroundColor3=C.HOVER},.11)
+            animateUI(button,{BackgroundColor3=C.HOVER},.10)
         end
     end)
     on(button.MouseLeave,function()
         if S.Alive and S.Page~=name then
-            animateUI(button,{BackgroundColor3=C.SIDE},.11)
+            animateUI(button,{BackgroundColor3=C.SIDE},.10)
         end
     end)
 end
+local sideFoot=corner(make("Frame",{
+    Position=UDim2.fromOffset(12,535),Size=UDim2.fromOffset(172,32),
+    BackgroundColor3=C.DARK,BorderSizePixel=0
+},sidebar),ROUND.Compact)
+corner(make("Frame",{
+    Position=UDim2.fromOffset(11,12),Size=UDim2.fromOffset(7,7),
+    BackgroundColor3=C.GREEN,BorderSizePixel=0
+},sideFoot),4)
+txt(sideFoot,"BETA PRIVEE / ACTIVE",27,7,136,19,10,true,C.TEXT)
 
 local header=make("Frame",{
-    Name="ControlHeader",Position=UDim2.fromOffset(24,145),
-    Size=UDim2.fromOffset(814,90),BackgroundTransparency=1,
-    Active=true
+    Name="StudioHeader",Position=UDim2.fromOffset(227,20),
+    Size=UDim2.fromOffset(616,103),BackgroundTransparency=1,Active=true
 },window)
-local pageCounter=txt(header,"01  /  07   MODULE",0,0,378,20,10,true,C.BLUE)
-local pageTitle=txt(header,"Vue d'ensemble",0,19,620,35,25,true,C.WHITE)
-local pageDesc=description(header,"Controle et entrainement",0,59,630,19)
+local pageCounter=txt(header,"MODULE 01 / 07",1,4,242,19,10,true,C.CYAN)
+local pageTitle=txt(header,"Vue d'ensemble",0,30,430,34,25,true,C.WHITE)
+local pageDesc=description(header,"Tableau de bord et entrainement",1,72,480,19)
 local v3Badge=corner(make("Frame",{
-    Position=UDim2.fromOffset(720,27),Size=UDim2.fromOffset(94,28),
+    Position=UDim2.fromOffset(434,4),Size=UDim2.fromOffset(75,29),
     BackgroundColor3=C.SIDE,BorderSizePixel=0
 },header),ROUND.Compact)
-stroke(v3Badge,C.STROKE,1).Transparency=.60
-local v3BadgeText=txt(v3Badge,"V4.0.1",0,5,94,19,11,true,C.TEXT)
+stroke(v3Badge,C.STROKE,1).Transparency=.67
+local v3BadgeText=txt(v3Badge,"v4.0.2",0,6,75,19,10,true,C.TEXT)
 v3BadgeText.TextXAlignment=Enum.TextXAlignment.Center
-
-local headerRule=make("Frame",{
-    Position=UDim2.fromOffset(24,233),Size=UDim2.fromOffset(814,1),
-    BackgroundColor3=C.STROKE,BackgroundTransparency=.47,BorderSizePixel=0
+local minimize=btn(header,"-",526,2,36,32,C.CARD)
+local close=btn(header,"X",574,2,36,32,C.CARD)
+buttonCaption(minimize).TextSize=17
+buttonCaption(close).TextSize=12
+buttonCaption(close).TextColor3=C.RED
+make("Frame",{
+    Position=UDim2.fromOffset(227,130),Size=UDim2.fromOffset(616,1),
+    BackgroundColor3=C.STROKE,BackgroundTransparency=.53,BorderSizePixel=0
 },window)
 local body=make("Frame",{
-    Position=UDim2.fromOffset(24,244),Size=UDim2.fromOffset(814,322),
+    Position=UDim2.fromOffset(227,146),Size=UDim2.fromOffset(614,401),
     BackgroundTransparency=1,BorderSizePixel=0
 },window)
 local footer=make("Frame",{
-    Position=UDim2.fromOffset(24,574),Size=UDim2.fromOffset(814,23),
+    Position=UDim2.fromOffset(228,569),Size=UDim2.fromOffset(613,23),
     BackgroundTransparency=1
 },window)
 local onlineDot=corner(make("Frame",{
-    Position=UDim2.fromOffset(2,8),Size=UDim2.fromOffset(7,7),
+    Position=UDim2.fromOffset(1,8),Size=UDim2.fromOffset(7,7),
     BackgroundColor3=C.GREEN,BorderSizePixel=0
 },footer),4)
 local runningDot=onlineDot
-local guardStatusSidebar=txt(footer,"PROTECTION / ON",17,2,197,18,10,true,C.GREEN)
-local foot=txt(footer,"VISION PRO  /  V4.0.1",281,2,204,18,10,false,C.MUTED)
-local status=txt(footer,"TAB  /  MENU",628,2,119,18,10,false,C.MUTED)
-local fpsText=txt(footer,"-- FPS",754,2,60,18,10,true,C.TEXT)
+local guardStatusSidebar=txt(footer,"PROTECTION / ON",15,2,187,18,10,true,C.GREEN)
+txt(footer,"VISION PRO / v4.0.2",233,2,187,18,10,false,C.MUTED)
+txt(footer,"TAB / MENU",459,2,110,18,10,false,C.MUTED)
+local fpsText=txt(footer,"-- FPS",556,2,56,18,10,true,C.TEXT)
 fpsText.TextXAlignment=Enum.TextXAlignment.Right
 
 local pages,orders={},{}
@@ -528,21 +526,21 @@ for _,name in ipairs(tabs) do
         ScrollingEnabled=true,Visible=false
     },body)
     make("UIPadding",{
-        PaddingTop=UDim.new(0,2),PaddingBottom=UDim.new(0,20),
-        PaddingLeft=UDim.new(0,3),PaddingRight=UDim.new(0,12)
+        PaddingTop=UDim.new(0,3),PaddingBottom=UDim.new(0,23),
+        PaddingLeft=UDim.new(0,2),PaddingRight=UDim.new(0,11)
     },sc)
     pageLayouts[name]=make("UIListLayout",{
-        SortOrder=Enum.SortOrder.LayoutOrder,Padding=UDim.new(0,8)
+        SortOrder=Enum.SortOrder.LayoutOrder,Padding=UDim.new(0,9)
     },sc)
     pages[name]=sc
 end
 local subtitles={
-    HOME="Tableau de bord et outils d'entrainement",
-    VISUALS="Affichage, informations et filtres",
-    AIMBOT="Assistance camera sur cibles locales",
-    SILENT="Simulation d'impacts sur cibles locales",
-    MISC="Corrections physiques et surveillance",
-    SETTINGS="Personnalisation et performances",
+    HOME="Commandes rapides et statut des modules",
+    VISUALS="Parametres de rendu et d'affichage",
+    AIMBOT="Cibles locales et assistance camera",
+    SILENT="Impacts locaux et entrainement",
+    MISC="Protections contre les mouvements anormaux",
+    SETTINGS="Comportement et preferences de l'interface",
     ABOUT="Version, diagnostic et mises a jour"
 }
 local function selectPage(name)
@@ -557,16 +555,16 @@ local function selectPage(name)
         local active=key==name
         item.Button.BackgroundColor3=active and C.CARD or C.SIDE
         item.Title.TextColor3=active and C.WHITE or C.MUTED
-        item.Outline.Transparency=1
+        item.Outline.Transparency=active and .70 or 1
         item.Indicator.Visible=active
     end
     local index=table.find(tabs,name) or 1
-    pageCounter.Text=string.format("%02d  /  07   MODULE",index)
+    pageCounter.Text=string.format("MODULE %02d / 07",index)
     pageCounter.TextColor3=tabColors[name]
     pageTitle.Text=({
-        HOME="Vue d'ensemble",VISUALS="Visuels",
-        AIMBOT="Camera d'entrainement",SILENT="Simulation d'impacts",
-        MISC="Protection",SETTINGS="Preferences",ABOUT="Informations"
+        HOME="Vue d'ensemble",VISUALS="Visuels",AIMBOT="Camera d'entrainement",
+        SILENT="Simulation d'impacts",MISC="Protection",
+        SETTINGS="Preferences",ABOUT="Informations"
     })[name]
     pageDesc.Text=subtitles[name]
     runningDot.BackgroundColor3=S.Errors==0 and C.GREEN or C.GOLD
@@ -2077,7 +2075,7 @@ local function releaseLine(index,version,heading,detail,color)
         line.BackgroundTransparency=.76
     end
 end
-releaseLine(1,"4.0.1","CONTROL UI","Nouvelle interface sans changement des outils",C.CYAN)
+releaseLine(1,"4.0.2","STUDIO UI","Navigation laterale et interface simplifiee",C.CYAN)
 releaseLine(2,"3.4.0","MODERN SWITCH","Derniere interface de la serie V3",C.PURPLE)
 releaseLine(3,"3.3.0","WORKBENCH","Ancienne disposition de l accueil",C.GOLD)
 local aboutEnd=make("Frame",{
@@ -2126,9 +2124,9 @@ on(UIS.InputBegan,function(input,processed)
     end
 end)
 local dragging=false;local dragInput,dragStart,dragPos
-on(masthead.InputBegan,function(input)
+on(header.InputBegan,function(input)
     if input.UserInputType~=Enum.UserInputType.MouseButton1 and input.UserInputType~=Enum.UserInputType.Touch then return end
-    if input.Position.X>masthead.AbsolutePosition.X+masthead.AbsoluteSize.X*.76 then return end
+    if input.Position.X>header.AbsolutePosition.X+header.AbsoluteSize.X*.69 then return end
     dragging=true;dragInput=input;dragStart=input.Position;dragPos=window.Position
 end)
 on(UIS.InputChanged,function(input)
@@ -2416,10 +2414,10 @@ local function theme(dt)
             refreshProtectButton()
         end
         pageCounter.TextColor3=accent
-        v3BadgeText.TextColor3=accent
+        v3BadgeText.TextColor3=C.TEXT
         for _,page in pairs(pages) do page.ScrollBarImageColor3=C.STROKE end
         for _,item in pairs(nav) do
-            item.Indicator.BackgroundColor3=item.Color==C.GREEN and C.GREEN or accent
+            item.Indicator.BackgroundColor3=item.Color
         end
         for _,control in ipairs(S.AccentButtons) do
             if control.Parent then control.BackgroundColor3=accent end
@@ -2434,7 +2432,7 @@ local function theme(dt)
         fovOutline.Color=accent
     end
     gunHudSecond.BackgroundColor3=C.STROKE
-    local gap=cfg.CompactUI and 4 or 8
+    local gap=cfg.CompactUI and 4 or 9
     for _,layout in pairs(pageLayouts) do
         if layout.Padding.Offset~=gap then
             layout.Padding=UDim.new(0,gap)
@@ -2547,7 +2545,7 @@ on(Run.RenderStepped,function(dt)
         fpsClock=0;frames=0;rescale();refreshDiagnostics()
     end
 end)
-print("VISION PRO "..V.." - CONTROL / PRIVATE BETA RELEASE")
+print("VISION PRO "..V.." - STUDIO / PRIVATE BETA RELEASE")
 
 end -- runVisionProUnlocked
 
@@ -2640,7 +2638,7 @@ local function bootVisionPro()
     elem("TextLabel",{
         Position=UDim2.fromOffset(25,124),Size=UDim2.fromOffset(162,18),
         BackgroundTransparency=1,
-        Text="CONTROL / V4.0.1",TextXAlignment=Enum.TextXAlignment.Left,
+        Text="STUDIO / V4.0.2",TextXAlignment=Enum.TextXAlignment.Left,
         Font=Enum.Font.GothamMedium,TextSize=10,
         TextColor3=Color3.fromRGB(111,205,196)
     },left)
@@ -2848,5 +2846,5 @@ local ok,err=xpcall(bootVisionPro,function(problem)
     return message
 end)
 if not ok then
-    warn("[VISION PRO 4.0.1 / STARTUP] "..tostring(err))
+    warn("[VISION PRO 4.0.2 / STARTUP] "..tostring(err))
 end

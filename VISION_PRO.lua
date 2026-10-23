@@ -2574,7 +2574,7 @@ local function bootVisionPro()
     local card=radius(elem("Frame",{
         AnchorPoint=Vector2.new(.5,.5),Position=UDim2.fromScale(.5,.5),
         Size=UDim2.fromOffset(526,362),
-        BackgroundColor3=Color3.fromRGB(19,23,32),
+        BackgroundColor3=Color3.fromRGB(23,23,23),
         BorderSizePixel=0,ClipsDescendants=true
     },bg),10)
     elem("UIStroke",{

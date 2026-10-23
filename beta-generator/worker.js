@@ -1355,6 +1355,45 @@ async function revoke(request,env){
  return reply({ok:(changed.meta?.changes||0)>0,message:"Cle revoquee"});
 }
 // ============================================================================
+// VISION BETA 0.9.1 - public key generation with server-side limits.
+// No client credentials. Legacy /api/admin/* routes remain protected.
+async function visionReserveQuota(request, env, now) {
+  const ip = request.headers.get("CF-Connecting-IP");
+  if (!ip) return false;
+  const ipHash = await sha256("vision-beta-public:v1:" + ip + ":" + env.ADMIN_TOKEN);
+  const cutoff = now - 86400;
+  const reservation = await env.DB.prepare(
+    "INSERT INTO beta_attempts(ip_hash,attempts,window_start) VALUES(?,1,?) " +
+    "ON CONFLICT(ip_hash) DO UPDATE SET " +
+    "attempts=CASE WHEN beta_attempts.window_start <= ? THEN 1 ELSE beta_attempts.attempts+1 END, " +
+    "window_start=CASE WHEN beta_attempts.window_start <= ? THEN excluded.window_start ELSE beta_attempts.window_start END " +
+    "WHERE beta_attempts.window_start <= ? OR beta_attempts.attempts < 3 " +
+    "RETURNING attempts"
+  ).bind(ipHash,now,cutoff,cutoff,cutoff).first();
+  return reservation !== null;
+}
+async function visionGeneratePublic(request, env) {
+  const data = await bodyJSON(request);
+  const label = typeof data.label === "string" ? data.label.trim() : "";
+  if (label.length < 1 || label.length > 64)
+    return reply({ok:false,message:"Nom de clé invalide (1 à 64 caractères)."},400);
+  if (data.days !== 1)
+    return reply({ok:false,message:"Durée limitée à 24 heures."},400);
+  if (!Number.isInteger(data.maxActivations) || data.maxActivations < 1 || data.maxActivations > 100)
+    return reply({ok:false,message:"Les activations doivent être entre 1 et 100."},400);
+  const now = Math.floor(Date.now()/1000);
+  if (!(await visionReserveQuota(request,env,now)))
+    return reply({ok:false,message:"Quota atteint : 3 clés par IP sur 24 heures."},429);
+  const key = "VP4-" + randomHex(24).match(/.{1,8}/g).join("-");
+  const id = randomHex(8);
+  const expiresAt = now + 86400;
+  const keyHash = await sha256(key);
+  await env.DB.prepare(
+    "INSERT INTO beta_keys(id,key_hash,label,created_at,expires_at,max_activations,uses,disabled) VALUES(?,?,?,?,?,?,0,0)"
+  ).bind(id,keyHash,label,now,expiresAt,data.maxActivations).run();
+  return reply({ok:true,key,id,label,expiresAt,maxActivations:data.maxActivations});
+}
+
 // 6. CLOUDFLARE WORKER ROUTING
 // ============================================================================
 export default{
@@ -1366,6 +1405,7 @@ export default{
   if(!env.ADMIN_TOKEN||env.ADMIN_TOKEN.length<32)return reply({ok:false,message:"Secret admin non configure"},503);
   try{
    if(url.pathname==="/api/verify"&&request.method==="POST")return await verify(request,env);
+   if(url.pathname==="/api/public/generate"&&request.method==="POST")return await visionGeneratePublic(request,env);
    if(url.pathname.startsWith("/api/admin/")){
     if(!adminAuthorized(request,env))return reply({ok:false,message:"Jeton administrateur incorrect"},401);
     if(url.pathname==="/api/admin/keys"&&request.method==="GET")return await listKeys(env);

@@ -596,7 +596,7 @@ local function section(page,text)
         group.Current=panel
     end
     local row=make("Frame",{
-        Name="SectionHeading",Size=UDim2.new(1,-2,0,31),
+        Name="SectionHeading",Size=UDim2.new(1,-2,0,24),
         LayoutOrder=order(page),BackgroundTransparency=1
     },widgetParent(page))
     local bar=make("Frame",{

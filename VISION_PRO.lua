@@ -624,7 +624,7 @@ local function action(page,title,detail,caption,callback)
         danger and C.DARK or C.CARD)
     control.Position=UDim2.new(1,compact and -110 or -151,.5,-16)
     local label=buttonCaption(control)
-    label.TextColor3=danger and C.RED or C.DARK
+    label.TextColor3=danger and C.RED or C.TEXT
     label.TextSize=10
     if danger then stroke(control,C.RED,1).Transparency=.50
     else table.insert(S.AccentButtons,control) end

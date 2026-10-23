@@ -684,7 +684,7 @@ local function toggle(page,key,title,detail)
 end
 local function choices(page,title,key,options)
     local row=corner(make("Frame",{
-        LayoutOrder=order(page),Size=UDim2.new(1,-2,0,82),
+        LayoutOrder=order(page),Size=UDim2.new(1,-2,0,54),
         BackgroundColor3=C.CARD,BorderSizePixel=0
     },widgetParent(page)),ROUND.Compact)
     stroke(row,C.STROKE,1).Transparency=.74

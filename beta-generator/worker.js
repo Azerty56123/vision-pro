@@ -1405,6 +1405,7 @@ export default{
   if(!env.ADMIN_TOKEN||env.ADMIN_TOKEN.length<32)return reply({ok:false,message:"Secret admin non configure"},503);
   try{
    if(url.pathname==="/api/verify"&&request.method==="POST")return await verify(request,env);
+   if(url.pathname==="/api/public/status"&&request.method==="GET")return reply({ok:true,service:"VISION",durationHours:24,version:"0.9.2"});
    if(url.pathname==="/api/public/generate"&&request.method==="POST")return await visionGeneratePublic(request,env);
    if(url.pathname.startsWith("/api/admin/")){
     if(!adminAuthorized(request,env))return reply({ok:false,message:"Jeton administrateur incorrect"},401);

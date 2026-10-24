@@ -311,22 +311,23 @@ label(header,"HUB",16,A.cyan,true,{
  Position=UDim2.fromOffset(158,10),Size=UDim2.fromOffset(48,28)})
 local titleGame=label(header,"/  "..selected.name,10,A.muted,true,{
  Position=UDim2.fromOffset(222,12),Size=UDim2.fromOffset(190,25)})
-search=create("TextBox",header,{BackgroundColor3=A.card,BorderSizePixel=0,
- Position=UDim2.new(1,-275,0,9),Size=UDim2.fromOffset(174,31),
+-- A separate search wrapper prevents Roblox TextBox placeholder text from
+-- rendering underneath an ImageLabel (a visible overlap in the screenshots).
+local searchHolder=create("Frame",header,{
+ BackgroundColor3=A.card,BorderSizePixel=0,
+ Position=UDim2.new(1,-275,0,9),Size=UDim2.fromOffset(174,31)})
+corner(searchHolder,10)
+local searchEdge=outline(searchHolder,A.border,.8)
+artwork(searchHolder,"search",12,8,14,14,A.muted)
+search=create("TextBox",searchHolder,{
+ BackgroundTransparency=1,BorderSizePixel=0,
+ Position=UDim2.fromOffset(35,0),Size=UDim2.new(1,-39,1,0),
  Text="",ClearTextOnFocus=false,PlaceholderText="Search modules...",
  Font=Enum.Font.Gotham,TextSize=11,TextColor3=A.white,
- PlaceholderColor3=A.muted,TextXAlignment=Enum.TextXAlignment.Left})
-corner(search,10);outline(search,A.border,.8)
-create("UIPadding",search,{PaddingLeft=UDim.new(0,34)})
-artwork(search,"search",11,8,15,15,A.muted)
-bind(search.Focused,function()
- local o=search:FindFirstChildOfClass("UIStroke")
- if o then o.Color=A.cyan end
-end)
-bind(search.FocusLost,function()
- local o=search:FindFirstChildOfClass("UIStroke")
- if o then o.Color=A.border end
-end)
+ PlaceholderColor3=A.muted,TextXAlignment=Enum.TextXAlignment.Left,
+ TextTruncate=Enum.TextTruncate.AtEnd})
+bind(search.Focused,function()searchEdge.Color=A.cyan end)
+bind(search.FocusLost,function()searchEdge.Color=A.border end)
 local hide=button(header,"−",{Position=UDim2.new(1,-78,0,10),Size=UDim2.fromOffset(29,29),BackgroundColor3=A.field})
 local close=button(header,"×",{Position=UDim2.new(1,-42,0,10),Size=UDim2.fromOffset(29,29),BackgroundColor3=A.field})
 corner(hide,9);corner(close,9)
@@ -443,7 +444,8 @@ fitToScreen=function()
   body.Position=UDim2.fromOffset(0,92);body.Size=UDim2.new(1,0,1,-122)
   colLayout.FillDirection=Enum.FillDirection.Vertical
   left.Size=UDim2.new(1,-6,0,0);right.Size=UDim2.new(1,-6,0,0)
-  search.Position=UDim2.new(1,-209,0,9);search.Size=UDim2.fromOffset(128,31)
+  searchHolder.Position=UDim2.new(1,-209,0,9)
+  searchHolder.Size=UDim2.fromOffset(128,31)
   titleGame.Visible=false
   pageTitle.Position=UDim2.fromOffset(14,4);pageDescription.Position=UDim2.fromOffset(14,30)
   for _,b in pairs(navButtons) do b.Size=UDim2.fromOffset(119,37)end
@@ -459,7 +461,8 @@ fitToScreen=function()
   body.Position=UDim2.fromOffset(184,49);body.Size=UDim2.new(1,-184,1,-79)
   colLayout.FillDirection=Enum.FillDirection.Horizontal
   left.Size=UDim2.new(.5,-5,0,0);right.Size=UDim2.new(.5,-5,0,0)
-  search.Position=UDim2.new(1,-275,0,9);search.Size=UDim2.fromOffset(174,31)
+  searchHolder.Position=UDim2.new(1,-275,0,9)
+  searchHolder.Size=UDim2.fromOffset(174,31)
   titleGame.Visible=true
   pageTitle.Position=UDim2.fromOffset(18,4);pageDescription.Position=UDim2.fromOffset(18,30)
   for _,b in pairs(navButtons) do b.Size=UDim2.new(1,0,0,39)end

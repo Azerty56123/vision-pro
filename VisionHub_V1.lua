@@ -324,8 +324,7 @@ search=create("TextBox",searchHolder,{
  Position=UDim2.fromOffset(35,0),Size=UDim2.new(1,-39,1,0),
  Text="",ClearTextOnFocus=false,PlaceholderText="Search modules...",
  Font=Enum.Font.Gotham,TextSize=11,TextColor3=A.white,
- PlaceholderColor3=A.muted,TextXAlignment=Enum.TextXAlignment.Left,
- TextTruncate=Enum.TextTruncate.AtEnd})
+ PlaceholderColor3=A.muted,TextXAlignment=Enum.TextXAlignment.Left})
 bind(search.Focused,function()searchEdge.Color=A.cyan end)
 bind(search.FocusLost,function()searchEdge.Color=A.border end)
 local hide=button(header,"−",{Position=UDim2.new(1,-78,0,10),Size=UDim2.fromOffset(29,29),BackgroundColor3=A.field})

@@ -42,6 +42,9 @@ end
 local UI_NAME = "VisionHub_Universal_V6"
 -- À REMPLACER par l’URL de TON Worker Cloudflare, sans chemin final.
 local KEY_API_BASE = "https://vision-pro-beta-v4.YOUR-SUBDOMAIN.workers.dev"
+-- CLÉ PUBLIQUE DE DÉVELOPPEMENT : à retirer avant toute diffusion protégée.
+-- Cette clé ne passe PAS par Cloudflare et n'expire pas tant que ce code reste présent.
+local DEVELOPMENT_TEST_KEY = "VISION-TEST-ILLIMITE-2026"
 for _, name in ipairs({UI_NAME, "VisionHub_Universal_V5", "VisionHub_Universal_V4", "VisionHub_JJSploit_V3", "VisionHubExecutorV2", "VisionHubV1"}) do
     local previous = playerGui:FindFirstChild(name)
     if previous then previous:Destroy() end
@@ -906,7 +909,7 @@ local quitButton = button(keyWindow, "Fermer", UDim2.fromOffset(320, 167),
 make("Frame", {BackgroundColor3 = C.border, BorderSizePixel = 0,
     Position = UDim2.fromOffset(21, 218), Size = UDim2.new(1, -42, 0, 1)}, keyWindow)
 local keyStatus = label(keyWindow,
-    keyServerReady() and "●  En attente de clé." or "●  Configuration Cloudflare requise.",
+    keyServerReady() and "●  Clé serveur ou mode test." or "●  Mode test local disponible.",
     11, C.muted, false,
     {Position = UDim2.fromOffset(21, 230), Size = UDim2.new(1, -42, 0, 22)})
 local keyBusy = false
@@ -922,30 +925,43 @@ local function withKeyRequest(kind)
     verifyButton.Text = "Vérification..."
     getKeyButton.Active = false
     verifyButton.Active = false
-    setKeyStatus("Connexion au serveur...", false)
     local ok, result
     if kind == "generate" then
-        ok, result = postKeyAPI("/api/public/generate", {
-            label = "VisionHub-" .. tostring(player.UserId),
-            days = 1,
-            maxActivations = 50,
-        })
-        if ok then
-            keyField.Text = tostring(result.key or "")
-            setKeyStatus("Clé obtenue (24 h). Cliquez sur Valider.", false)
+        if not keyServerReady() then
+            -- Sans serveur configuré, le bouton remplit la clé locale de test.
+            keyField.Text = DEVELOPMENT_TEST_KEY
+            ok, result = true, {testing = true}
+            setKeyStatus("Clé test prête. Cliquez sur Valider.", false)
+        else
+            setKeyStatus("Connexion au serveur...", false)
+            ok, result = postKeyAPI("/api/public/generate", {
+                label = "VisionHub-" .. tostring(player.UserId),
+                days = 1,
+                maxActivations = 50,
+            })
+            if ok then
+                keyField.Text = tostring(result.key or "")
+                setKeyStatus("Clé obtenue (24 h). Cliquez sur Valider.", false)
+            end
         end
     else
         local entered = (keyField.Text or ""):match("^%s*(.-)%s*$")
         if entered == "" then
             ok, result = false, "Entrez votre clé avant de valider."
+        elseif string.upper(entered) == DEVELOPMENT_TEST_KEY then
+            -- Validation LOCALE pour les essais. Ce n'est pas une authentification.
+            ok, result = true, {testing = true}
         else
+            setKeyStatus("Connexion au serveur...", false)
             ok, result = postKeyAPI("/api/verify", {key = entered})
-            if ok then
-                unlocked = true
-                overlay:Destroy()
-                showWindow(true)
-                statusText.Text = "●  Clé validée • Vision Hub prêt"
-            end
+        end
+        if ok then
+            unlocked = true
+            overlay:Destroy()
+            showWindow(true)
+            statusText.Text = result.testing
+                and "●  MODE TEST • accès local temporaire"
+                or "●  Clé serveur validée • Vision Hub prêt"
         end
     end
     if not ok then setKeyStatus(tostring(result), true) end

@@ -99,6 +99,51 @@ local function button(parent,name,attrs)
  for k,v in pairs(attrs or {}) do a[k]=v end
  local o=create("TextButton",parent,a);corner(o,9);return o
 end
+-- Shared Lucide-style Roblox image assets: no homemade glyphs, no invented IDs.
+local ICON={
+ overview="rbxassetid://7733970318",game="rbxassetid://7733799795",
+ player="rbxassetid://7743875962",visuals="rbxassetid://7733774602",
+ settings="rbxassetid://7734058803",about="rbxassetid://7733993369",
+ module="rbxassetid://7743869612",chevron="rbxassetid://7733717447",
+ search="rbxassetid://7734052925",key="rbxassetid://7733965118",
+ shield="rbxassetid://7734056411",menu="rbxassetid://7733993211",
+ copy="rbxassetid://7733764083"
+}
+local function artwork(host,name,x,y,w,h,color)
+ local uri=ICON[name]
+ if not uri then return nil end
+ return create("ImageLabel",host,{
+  Name="Icon_"..name,BackgroundTransparency=1,BorderSizePixel=0,
+  Image=uri,ImageColor3=color or A.light,ScaleType=Enum.ScaleType.Fit,
+  Position=UDim2.fromOffset(x,y),Size=UDim2.fromOffset(w,h)
+ })
+end
+local function monogram(host,x,y,size)
+ local outer=create("Frame",host,{BackgroundColor3=Color3.fromRGB(7,40,55),
+  BorderSizePixel=0,Position=UDim2.fromOffset(x,y),
+  Size=UDim2.fromOffset(size,size)})
+ corner(outer,math.ceil(size*.5))
+ outline(outer,A.cyan,1.8)
+ create("UIGradient",outer,{Rotation=35,Color=ColorSequence.new({
+  ColorSequenceKeypoint.new(0,Color3.fromRGB(19,101,128)),
+  ColorSequenceKeypoint.new(1,Color3.fromRGB(7,27,41))
+ })})
+ local inner=create("Frame",outer,{
+  BackgroundColor3=Color3.fromRGB(6,20,30),BackgroundTransparency=.16,
+  BorderSizePixel=0,Position=UDim2.fromScale(.14,.14),
+  Size=UDim2.fromScale(.72,.72)})
+ corner(inner,math.ceil(size*.36))
+ label(outer,"V",math.floor(size*.52),A.cyan,true,{
+  Font=Enum.Font.GothamBlack,Size=UDim2.fromScale(1,1),
+  TextXAlignment=Enum.TextXAlignment.Center
+ })
+ local dot=create("Frame",outer,{BackgroundColor3=Color3.fromRGB(177,252,255),
+  BorderSizePixel=0,Position=UDim2.new(1,-8,0,5),
+  Size=UDim2.fromOffset(4,4)})
+ corner(dot,3)
+ return outer
+end
+
 local function bind(signal,fn,page)
  local c=signal:Connect(fn)
  table.insert(page and pconns or conns,c)
@@ -248,25 +293,28 @@ end
 app=create("Frame",gui,{Name="MainWindow",BackgroundColor3=A.bg,BorderSizePixel=0,
  Size=UDim2.fromOffset(865,548),Position=UDim2.fromScale(.5,.5),
  AnchorPoint=Vector2.new(.5,.5),ClipsDescendants=true,Visible=false})
-corner(app,14);outline(app,A.border,1.1)
+corner(app,15);outline(app,A.border,.9)
 appScale=create("UIScale",app,{Scale=1})
 header=create("Frame",app,{BackgroundColor3=A.side,BorderSizePixel=0,
  Size=UDim2.new(1,0,0,49),Active=true})
 create("Frame",header,{BackgroundColor3=A.border,BorderSizePixel=0,
  Position=UDim2.new(0,0,1,-1),Size=UDim2.new(1,0,0,1)})
-label(header,"VISION",18,A.white,true,{Position=UDim2.fromOffset(17,9),
- Size=UDim2.fromOffset(70,31)})
-label(header,"HUB",18,A.cyan,true,{Position=UDim2.fromOffset(89,9),
- Size=UDim2.fromOffset(53,31)})
+-- Identity shared by both windows.
+monogram(header,14,8,32)
+label(header,"VISION",16,A.white,true,{
+ Position=UDim2.fromOffset(56,10),Size=UDim2.fromOffset(80,28)})
+label(header,"HUB",16,A.cyan,true,{
+ Position=UDim2.fromOffset(140,10),Size=UDim2.fromOffset(46,28)})
 local titleGame=label(header,"/  "..selected.name,10,A.muted,true,{
- Position=UDim2.fromOffset(148,12),Size=UDim2.fromOffset(210,25)})
+ Position=UDim2.fromOffset(199,12),Size=UDim2.fromOffset(215,25)})
 search=create("TextBox",header,{BackgroundColor3=A.card,BorderSizePixel=0,
  Position=UDim2.new(1,-275,0,9),Size=UDim2.fromOffset(174,31),
  Text="",ClearTextOnFocus=false,PlaceholderText="Search modules...",
  Font=Enum.Font.Gotham,TextSize=11,TextColor3=A.white,
  PlaceholderColor3=A.muted,TextXAlignment=Enum.TextXAlignment.Left})
 corner(search,10);outline(search,A.border,.8)
-create("UIPadding",search,{PaddingLeft=UDim.new(0,13)})
+create("UIPadding",search,{PaddingLeft=UDim.new(0,34)})
+artwork(search,"search",11,8,15,15,A.muted)
 bind(search.Focused,function()
  local o=search:FindFirstChildOfClass("UIStroke")
  if o then o.Color=A.cyan end
@@ -640,19 +688,13 @@ local function card(which,definition)
   Padding=UDim.new(0,0)})
  local title=button(c,"",{BackgroundColor3=A.card,Size=UDim2.new(1,0,0,51)})
  corner(title,12)
- local headerIcon=create("Frame",title,{BackgroundColor3=A.cyanDark,BorderSizePixel=0,
-  Position=UDim2.fromOffset(13,10),Size=UDim2.fromOffset(31,31)})
- corner(headerIcon,10)
- for index=0,2 do
-  create("Frame",headerIcon,{BackgroundColor3=A.cyan,BorderSizePixel=0,
-   Position=UDim2.fromOffset(9,8+index*6),Size=UDim2.fromOffset(13,2)})
- end
- label(title,definition.title,12,A.white,true,{Position=UDim2.fromOffset(54,11),
-  Size=UDim2.new(1,-100,0,26)})
- local arrow=label(title,"v",13,A.light,true,{
-  Position=UDim2.new(1,-31,0,13),Size=UDim2.fromOffset(22,22),
-  TextXAlignment=Enum.TextXAlignment.Center})
- local inside=create("Frame",c,{BackgroundTransparency=1,Size=UDim2.new(1,0,0,0),
+ -- Compact, uniform card title: proper white outline icon, no big cyan tiles.
+ artwork(title,"module",15,16,19,19,A.muted)
+ label(title,definition.title,12,A.white,true,{
+  Position=UDim2.fromOffset(43,10),Size=UDim2.new(1,-85,0,28)})
+ local arrow=artwork(title,"chevron",0,0,17,17,A.muted)
+ arrow.Position=UDim2.new(1,-31,0,17)
+local inside=create("Frame",c,{BackgroundTransparency=1,Size=UDim2.new(1,0,0,0),
   AutomaticSize=Enum.AutomaticSize.Y,Visible=true})
  create("UIPadding",inside,{PaddingLeft=UDim.new(0,8),
   PaddingRight=UDim.new(0,8),PaddingBottom=UDim.new(0,9),
@@ -729,62 +771,11 @@ render=function()
  end
  applySearch();canvasHeight()
 end
--- Refined icons, consistent outline style, all native Roblox Frames.
--- Replaces the old makeshift star and stick-figure icons from the screenshots.
-local function iconLine(host,x1,y1,x2,y2,width)
- local dx,dy=x2-x1,y2-y1
- local distance=math.sqrt(dx*dx+dy*dy)
- if distance<.01 then return end
- local line=create("Frame",host,{BackgroundColor3=A.light,BorderSizePixel=0,
-  AnchorPoint=Vector2.new(.5,.5),
-  Position=UDim2.fromOffset((x1+x2)*.5,(y1+y2)*.5),
-  Size=UDim2.fromOffset(distance,width or 1.6),
-  Rotation=math.deg(math.atan2(dy,dx))})
- corner(line,2);return line
-end
-local function iconBox(host,x,y,w,h,r,filled)
- local f=create("Frame",host,{
-  BackgroundColor3=filled and A.light or A.side,
-  BackgroundTransparency=filled and 0 or 1,BorderSizePixel=0,
-  Position=UDim2.fromOffset(x,y),Size=UDim2.fromOffset(w,h)})
- corner(f,r or 3)
- if not filled then outline(f,A.light,1.5)end
- return f
-end
-local function iconDot(host,x,y,diameter,filled)
- return iconBox(host,x,y,diameter,diameter,diameter/2,filled)
-end
-local function navIcon(parent,which)
- local canvasIcon=create("Frame",parent,{BackgroundTransparency=1,BorderSizePixel=0,
-  Position=UDim2.fromOffset(14,9),Size=UDim2.fromOffset(22,22)})
- if which=="Overview" then
-  iconBox(canvasIcon,2,2,7,7,2,false);iconBox(canvasIcon,13,2,7,7,2,false)
-  iconBox(canvasIcon,2,13,7,7,2,false);iconBox(canvasIcon,13,13,7,7,2,false)
- elseif which=="Game" then
-  iconBox(canvasIcon,1,6,20,12,6,false)
-  iconLine(canvasIcon,6,10,6,15,1.4);iconLine(canvasIcon,3.5,12.5,8.5,12.5,1.4)
-  iconDot(canvasIcon,14,10,2.5,true);iconDot(canvasIcon,17,13,2.5,true)
- elseif which=="Player" then
-  iconDot(canvasIcon,7,2,8,false)
-  iconLine(canvasIcon,3,19,4,15,1.6);iconLine(canvasIcon,4,15,7,12,1.6)
-  iconLine(canvasIcon,7,12,15,12,1.6);iconLine(canvasIcon,15,12,18,15,1.6)
-  iconLine(canvasIcon,18,15,19,19,1.6);iconLine(canvasIcon,3,19,19,19,1.6)
- elseif which=="Visuals" then
-  iconLine(canvasIcon,1.5,11,5,7,1.5);iconLine(canvasIcon,5,7,11,5,1.5)
-  iconLine(canvasIcon,11,5,17,7,1.5);iconLine(canvasIcon,17,7,20.5,11,1.5)
-  iconLine(canvasIcon,20.5,11,17,15,1.5);iconLine(canvasIcon,17,15,11,17,1.5)
-  iconLine(canvasIcon,11,17,5,15,1.5);iconLine(canvasIcon,5,15,1.5,11,1.5)
-  iconDot(canvasIcon,8.5,8.5,5,true)
- elseif which=="Settings" then
-  iconLine(canvasIcon,3,5,19,5,1.5);iconLine(canvasIcon,3,11,19,11,1.5)
-  iconLine(canvasIcon,3,17,19,17,1.5)
-  iconDot(canvasIcon,6,2,6,false);iconDot(canvasIcon,13,8,6,false)
-  iconDot(canvasIcon,8,14,6,false)
- elseif which=="About" then
-  iconBox(canvasIcon,2,3,18,14,3,false)
-  iconLine(canvasIcon,8,17,8,21,1.5);iconLine(canvasIcon,8,21,13,17,1.5)
-  iconLine(canvasIcon,6,8,16,8,1.4);iconLine(canvasIcon,6,12,13,12,1.4)
- end
+-- True icon artwork from the open LucideBlox Roblox asset map.
+local function navIcon(parent,name)
+ local target={Overview="overview",Game="game",Player="player",
+  Visuals="visuals",Settings="settings",About="about"}
+ return artwork(parent,target[name] or "menu",15,10,19,19,A.light)
 end
 
 local tabs={"Overview","Game","Player","Visuals","Settings","About"}

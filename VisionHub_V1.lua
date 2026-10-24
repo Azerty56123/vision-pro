@@ -297,6 +297,10 @@ corner(app,15);outline(app,A.border,.9)
 appScale=create("UIScale",app,{Scale=1})
 header=create("Frame",app,{BackgroundColor3=A.side,BorderSizePixel=0,
  Size=UDim2.new(1,0,0,49),Active=true})
+corner(header,15)
+-- Keep top corners rounded without rounding the bottom edge.
+create("Frame",header,{BackgroundColor3=A.side,BorderSizePixel=0,
+ Position=UDim2.new(0,0,1,-16),Size=UDim2.new(1,0,0,16)})
 create("Frame",header,{BackgroundColor3=A.border,BorderSizePixel=0,
  Position=UDim2.new(0,0,1,-1),Size=UDim2.new(1,0,0,1)})
 -- Identity shared by both windows.
@@ -363,6 +367,10 @@ local lLay=create("UIListLayout",left,{SortOrder=Enum.SortOrder.LayoutOrder,Padd
 local rLay=create("UIListLayout",right,{SortOrder=Enum.SortOrder.LayoutOrder,Padding=UDim.new(0,9)})
 local footer=create("Frame",app,{BackgroundColor3=A.side,BorderSizePixel=0,
  Position=UDim2.new(0,0,1,-30),Size=UDim2.new(1,0,0,30)})
+corner(footer,15)
+-- Straight footer top edge, with rounded bottom corners.
+create("Frame",footer,{BackgroundColor3=A.side,BorderSizePixel=0,
+ Position=UDim2.fromOffset(0,0),Size=UDim2.new(1,0,0,15)})
 create("Frame",footer,{BackgroundColor3=A.border,BorderSizePixel=0,Size=UDim2.new(1,0,0,1)})
 footerMessage=label(footer,"●  SYSTEM READY",10,A.good,true,{
  Position=UDim2.fromOffset(13,4),Size=UDim2.fromOffset(320,24)})
@@ -683,11 +691,11 @@ local function card(which,definition)
  local host=which=="right" and right or left
  local c=create("Frame",host,{BackgroundColor3=A.card,BorderSizePixel=0,
   Size=UDim2.new(1,0,0,0),AutomaticSize=Enum.AutomaticSize.Y})
- corner(c,14);outline(c,A.border,.9)
+ corner(c,10);outline(c,A.border,.7)
  local lay=create("UIListLayout",c,{SortOrder=Enum.SortOrder.LayoutOrder,
   Padding=UDim.new(0,0)})
  local title=button(c,"",{BackgroundColor3=A.card,Size=UDim2.new(1,0,0,51)})
- corner(title,12)
+ corner(title,10)
  -- Compact, uniform card title: proper white outline icon, no big cyan tiles.
  artwork(title,"module",15,16,19,19,A.muted)
  label(title,definition.title,12,A.white,true,{

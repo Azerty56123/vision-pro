@@ -301,44 +301,71 @@ local function resize()
 end
 
 -- MODULES REPLIABLES
+-- Petits accordéons noirs Fyy : titres seuls, flèche minimaliste.
 local function section(title,description,expanded)
  local card=obj("Frame",{BackgroundColor3=C.panel,BorderSizePixel=0,
-  Size=UDim2.new(1,-5,0,0),AutomaticSize=Enum.AutomaticSize.Y},scroll)
- round(card,9);stroke(card,C.border,.7)
- obj("UIListLayout",{SortOrder=Enum.SortOrder.LayoutOrder},card)
- local head=button(card,"",{Size=UDim2.new(1,0,0,48),BackgroundColor3=C.row})
- text(head,"◆",15,C.purple,true,{Position=UDim2.fromOffset(11,9),
-  Size=UDim2.fromOffset(23,30),TextXAlignment=Enum.TextXAlignment.Center})
- text(head,title,12,C.white,true,{Position=UDim2.fromOffset(42,5),
-  Size=UDim2.new(1,-83,0,22)})
- text(head,description or "",9,C.muted,false,{Position=UDim2.fromOffset(42,27),
-  Size=UDim2.new(1,-83,0,16)})
- local sign=text(head,expanded==false and "+" or "−",20,C.purple,true,{
-  Position=UDim2.new(1,-32,0,9),Size=UDim2.fromOffset(20,30),
+  Size=UDim2.new(1,-4,0,0),AutomaticSize=Enum.AutomaticSize.Y},scroll)
+ round(card,4)
+ obj("UIListLayout",{SortOrder=Enum.SortOrder.LayoutOrder,Padding=UDim.new(0,0)},card)
+ local head=button(card,"",{Size=UDim2.new(1,0,0,46),
+  BackgroundColor3=C.panel})
+ text(head,title,13,C.white,true,{Position=UDim2.fromOffset(16,5),
+  Size=UDim2.new(1,-58,0,35)})
+ local arrow=text(head,expanded==false and "⌄" or "⌃",18,C.muted,true,{
+  Position=UDim2.new(1,-35,0,8),Size=UDim2.fromOffset(22,27),
   TextXAlignment=Enum.TextXAlignment.Center})
- local inside=obj("Frame",{BackgroundTransparency=1,BorderSizePixel=0,
-  Size=UDim2.new(1,0,0,0),AutomaticSize=Enum.AutomaticSize.Y,Visible=expanded~=false},card)
- obj("UIPadding",{PaddingLeft=UDim.new(0,10),PaddingRight=UDim.new(0,10),
-  PaddingTop=UDim.new(0,10),PaddingBottom=UDim.new(0,10)},inside)
+ local body=obj("Frame",{BackgroundTransparency=1,BorderSizePixel=0,
+  Size=UDim2.new(1,0,0,0),AutomaticSize=Enum.AutomaticSize.Y,
+  Visible=expanded~=false},card)
+ obj("UIPadding",{PaddingLeft=UDim.new(0,8),PaddingRight=UDim.new(0,8),
+  PaddingTop=UDim.new(0,7),PaddingBottom=UDim.new(0,9)},body)
  obj("UIListLayout",{SortOrder=Enum.SortOrder.LayoutOrder,
-  Padding=UDim.new(0,7)},inside)
- local group={frame=card,body=inside,collapsed=expanded==false,
+  Padding=UDim.new(0,5)},body)
+ local group={frame=card,body=body,collapsed=expanded==false,
   title=string.lower(title.." "..(description or "")),items={}}
  table.insert(sections,group)
  listen(head.Activated,function()
   group.collapsed=not group.collapsed
-  inside.Visible=not group.collapsed
-  sign.Text=group.collapsed and "+" or "−"
+  body.Visible=not group.collapsed
+  arrow.Text=group.collapsed and "⌄" or "⌃"
  end,true)
- return inside,group
+ return body,group
 end
+-- Panneau Runtime, colonne violette et mesures compactes : motif central du design 12.
+local function runtimePanel(title)
+ local card=obj("Frame",{BackgroundColor3=C.panel,BorderSizePixel=0,
+  Size=UDim2.new(1,-4,0,186)},scroll)
+ round(card,4)
+ obj("Frame",{BackgroundColor3=C.purple,BorderSizePixel=0,
+  Position=UDim2.fromOffset(13,13),Size=UDim2.fromOffset(4,157)},card)
+ text(card,title or "Vision Runtime",15,C.white,true,{
+  Position=UDim2.fromOffset(29,12),Size=UDim2.new(1,-55,0,25)})
+ local records={}
+ local function metric(name,val,liveKey,row)
+  text(card,name..":",11,C.muted,false,{
+   Position=UDim2.fromOffset(29,43+(row-1)*24),Size=UDim2.fromOffset(133,21)})
+  local value=text(card,val,11,C.muted,false,{
+   Position=UDim2.fromOffset(150,43+(row-1)*24),Size=UDim2.new(1,-178,0,21)})
+  if liveKey then live[liveKey]=value end
+ end
+ metric("Game",game.Name,nil,1)
+ metric("Players",tostring(#Players:GetPlayers()),"players",2)
+ metric("FPS",tostring(fps),"fps",3)
+ metric("Ping","...","ping",4)
+ text(card,"● IDLE",10,C.purple,true,{
+  Position=UDim2.fromOffset(29,145),Size=UDim2.fromOffset(157,20)})
+ -- Recherche : la carte ne cache pas d'éléments actionnables.
+ table.insert(sections,{frame=card,body=card,collapsed=false,
+  title="vision runtime game players fps ping",items=records,runtime=true})
+end
+
 local function remember(g,instance,name)
  table.insert(g.items,{ui=instance,name=string.lower(name)})
 end
 local function cell(to,h)
  local x=obj("Frame",{BackgroundColor3=C.row,BorderSizePixel=0,
   Size=UDim2.new(1,0,0,h)},to)
- round(x,7);return x
+ round(x,3);return x
 end
 local function stat(to,g,key,value,liveName)
  local c=cell(to,34)
@@ -434,8 +461,10 @@ local function filter()
    v.ui.Visible=display;if display then any=true end
   end
   g.frame.Visible=titleMatch or any
-  g.body.Visible=(q~="" and (titleMatch or any)) or
-   (q=="" and not g.collapsed)
+  if not g.runtime then
+   g.body.Visible=(q~="" and (titleMatch or any)) or
+    (q=="" and not g.collapsed)
+  end
  end
 end
 listen(search:GetPropertyChangedSignal("Text"),filter)
@@ -461,13 +490,15 @@ render=function()
  clear()
  local p,g
  if shown=="Accueil" then
-  p,g=section("Overview","Informations de la session",true)
-  stat(p,g,"Joueur",player.DisplayName)
-  stat(p,g,"Jeu",game.Name)
-  stat(p,g,"Place ID",game.PlaceId)
-  stat(p,g,"Joueurs",#Players:GetPlayers(),"players")
-  stat(p,g,"FPS",fps,"fps")
-  stat(p,g,"Ping","...","ping")
+  runtimePanel("Vision Runtime")
+  p,g=section("Main Features","Réglages principaux",false)
+  toggle(p,g,"Afficher FPS","Compteur de performances","fps")
+  toggle(p,g,"Fullbright","Luminosité locale","bright",brightness)
+  toggle(p,g,"Afficher XYZ","Coordonnées locales","xyz")
+  p,g=section("Player Controls","Caméra et mouvements",false)
+  slider(p,g,"Camera FOV","fov",50,110,setFOV)
+  slider(p,g,"WalkSpeed","speed",8,100,setSpeed)
+  slider(p,g,"JumpPower","jump",20,140,setJump)
   p,g=section("Quick Actions","Outils utiles",false)
   action(p,g,"Copier le Place ID",function()copyOrShow(game.PlaceId,"Place ID")end,true)
   action(p,g,"Copier mes coordonnees",function()copyOrShow(posString(),"XYZ")end)
@@ -529,7 +560,7 @@ render=function()
   slider(p,g,"Camera FOV","fov",50,110,setFOV)
  elseif shown=="Scripts" then
   p,g=section("Script Manager","Modules de Vision Hub",true)
-  stat(p,g,"Interface","V11")
+  stat(p,g,"Interface","Vision V1")
   stat(p,g,"Place ID",game.PlaceId)
   stat(p,g,"Module du jeu","Non configure")
   action(p,g,"Copier Place ID",function()copyOrShow(game.PlaceId,"Place ID")end)
@@ -546,8 +577,8 @@ render=function()
   action(p,g,"Fermer Vision Hub",quit)
  elseif shown=="Crédits" then
   p,g=section("Vision Hub","A propos de la version",true)
-  stat(p,g,"Version","11.0")
-  stat(p,g,"Design","N12 Fyy-inspired")
+  stat(p,g,"Version","1.0")
+  stat(p,g,"Design","Fyy Community n°12")
   stat(p,g,"Palette","Noir / Violet")
   action(p,g,"Copier GitHub",function()copyOrShow("https://github.com/Azerty56123/vision-pro","GitHub")end)
  end
@@ -623,7 +654,7 @@ obj("Frame",{BackgroundColor3=C.purple,BorderSizePixel=0,
 text(keyBox,"◆",25,C.purple,true,{Position=UDim2.fromOffset(20,14),Size=UDim2.fromOffset(31,36)})
 text(keyBox,"VISION HUB",19,C.white,true,{Position=UDim2.fromOffset(60,14),
  Size=UDim2.fromOffset(240,29)})
-text(keyBox,"KEY SYSTEM  ·  V11",10,C.muted,false,{Position=UDim2.fromOffset(60,43),
+text(keyBox,"KEY SYSTEM  ·  V1",10,C.muted,false,{Position=UDim2.fromOffset(60,43),
  Size=UDim2.fromOffset(240,18)})
 local x=button(keyBox,"×",{Position=UDim2.new(1,-38,0,15),Size=UDim2.fromOffset(22,22)})
 text(keyBox,"Entrez votre cle",12,C.white,true,{Position=UDim2.fromOffset(22,77),

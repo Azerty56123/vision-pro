@@ -445,6 +445,7 @@ fitToScreen=function()
   searchHolder.Position=UDim2.new(1,-204,0,16)
   searchHolder.Size=UDim2.fromOffset(126,31)
   pageTitle.Position=UDim2.fromOffset(14,5);pageDescription.Position=UDim2.fromOffset(14,29)
+  pageTitle.Size=UDim2.fromOffset(210,24);pageDescription.Size=UDim2.fromOffset(208,22)
   canvas.Position=UDim2.fromOffset(10,11);canvas.Size=UDim2.new(1,-19,1,-16)
   for _,b in pairs(navButtons) do b.Size=UDim2.fromOffset(118,36)end
  else
@@ -464,6 +465,7 @@ fitToScreen=function()
   searchHolder.Position=UDim2.new(1,-248,0,16)
   searchHolder.Size=UDim2.fromOffset(153,31)
   pageTitle.Position=UDim2.fromOffset(19,5);pageDescription.Position=UDim2.fromOffset(19,29)
+  pageTitle.Size=UDim2.fromOffset(340,25);pageDescription.Size=UDim2.fromOffset(340,22)
   canvas.Position=UDim2.fromOffset(12,13);canvas.Size=UDim2.new(1,-23,1,-19)
   for _,b in pairs(navButtons) do b.Size=UDim2.new(1,0,0,39)end
  end
@@ -816,7 +818,7 @@ for i,name in ipairs(tabs) do
  local b=button(nav,"",{BackgroundColor3=A.side,
   Size=UDim2.new(1,0,0,39),LayoutOrder=i,TextXAlignment=Enum.TextXAlignment.Left})
  corner(b,9)
- create("Frame",b,{Name="Selected",BackgroundColor3=A.cyan,BackgroundTransparency=1,
+ create("Frame",b,{Name="Selected",BackgroundColor3=Color3.fromRGB(233,235,240),BackgroundTransparency=1,
   BorderSizePixel=0,Position=UDim2.fromOffset(0,8),Size=UDim2.fromOffset(3,23)})
  navIcon(b,name)
  label(b,tabLabels[name] or name,12,A.muted,true,{
@@ -981,6 +983,22 @@ bind(entry.FocusLost,function()
 end)
 local localStatus=label(rightGate,"Ready to verify",10,A.light,false,{
  Position=UDim2.fromOffset(7,111),Size=UDim2.fromOffset(390,18)})
+-- Session-only input retention. No sensitive key is stored on disk.
+local keepKeyInput=true
+label(rightGate,"SAVE KEY  //  SESSION ONLY",10,A.light,true,{
+ Position=UDim2.fromOffset(7,140),Size=UDim2.fromOffset(325,25)})
+local saveSwitch=button(rightGate,"",{BackgroundColor3=Color3.fromRGB(16,149,111),
+ Position=UDim2.fromOffset(350,140),Size=UDim2.fromOffset(52,24)})
+corner(saveSwitch,13)
+local saveDot=create("Frame",saveSwitch,{BackgroundColor3=Color3.fromRGB(241,255,251),
+ BorderSizePixel=0,Position=UDim2.fromOffset(30,3),Size=UDim2.fromOffset(18,18)})
+corner(saveDot,10)
+bind(saveSwitch.Activated,function()
+ keepKeyInput=not keepKeyInput
+ saveSwitch.BackgroundColor3=keepKeyInput and Color3.fromRGB(16,149,111)
+  or Color3.fromRGB(52,58,68)
+ saveDot.Position=UDim2.fromOffset(keepKeyInput and 30 or 4,3)
+end)
 local enterButton=button(rightGate,"CONTINUE",{
  Position=UDim2.fromOffset(5,181),Size=UDim2.fromOffset(399,43),
  BackgroundColor3=Color3.fromRGB(13,46,65),Font=Enum.Font.GothamBold,TextSize=12})
@@ -1034,6 +1052,7 @@ local function validate()
   status("Profile: "..selected.name.."  •  "..msg)
  else
   message(msg,true)
+  if not keepKeyInput then entry.Text="" end
  end
 end
 bind(enterButton.Activated,validate)
@@ -1059,7 +1078,7 @@ bind(helpButton.Activated,function()
   "Support: Vision Hub GitHub repository.",false)
 end)
 bind(exitGate.Activated,kill)
-log("Vision loader initialized")
+log("Vision Ware loader initialized")
 log("Profile: "..selected.name)
 log("Place: "..tostring(game.PlaceId))
 log("Modules: "..tostring(#allSections))

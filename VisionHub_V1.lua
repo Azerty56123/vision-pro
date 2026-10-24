@@ -34,10 +34,10 @@ for _,name in ipairs({NAME,"VisionHubV1_Design12","VisionHubV11_Design12","Visio
 end
 
 local A={
- bg=Color3.fromRGB(10,11,15),side=Color3.fromRGB(15,17,22),
- card=Color3.fromRGB(24,27,34),row=Color3.fromRGB(31,35,43),
- field=Color3.fromRGB(29,33,41),border=Color3.fromRGB(49,54,66),
- white=Color3.fromRGB(247,248,250),muted=Color3.fromRGB(153,162,176),
+ bg=Color3.fromRGB(11,11,14),side=Color3.fromRGB(13,13,16),
+ card=Color3.fromRGB(24,24,28),row=Color3.fromRGB(30,30,35),
+ field=Color3.fromRGB(27,27,32),border=Color3.fromRGB(41,41,47),
+ white=Color3.fromRGB(247,248,250),muted=Color3.fromRGB(153,158,169),
  cyan=Color3.fromRGB(42,203,239),cyanDark=Color3.fromRGB(16,79,102),
  light=Color3.fromRGB(179,200,217),good=Color3.fromRGB(111,228,166)
 }
@@ -702,7 +702,14 @@ local function card(which,definition)
  local title=button(c,"",{BackgroundColor3=A.card,Size=UDim2.new(1,0,0,49)})
  corner(title,9)
  -- Compact, uniform card title: proper white outline icon, no big cyan tiles.
- artwork(title,"module",16,15,18,18,A.muted)
+ local headingKey=string.lower(definition.title or "")
+ local headerGlyph=(headingKey:find("runtime",1,true) or
+   headingKey:find("overview",1,true)) and "overview"
+  or (headingKey:find("visual",1,true) and "visuals")
+  or (headingKey:find("movement",1,true) and "player")
+  or (headingKey:find("control",1,true) and "settings")
+  or "module"
+ artwork(title,headerGlyph,16,15,18,18,A.muted)
  label(title,definition.title,12,A.white,true,{
   Position=UDim2.fromOffset(42,10),Size=UDim2.new(1,-82,0,28)})
  local arrow=artwork(title,"chevron",0,0,16,16,A.muted)
@@ -817,7 +824,7 @@ for i,name in ipairs(tabs) do
  local tabName=name
  local b=button(nav,"",{BackgroundColor3=A.side,
   Size=UDim2.new(1,0,0,39),LayoutOrder=i,TextXAlignment=Enum.TextXAlignment.Left})
- corner(b,9)
+ corner(b,6)
  create("Frame",b,{Name="Selected",BackgroundColor3=Color3.fromRGB(233,235,240),BackgroundTransparency=1,
   BorderSizePixel=0,Position=UDim2.fromOffset(0,8),Size=UDim2.fromOffset(3,23)})
  navIcon(b,name)

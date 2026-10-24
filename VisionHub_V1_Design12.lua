@@ -69,6 +69,83 @@ local function button(to,value,props)
  for k,v in pairs(props or {}) do p[k]=v end
  local x=obj("TextButton",p,to);round(x,4);return x
 end
+
+-- Icônes vectorielles créées avec des Frames Roblox, sans assets externes.
+-- Les tracés gardent une apparence uniforme semblable aux icônes de Fyy.
+local ICON_PATHS={
+ Automation={
+  {{13,2},{5,13},{11,13},{10,22},{19,10},{13,10},{13,2}}
+ },
+ Teleport={
+  {{12,22},{7,16},{5,11},{6,6},{9,3},{12,2},{16,3},{19,6},{20,11},{17,16},{12,22}},
+  {{12,7},{14,8},{15,10},{14,12},{12,13},{10,12},{9,10},{10,8},{12,7}}
+ },
+ Visual={
+  {{2,12},{6,7},{12,5},{18,7},{22,12},{18,17},{12,19},{6,17},{2,12}},
+  {{12,9},{14,10},{15,12},{14,14},{12,15},{10,14},{9,12},{10,10},{12,9}}
+ },
+ Scripts={
+  {{12,2},{21,7},{21,17},{12,22},{3,17},{3,7},{12,2}},
+  {{3,7},{12,12},{21,7}},
+  {{12,12},{12,22}}
+ },
+ Community={
+  {{4,11},{20,11},{20,21},{4,21},{4,11}},
+  {{2,7},{22,7},{22,11},{2,11},{2,7}},
+  {{12,7},{12,21}},
+  {{12,7},{7,6},{6,4},{7,2},{9,2},{12,7}},
+  {{12,7},{17,6},{18,4},{17,2},{15,2},{12,7}}
+ },
+ Overview={{{3,22},{4,17},{7,14},{17,14},{20,17},{21,22}}},
+ Player={{{3,22},{4,17},{7,14},{17,14},{20,17},{21,22}}}
+}
+local function iconStroke(canvas,points)
+ for i=2,#points do
+  local a,b=points[i-1],points[i]
+  local dx,dy=b[1]-a[1],b[2]-a[2]
+  local length=math.sqrt(dx*dx+dy*dy)
+  if length>0 then
+   local edge=obj("Frame",{
+    BackgroundColor3=C.white,BorderSizePixel=0,
+    AnchorPoint=Vector2.new(.5,.5),
+    Position=UDim2.fromOffset((a[1]+b[1])/2,(a[2]+b[2])/2),
+    Size=UDim2.fromOffset(length,2),Rotation=math.deg(math.atan2(dy,dx))
+   },canvas)
+   round(edge,1)
+  end
+ end
+end
+local function drawNavIcon(parent,kind)
+ local canvas=obj("Frame",{
+  BackgroundTransparency=1,BorderSizePixel=0,
+  Position=UDim2.fromOffset(19,10),
+  Size=UDim2.fromOffset(24,24)
+ },parent)
+ if kind=="Overview" or kind=="Player" then
+  local head=obj("Frame",{BackgroundTransparency=1,BorderSizePixel=0,
+   Position=UDim2.fromOffset(8,2),Size=UDim2.fromOffset(8,9)},canvas)
+  round(head,6);stroke(head,C.white,1.8)
+ end
+ if kind=="Settings" then
+  local center=obj("Frame",{
+   BackgroundTransparency=1,BorderSizePixel=0,
+   Position=UDim2.fromOffset(7,7),Size=UDim2.fromOffset(10,10)
+  },canvas)
+  round(center,6);stroke(center,C.white,1.8)
+  for i=0,7 do
+   local angle=(math.pi*2)*i/8
+   iconStroke(canvas,{
+    {12+math.cos(angle)*7,12+math.sin(angle)*7},
+    {12+math.cos(angle)*11,12+math.sin(angle)*11}
+   })
+  end
+ end
+ for _,path in ipairs(ICON_PATHS[kind] or {})do
+  iconStroke(canvas,path)
+ end
+ return canvas
+end
+
 local function listen(signal,fn,page)
  local con=signal:Connect(fn)
  table.insert(page and pages or sessions,con)
@@ -589,14 +666,14 @@ end
 -- La barre gauche conserve les fonctions Vision, mais reproduit la présentation
 -- Fyy : icônes blanches, noms anglais, sélection sombre et trait violet à gauche.
 local tabs={
- {"Accueil","♙","Overview"},
- {"Automatisation","ϟ","Automation"},
- {"Téléportation","◇","Teleport"},
- {"Joueur","○","Player"},
- {"Visuels","◉","Visual"},
- {"Scripts","⬡","Scripts"},
- {"Paramètres","⚙","Settings"},
- {"Crédits","☆","Community"}
+ {"Accueil","Overview"},
+ {"Automatisation","Automation"},
+ {"Téléportation","Teleport"},
+ {"Joueur","Player"},
+ {"Visuels","Visual"},
+ {"Scripts","Scripts"},
+ {"Paramètres","Settings"},
+ {"Crédits","Community"}
 }
 go=function(name)
  shown=name
@@ -614,22 +691,25 @@ go=function(name)
  render()
 end
 for i,entry in ipairs(tabs) do
- local tab,glyph,display=entry[1],entry[2],entry[3]
+ local tab,display=entry[1],entry[2]
  local b=button(nav,"",{BackgroundColor3=C.rail,
   Size=UDim2.new(1,0,0,44),LayoutOrder=i})
  local stripe=obj("Frame",{Name="SelectionBar",BackgroundColor3=C.purple,
   BackgroundTransparency=1,BorderSizePixel=0,
   Position=UDim2.fromOffset(0,5),Size=UDim2.fromOffset(4,34)},b)
  round(stripe,2)
- text(b,glyph,23,C.white,true,{
-  Position=UDim2.fromOffset(13,5),Size=UDim2.fromOffset(31,33),
-  TextXAlignment=Enum.TextXAlignment.Center
- })
+ drawNavIcon(b,display)
  local caption=text(b,display,13,C.muted,true,{
-  Name="Caption",Position=UDim2.fromOffset(55,5),
-  Size=UDim2.new(1,-60,0,33)
+  Name="Caption",Position=UDim2.fromOffset(57,5),
+  Size=UDim2.new(1,-61,0,33)
  })
  navButtons[tab]=b
+ listen(b.MouseEnter,function()
+  if shown~=tab then b.BackgroundColor3=C.panel end
+ end)
+ listen(b.MouseLeave,function()
+  if shown~=tab then b.BackgroundColor3=C.rail end
+ end)
  listen(b.Activated,function()go(tab)end)
 end
 go("Accueil");resize()

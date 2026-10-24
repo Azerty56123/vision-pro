@@ -34,12 +34,12 @@ for _,name in ipairs({NAME,"VisionHubV1_Design12","VisionHubV11_Design12","Visio
 end
 
 local A={
- bg=Color3.fromRGB(11,11,14),side=Color3.fromRGB(13,13,16),
- card=Color3.fromRGB(23,23,27),row=Color3.fromRGB(31,31,36),
- field=Color3.fromRGB(26,26,31),border=Color3.fromRGB(40,39,45),
- white=Color3.fromRGB(238,237,240),muted=Color3.fromRGB(137,137,147),
- cyan=Color3.fromRGB(25,197,239),cyanDark=Color3.fromRGB(8,53,73),
- light=Color3.fromRGB(192,196,203),good=Color3.fromRGB(107,220,157)
+ bg=Color3.fromRGB(10,11,15),side=Color3.fromRGB(15,17,22),
+ card=Color3.fromRGB(24,27,34),row=Color3.fromRGB(31,35,43),
+ field=Color3.fromRGB(29,33,41),border=Color3.fromRGB(49,54,66),
+ white=Color3.fromRGB(247,248,250),muted=Color3.fromRGB(153,162,176),
+ cyan=Color3.fromRGB(42,203,239),cyanDark=Color3.fromRGB(16,79,102),
+ light=Color3.fromRGB(179,200,217),good=Color3.fromRGB(111,228,166)
 }
 local current,closed,unlocked="Overview",false,false
 local pconns,conns={},{}
@@ -71,8 +71,12 @@ local function create(klass,parent,attrs)
  i.Parent=parent
  return i
 end
+-- Important: Roblox widgets may already have a UICorner. Update it; do not stack
+-- duplicate UICorners (the old code did that on toggles and buttons).
 local function corner(i,r)
- create("UICorner",i,{CornerRadius=UDim.new(0,r or 6)})
+ local existing=i:FindFirstChildOfClass("UICorner")
+ if existing then existing.CornerRadius=UDim.new(0,r or 8)
+ else create("UICorner",i,{CornerRadius=UDim.new(0,r or 8)})end
  return i
 end
 local function outline(i,color,size)
@@ -93,7 +97,7 @@ local function button(parent,name,attrs)
   Text=tostring(name),Font=Enum.Font.GothamMedium,TextSize=11,TextColor3=A.white,
   Size=UDim2.new(1,0,0,31)}
  for k,v in pairs(attrs or {}) do a[k]=v end
- local o=create("TextButton",parent,a);corner(o,5);return o
+ local o=create("TextButton",parent,a);corner(o,9);return o
 end
 local function bind(signal,fn,page)
  local c=signal:Connect(fn)
@@ -244,7 +248,7 @@ end
 app=create("Frame",gui,{Name="MainWindow",BackgroundColor3=A.bg,BorderSizePixel=0,
  Size=UDim2.fromOffset(865,548),Position=UDim2.fromScale(.5,.5),
  AnchorPoint=Vector2.new(.5,.5),ClipsDescendants=true,Visible=false})
-corner(app,8);outline(app,A.border,.9)
+corner(app,14);outline(app,A.border,1.1)
 appScale=create("UIScale",app,{Scale=1})
 header=create("Frame",app,{BackgroundColor3=A.side,BorderSizePixel=0,
  Size=UDim2.new(1,0,0,49),Active=true})
@@ -258,13 +262,23 @@ local titleGame=label(header,"/  "..selected.name,10,A.muted,true,{
  Position=UDim2.fromOffset(148,12),Size=UDim2.fromOffset(210,25)})
 search=create("TextBox",header,{BackgroundColor3=A.card,BorderSizePixel=0,
  Position=UDim2.new(1,-275,0,9),Size=UDim2.fromOffset(174,31),
- Text="",ClearTextOnFocus=false,PlaceholderText="⌕  Search",
+ Text="",ClearTextOnFocus=false,PlaceholderText="Search modules...",
  Font=Enum.Font.Gotham,TextSize=11,TextColor3=A.white,
  PlaceholderColor3=A.muted,TextXAlignment=Enum.TextXAlignment.Left})
-corner(search,6)
-create("UIPadding",search,{PaddingLeft=UDim.new(0,9)})
-local hide=button(header,"−",{Position=UDim2.new(1,-78,0,10),Size=UDim2.fromOffset(28,29)})
-local close=button(header,"×",{Position=UDim2.new(1,-42,0,10),Size=UDim2.fromOffset(28,29)})
+corner(search,10);outline(search,A.border,.8)
+create("UIPadding",search,{PaddingLeft=UDim.new(0,13)})
+bind(search.Focused,function()
+ local o=search:FindFirstChildOfClass("UIStroke")
+ if o then o.Color=A.cyan end
+end)
+bind(search.FocusLost,function()
+ local o=search:FindFirstChildOfClass("UIStroke")
+ if o then o.Color=A.border end
+end)
+local hide=button(header,"−",{Position=UDim2.new(1,-78,0,10),Size=UDim2.fromOffset(29,29),BackgroundColor3=A.field})
+local close=button(header,"×",{Position=UDim2.new(1,-42,0,10),Size=UDim2.fromOffset(29,29),BackgroundColor3=A.field})
+corner(hide,9);corner(close,9)
+outline(hide,A.border,.75);outline(close,A.border,.75)
 tabRail=create("Frame",app,{BackgroundColor3=A.side,BorderSizePixel=0,
  Position=UDim2.fromOffset(0,49),Size=UDim2.new(0,184,1,-79)})
 create("Frame",tabRail,{BackgroundColor3=A.border,BorderSizePixel=0,
@@ -317,10 +331,10 @@ label(footer,"v1.0",9,A.muted,true,{
  TextXAlignment=Enum.TextXAlignment.Right})
 mini=button(gui,"VISION HUB",{Position=UDim2.new(1,-160,.5,-20),
  Size=UDim2.fromOffset(146,38),BackgroundColor3=A.cyanDark,Visible=false})
-outline(mini,A.cyan,.8)
+corner(mini,11);outline(mini,A.cyan,.8)
 overlay=create("Frame",gui,{BackgroundColor3=A.side,BorderSizePixel=0,
  Position=UDim2.new(1,-265,0,10),Size=UDim2.fromOffset(250,35),Visible=false})
-corner(overlay,6);outline(overlay,A.cyan,.8)
+corner(overlay,10);outline(overlay,A.cyan,.8)
 overlayText=label(overlay,"",10,A.white,true,{
  Size=UDim2.fromScale(1,1),TextXAlignment=Enum.TextXAlignment.Center})
 status=function(message)
@@ -426,7 +440,7 @@ end
 local function row(parent,h)
  local f=create("Frame",parent,{BackgroundColor3=A.row,BorderSizePixel=0,
   Size=UDim2.new(1,0,0,h or 54)})
- corner(f,5)
+ corner(f,9)
  return f
 end
 local function register(section,f,title)
@@ -621,10 +635,11 @@ local function card(which,definition)
  local host=which=="right" and right or left
  local c=create("Frame",host,{BackgroundColor3=A.card,BorderSizePixel=0,
   Size=UDim2.new(1,0,0,0),AutomaticSize=Enum.AutomaticSize.Y})
- corner(c,7);outline(c,A.border,.7)
+ corner(c,12);outline(c,A.border,.9)
  local lay=create("UIListLayout",c,{SortOrder=Enum.SortOrder.LayoutOrder,
   Padding=UDim.new(0,0)})
- local title=button(c,"",{BackgroundColor3=A.card,Size=UDim2.new(1,0,0,44)})
+ local title=button(c,"",{BackgroundColor3=A.card,Size=UDim2.new(1,0,0,51)})
+ corner(title,11)
  label(title,"≋",19,A.muted,true,{Position=UDim2.fromOffset(9,5),
   Size=UDim2.fromOffset(29,29),TextXAlignment=Enum.TextXAlignment.Center})
  label(title,definition.title,12,A.white,true,{Position=UDim2.fromOffset(37,7),

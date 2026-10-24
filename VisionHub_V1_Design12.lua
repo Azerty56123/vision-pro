@@ -672,68 +672,147 @@ listen(Run.Heartbeat,function(dt)
  end
 end)
 
--- KEY SYSTEM FYY COLORS
-local blocker=obj("Frame",{BackgroundColor3=Color3.new(0,0,0),
- BackgroundTransparency=.38,BorderSizePixel=0,Size=UDim2.fromScale(1,1)},gui)
-local keyBox=obj("Frame",{BackgroundColor3=C.rail,BorderSizePixel=0,
+-- KEY SYSTEM V1 : DESIGN 12 / FYY-LIKE / NOIR + VIOLET
+-- En test : GET KEY fournit la clé locale. Après déploiement :
+-- GET KEY copie le lien Cloudflare /key et SUBMIT vérifie /api/verify.
+local blocker=obj("Frame",{
+ Name="KeyOverlay",BackgroundColor3=Color3.new(0,0,0),
+ BackgroundTransparency=.25,BorderSizePixel=0,Size=UDim2.fromScale(1,1)
+},gui)
+local keyBox=obj("Frame",{
+ Name="VisionAccess",BackgroundColor3=C.rail,BorderSizePixel=0,
  AnchorPoint=Vector2.new(.5,.5),Position=UDim2.fromScale(.5,.5),
- Size=UDim2.fromOffset(398,292)},blocker)
-round(keyBox,14);stroke(keyBox,C.border,1)
+ Size=UDim2.fromOffset(410,346)
+},blocker)
+round(keyBox,7);stroke(keyBox,C.border,1)
 local keyScale=obj("UIScale",{Scale=1},keyBox)
+
+-- En-tête proche de l'interface principale Fyy.
+local kTop=obj("Frame",{BackgroundColor3=C.rail,BorderSizePixel=0,
+ Size=UDim2.new(1,0,0,70)},keyBox)
+text(kTop,"Ϝ",31,C.purple,true,{
+ Position=UDim2.fromOffset(20,11),Size=UDim2.fromOffset(40,42),
+ TextXAlignment=Enum.TextXAlignment.Center
+})
+text(kTop,"Vision",19,C.purple,true,{
+ Position=UDim2.fromOffset(65,14),Size=UDim2.fromOffset(73,32)
+})
+text(kTop,"Community",19,C.white,true,{
+ Position=UDim2.fromOffset(141,14),Size=UDim2.fromOffset(146,32)
+})
+text(kTop,"ACCESS",10,C.muted,true,{
+ Position=UDim2.new(1,-98,0,23),Size=UDim2.fromOffset(49,16),
+ TextXAlignment=Enum.TextXAlignment.Right
+})
 obj("Frame",{BackgroundColor3=C.purple,BorderSizePixel=0,
- Size=UDim2.new(1,0,0,3)},keyBox)
-text(keyBox,"◆",25,C.purple,true,{Position=UDim2.fromOffset(20,14),Size=UDim2.fromOffset(31,36)})
-text(keyBox,"VISION HUB",19,C.white,true,{Position=UDim2.fromOffset(60,14),
- Size=UDim2.fromOffset(240,29)})
-text(keyBox,"KEY SYSTEM  ·  V1",10,C.muted,false,{Position=UDim2.fromOffset(60,43),
- Size=UDim2.fromOffset(240,18)})
-local x=button(keyBox,"×",{Position=UDim2.new(1,-38,0,15),Size=UDim2.fromOffset(22,22)})
-text(keyBox,"Entrez votre cle",12,C.white,true,{Position=UDim2.fromOffset(22,77),
- Size=UDim2.fromOffset(250,24)})
-local keyInput=obj("TextBox",{BackgroundColor3=C.panel,BorderSizePixel=0,
- Position=UDim2.fromOffset(22,105),Size=UDim2.fromOffset(354,39),
- Text="",ClearTextOnFocus=false,PlaceholderText="Coller votre cle...",
- TextColor3=C.white,PlaceholderColor3=C.muted,Font=Enum.Font.Gotham,
- TextSize=12,TextXAlignment=Enum.TextXAlignment.Left},keyBox)
-round(keyInput,8);stroke(keyInput,C.border,.8)
-obj("UIPadding",{PaddingLeft=UDim.new(0,12)},keyInput)
-local getKey=button(keyBox,"GET KEY",{Position=UDim2.fromOffset(22,156),
- Size=UDim2.fromOffset(170,35),BackgroundColor3=C.accent})
-local how=button(keyBox,"HOW TO GET KEY",{Position=UDim2.fromOffset(204,156),
- Size=UDim2.fromOffset(172,35)})
-local submit=button(keyBox,"SUBMIT KEY",{Position=UDim2.fromOffset(22,201),
- Size=UDim2.fromOffset(354,37),BackgroundColor3=C.accent})
+ Position=UDim2.fromOffset(18,64),Size=UDim2.new(1,-36,0,2)},kTop)
+local x=button(kTop,"×",{
+ Position=UDim2.new(1,-34,0,18),Size=UDim2.fromOffset(22,23),
+ BackgroundColor3=C.rail,TextColor3=C.muted,TextSize=16
+})
+
+text(keyBox,"Enter key",14,C.white,true,{
+ Position=UDim2.fromOffset(23,82),Size=UDim2.fromOffset(270,25)
+})
+text(keyBox,"Colle ta clé pour ouvrir Vision Hub.",10,C.muted,false,{
+ Position=UDim2.fromOffset(23,106),Size=UDim2.fromOffset(330,20)
+})
+
+local keyInput=obj("TextBox",{
+ Name="KeyInput",BackgroundColor3=C.panel,BorderSizePixel=0,
+ Position=UDim2.fromOffset(23,133),Size=UDim2.fromOffset(364,40),
+ ClearTextOnFocus=false,Text="",
+ PlaceholderText="ENTER KEY HERE...",
+ TextColor3=C.white,PlaceholderColor3=C.muted,
+ Font=Enum.Font.Gotham,TextSize=12,TextXAlignment=Enum.TextXAlignment.Left
+},keyBox)
+round(keyInput,4);stroke(keyInput,C.border,.8)
+obj("UIPadding",{PaddingLeft=UDim.new(0,13)},keyInput)
+
+local getKey=button(keyBox,"GET KEY",{
+ Position=UDim2.fromOffset(23,184),Size=UDim2.fromOffset(177,34),
+ BackgroundColor3=C.accent,Font=Enum.Font.GothamBold,TextSize=11
+})
+local how=button(keyBox,"HOW TO GET KEY",{
+ Position=UDim2.fromOffset(211,184),Size=UDim2.fromOffset(176,34),
+ BackgroundColor3=C.panel,Font=Enum.Font.GothamMedium,TextSize=11
+})
+stroke(getKey,C.purple,.8);stroke(how,C.border,.7)
+local submit=button(keyBox,"SUBMIT KEY",{
+ Position=UDim2.fromOffset(23,228),Size=UDim2.fromOffset(364,37),
+ BackgroundColor3=C.accent,Font=Enum.Font.GothamBold,TextSize=12
+})
 stroke(submit,C.purple,1)
-local keyMessage=text(keyBox,"●  Mode test disponible",10,C.muted,false,{
- Position=UDim2.fromOffset(22,249),Size=UDim2.fromOffset(354,27),
- TextXAlignment=Enum.TextXAlignment.Center})
+obj("UIGradient",{Rotation=90,Color=ColorSequence.new({
+ ColorSequenceKeypoint.new(0,Color3.fromRGB(81,46,126)),
+ ColorSequenceKeypoint.new(1,Color3.fromRGB(50,32,75))
+})},submit)
+
+local keyMessage=text(keyBox,"●  "..(configured() and "Service de clés configuré" or "Mode développement actif"),10,C.muted,false,{
+ Position=UDim2.fromOffset(23,277),Size=UDim2.fromOffset(364,19),
+ TextXAlignment=Enum.TextXAlignment.Center
+})
+obj("Frame",{BackgroundColor3=C.border,BorderSizePixel=0,
+ Position=UDim2.fromOffset(23,304),Size=UDim2.fromOffset(364,1)},keyBox)
+text(keyBox,"01 GET KEY     •     02 ENTER KEY     •     03 SUBMIT",10,C.muted,true,{
+ Position=UDim2.fromOffset(24,309),Size=UDim2.fromOffset(362,25),
+ TextXAlignment=Enum.TextXAlignment.Center
+})
 local busy=false
+local function updateKeyMessage(message,error)
+ if dead or not keyMessage.Parent then return end
+ keyMessage.Text="●  "..tostring(message)
+ keyMessage.TextColor3=error and Color3.fromRGB(238,111,139) or C.muted
+end
 local function verify()
  if busy or dead then return end
- local v=(keyInput.Text or ""):match("^%s*(.-)%s*$"):upper()
- if v=="" then keyMessage.Text="●  Entrez une cle.";return end
- busy=true;submit.Text="VERIFYING..."
+ local value=(keyInput.Text or ""):match("^%s*(.-)%s*$"):upper()
+ if value=="" then updateKeyMessage("Entre une clé pour continuer.",true);return end
+ busy=true
+ submit.Text="VERIFYING..."
+ updateKeyMessage("Vérification en cours...",false)
  local ok,message
- if v==TEST_KEY then ok,message=true,"Cle de test acceptee"
- else ok,message=verifyServer(v)end
- busy=false;submit.Text="SUBMIT KEY"
+ if value==TEST_KEY then
+  ok,message=true,"Mode test : accès à Vision Hub V1"
+ else
+  ok,message=verifyServer(value)
+ end
+ busy=false
  if dead then return end
- if ok then unlocked=true;blocker:Destroy();open(true);status(message)
- else keyMessage.Text="●  "..tostring(message);keyMessage.TextColor3=C.purple end
+ submit.Text="SUBMIT KEY"
+ if ok then
+  unlocked=true
+  blocker:Destroy()
+  open(true)
+  status(message)
+ else
+  updateKeyMessage(message,true)
+ end
 end
+
 listen(submit.Activated,verify)
-listen(keyInput.FocusLost,function(enter)if enter then verify()end end)
+listen(keyInput.FocusLost,function(pressedEnter)
+ if pressedEnter then verify() end
+end)
 listen(getKey.Activated,function()
  if configured() then
-  local link=KEY_API:gsub("/+$","").."/key"
-  keyMessage.Text=copy(link) and "●  Lien du generateur copie." or "●  Ouvrez votre Worker /key."
+  local url=KEY_API:gsub("/+$","").."/key"
+  if copy(url) then
+   updateKeyMessage("Lien du générateur copié. Ouvre-le dans ton navigateur.",false)
+  else
+   updateKeyMessage("Copie le lien /key depuis ton navigateur Cloudflare.",true)
+  end
  else
   keyInput.Text=TEST_KEY
-  keyMessage.Text="●  Mode test : cliquez SUBMIT KEY."
+  updateKeyMessage("Clé TEST insérée : clique sur SUBMIT KEY.",false)
  end
 end)
 listen(how.Activated,function()
- keyMessage.Text=configured() and "●  GET KEY > navigateur > SUBMIT." or "●  TEST : GET KEY > SUBMIT."
+ if configured() then
+  updateKeyMessage("GET KEY > navigateur > copie > SUBMIT.",false)
+ else
+  updateKeyMessage("Version TEST : GET KEY puis SUBMIT KEY.",false)
+ end
 end)
 listen(x.Activated,quit)
 
@@ -745,10 +824,10 @@ local function cameraResize()
   cameraConnection=listen(camera:GetPropertyChangedSignal("ViewportSize"),function()
    resize()
    local vp=camera.ViewportSize
-   keyScale.Scale=math.clamp(math.min(1,(vp.X-14)/398,(vp.Y-14)/292),.3,1)
+   keyScale.Scale=math.clamp(math.min(1,(vp.X-14)/410,(vp.Y-14)/346),.3,1)
   end)
   local vp=camera.ViewportSize
-  keyScale.Scale=math.clamp(math.min(1,(vp.X-14)/398,(vp.Y-14)/292),.3,1)
+  keyScale.Scale=math.clamp(math.min(1,(vp.X-14)/410,(vp.Y-14)/346),.3,1)
  end
  resize()
 end

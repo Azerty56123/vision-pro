@@ -34,12 +34,12 @@ for _,name in ipairs({NAME,"VisionHubV1_Design12","VisionHubV11_Design12","Visio
 end
 
 local A={
- bg=Color3.fromRGB(11,11,14),side=Color3.fromRGB(13,13,16),
- card=Color3.fromRGB(24,24,28),row=Color3.fromRGB(30,30,35),
- field=Color3.fromRGB(27,27,32),border=Color3.fromRGB(41,41,47),
- white=Color3.fromRGB(247,248,250),muted=Color3.fromRGB(153,158,169),
- cyan=Color3.fromRGB(42,203,239),cyanDark=Color3.fromRGB(16,79,102),
- light=Color3.fromRGB(179,200,217),good=Color3.fromRGB(111,228,166)
+ bg=Color3.fromRGB(7,8,11),side=Color3.fromRGB(10,10,14),
+ card=Color3.fromRGB(19,19,24),row=Color3.fromRGB(25,25,31),
+ field=Color3.fromRGB(21,21,27),border=Color3.fromRGB(32,36,43),
+ white=Color3.fromRGB(248,249,252),muted=Color3.fromRGB(140,148,161),
+ cyan=Color3.fromRGB(0,191,255),cyanDark=Color3.fromRGB(4,58,84),
+ light=Color3.fromRGB(177,199,214),good=Color3.fromRGB(83,233,164)
 }
 local current,closed,unlocked="Overview",false,false
 local pconns,conns={},{}
@@ -888,63 +888,62 @@ end)
 -- Keep original branding and real handlers: don't invent a premium shop URL.
 local gateShade=create("Frame",gui,{
  Name="GateShade",BackgroundColor3=Color3.new(0,0,0),
- BackgroundTransparency=.40,BorderSizePixel=0,Size=UDim2.fromScale(1,1)})
+ BackgroundTransparency=.19,BorderSizePixel=0,Size=UDim2.fromScale(1,1)})
 local outerHalo=create("Frame",gateShade,{
  Name="KeyOuterGlow",BackgroundTransparency=1,BorderSizePixel=0,
  AnchorPoint=Vector2.new(.5,.5),Position=UDim2.fromScale(.5,.5),
  Size=UDim2.fromOffset(668,444)})
 corner(outerHalo,12)
 create("UIStroke",outerHalo,{
- ApplyStrokeMode=Enum.ApplyStrokeMode.Border,Color=Color3.fromRGB(17,146,232),
- Thickness=9,Transparency=.93})
+ ApplyStrokeMode=Enum.ApplyStrokeMode.Border,Color=Color3.fromRGB(0,117,255),
+ Thickness=10,Transparency=.92})
 local innerHalo=create("Frame",gateShade,{
  Name="KeyNearGlow",BackgroundTransparency=1,BorderSizePixel=0,
  AnchorPoint=Vector2.new(.5,.5),Position=UDim2.fromScale(.5,.5),
  Size=UDim2.fromOffset(665,441)})
 corner(innerHalo,11)
 create("UIStroke",innerHalo,{
- ApplyStrokeMode=Enum.ApplyStrokeMode.Border,Color=Color3.fromRGB(76,215,255),
- Thickness=4,Transparency=.79})
+ ApplyStrokeMode=Enum.ApplyStrokeMode.Border,Color=Color3.fromRGB(15,185,255),
+ Thickness=4,Transparency=.72})
 local outerHaloScale=create("UIScale",outerHalo,{Scale=1})
 local innerHaloScale=create("UIScale",innerHalo,{Scale=1})
 local keyPanel=create("Frame",gateShade,{
- Name="KeySystem",BackgroundColor3=Color3.fromRGB(3,7,12),
+ Name="KeySystem",BackgroundColor3=Color3.fromRGB(1,2,5),
  BorderSizePixel=0,AnchorPoint=Vector2.new(.5,.5),
  Position=UDim2.fromScale(.5,.5),Size=UDim2.fromOffset(662,438)})
 corner(keyPanel,10)
-outline(keyPanel,Color3.fromRGB(44,177,231),1)
+outline(keyPanel,Color3.fromRGB(44,181,255),1.1)
 local gateScale=create("UIScale",keyPanel,{Scale=1})
-create("UIGradient",keyPanel,{
- Rotation=80,Color=ColorSequence.new({
-  ColorSequenceKeypoint.new(0,Color3.fromRGB(4,12,19)),
-  ColorSequenceKeypoint.new(.48,Color3.fromRGB(3,8,15)),
-  ColorSequenceKeypoint.new(1,Color3.fromRGB(4,10,17))
- })})
+-- No panel UIGradient; uniform near-black like Reverb.
 -- Precisely restrained neon stroke on the full frame. No opaque cyan border.
 local keyGlow=create("Frame",keyPanel,{
  BackgroundTransparency=1,BorderSizePixel=0,
  Position=UDim2.fromOffset(2,2),Size=UDim2.new(1,-4,1,-4)})
 corner(keyGlow,9)
-local haloStroke=outline(keyGlow,Color3.fromRGB(29,159,240),2)
-haloStroke.Transparency=.72
+local haloStroke=outline(keyGlow,Color3.fromRGB(5,163,255),1.8)
+haloStroke.Transparency=.64
 
 -- LEFT COLUMN / emblem and compact brand stack.
-local keyBadge=monogram(keyPanel,45,15,47)
+local keyBadge=create("Frame",keyPanel,{
+ Name="VisionWareBadge",BackgroundColor3=Color3.fromRGB(1,16,27),
+ BorderSizePixel=0,Position=UDim2.fromOffset(45,15),
+ Size=UDim2.fromOffset(47,47)})
+corner(keyBadge,24)
+outline(keyBadge,Color3.fromRGB(0,212,255),2.8)
+artwork(keyBadge,"module",12,11,23,23,Color3.fromRGB(81,234,255))
 local badgeAura=create("Frame",keyPanel,{
  BackgroundTransparency=1,BorderSizePixel=0,
  Position=UDim2.fromOffset(42,12),Size=UDim2.fromOffset(53,53)})
 corner(badgeAura,27)
-local badgeEdge=outline(badgeAura,Color3.fromRGB(45,208,252),3)
-badgeEdge.Transparency=.84
-label(keyPanel,"VISION",14,A.white,true,{
- Position=UDim2.fromOffset(42,73),Size=UDim2.fromOffset(71,20)})
-label(keyPanel,"WARE",14,A.cyan,true,{
- Position=UDim2.fromOffset(115,73),Size=UDim2.fromOffset(59,20)})
-label(keyPanel,"KEY SYSTEM",9,A.cyan,true,{
+local badgeEdge=outline(badgeAura,Color3.fromRGB(0,139,255),5)
+badgeEdge.Transparency=.79
+label(keyPanel,"VISION WARE",14,A.white,true,{
+ Position=UDim2.fromOffset(42,73),Size=UDim2.fromOffset(149,20)})
+label(keyPanel,"KEY SYSTEM",9,Color3.fromRGB(22,194,249),true,{
  Position=UDim2.fromOffset(45,94),Size=UDim2.fromOffset(140,18)})
 local leftRule=create("Frame",keyPanel,{
- BackgroundColor3=Color3.fromRGB(63,178,221),BorderSizePixel=0,
- BackgroundTransparency=.42,Position=UDim2.fromOffset(16,119),
+ BackgroundColor3=Color3.fromRGB(18,171,244),BorderSizePixel=0,
+ BackgroundTransparency=.23,Position=UDim2.fromOffset(16,119),
  Size=UDim2.fromOffset(163,1)})
 local closeKey=button(keyPanel,"×",{
  Position=UDim2.new(1,-29,0,13),Size=UDim2.fromOffset(20,20),
@@ -953,14 +952,14 @@ local closeKey=button(keyPanel,"×",{
 corner(closeKey,3)
 
 -- LOG title is OUTSIDE the log box, as on the Reverb panel.
-label(keyPanel,"// LOG",9,A.cyan,true,{
+label(keyPanel,"// LOG",9,Color3.fromRGB(20,181,246),true,{
  Position=UDim2.fromOffset(16,130),Size=UDim2.fromOffset(150,19)})
 local logPanel=create("Frame",keyPanel,{
- Name="AccessLog",BackgroundColor3=Color3.fromRGB(4,12,18),
+ Name="AccessLog",BackgroundColor3=Color3.fromRGB(2,7,12),
  BorderSizePixel=0,Position=UDim2.fromOffset(17,151),
  Size=UDim2.fromOffset(163,244)})
 corner(logPanel,4)
-outline(logPanel,Color3.fromRGB(21,46,60),.6)
+outline(logPanel,Color3.fromRGB(13,37,57),.65)
 local logs=create("Frame",logPanel,{
  BackgroundTransparency=1,BorderSizePixel=0,
  Position=UDim2.fromOffset(8,10),Size=UDim2.new(1,-16,1,-19)})
@@ -976,7 +975,7 @@ local function log(message)
  end
  for idx,msg in ipairs(logEntries) do
   label(logs,msg,9,idx==#logEntries and Color3.fromRGB(93,216,247)
-   or Color3.fromRGB(87,142,152),false,{
+   or Color3.fromRGB(58,120,139),false,{
    Size=UDim2.new(1,0,0,13),LayoutOrder=idx})
  end
 end
@@ -991,11 +990,11 @@ label(rightGate,"GAME  //",9,A.cyan,true,{
 label(rightGate,string.upper(selected.name),9,A.cyan,true,{
  Position=UDim2.fromOffset(70,0),Size=UDim2.fromOffset(372,20)})
 local inputBack=create("Frame",rightGate,{
- BackgroundColor3=Color3.fromRGB(5,17,25),
+ BackgroundColor3=Color3.fromRGB(3,14,23),
  BorderSizePixel=0,Position=UDim2.fromOffset(0,36),
  Size=UDim2.fromOffset(452,54)})
 corner(inputBack,4)
-outline(inputBack,Color3.fromRGB(22,57,76),.7)
+outline(inputBack,Color3.fromRGB(9,49,80),.6)
 label(inputBack,">",13,A.cyan,true,{
  Position=UDim2.fromOffset(12,12),Size=UDim2.fromOffset(15,23)})
 local entry=create("TextBox",inputBack,{
@@ -1011,7 +1010,7 @@ bind(entry.Focused,function()
 end)
 bind(entry.FocusLost,function()
  local stroke=inputBack:FindFirstChildOfClass("UIStroke")
- if stroke then stroke.Color=Color3.fromRGB(22,57,76)end
+ if stroke then stroke.Color=Color3.fromRGB(9,49,80)end
 end)
 local saveCaption=label(rightGate,"SAVE KEY  //  SESSION ONLY",10,A.white,false,{
  Position=UDim2.fromOffset(0,99),Size=UDim2.fromOffset(353,23)})
@@ -1044,26 +1043,26 @@ end)
 
 local enterButton=button(rightGate,"CONTINUE",{
  Position=UDim2.fromOffset(0,149),Size=UDim2.fromOffset(452,47),
- BackgroundColor3=Color3.fromRGB(5,24,35),
+ BackgroundColor3=Color3.fromRGB(3,21,33),
  Font=Enum.Font.GothamMedium,TextSize=12,
  TextColor3=Color3.fromRGB(131,215,235)})
 corner(enterButton,4)
-outline(enterButton,Color3.fromRGB(12,44,61),.4)
+outline(enterButton,Color3.fromRGB(5,39,65),.45)
 local generateButton=button(rightGate,"GET FREE KEY",{
  Position=UDim2.fromOffset(0,209),Size=UDim2.fromOffset(452,47),
- BackgroundColor3=Color3.fromRGB(5,24,35),
+ BackgroundColor3=Color3.fromRGB(3,21,33),
  Font=Enum.Font.GothamMedium,TextSize=12,
  TextColor3=Color3.fromRGB(131,215,235)})
 corner(generateButton,4)
-outline(generateButton,Color3.fromRGB(12,44,61),.4)
+outline(generateButton,Color3.fromRGB(5,39,65),.45)
 -- Reverb's bright bottom CTA shape; keep the action truthful (GitHub support).
-local helpButton=button(rightGate,"HELP / SUPPORT",{
+local helpButton=button(rightGate,"GET PREMIUM / LIFETIME KEY",{
  Position=UDim2.fromOffset(0,269),Size=UDim2.fromOffset(452,47),
- BackgroundColor3=Color3.fromRGB(7,170,241),
+ BackgroundColor3=Color3.fromRGB(0,157,255),
  Font=Enum.Font.GothamBold,TextSize=12,
  TextColor3=Color3.fromRGB(3,27,43)})
 corner(helpButton,4)
-outline(helpButton,Color3.fromRGB(62,209,255),.8)
+outline(helpButton,Color3.fromRGB(67,201,255),1)
 
 -- Thin footer, just as in the Reverb screenshot.
 label(keyPanel,"●  "..(configured() and "ONLINE" or "TEST MODE"),9,A.good,true,{
@@ -1125,7 +1124,9 @@ local function supportAction()
  local url="https://github.com/Azerty56123/vision-pro"
  message(clipboard(url) and "GitHub support link copied" or "Visit Vision Ware GitHub",false)
 end
-bind(helpButton.Activated,supportAction)
+bind(helpButton.Activated,function()
+ log("Premium keys are not available yet.")
+end)
 bind(siteLink.Activated,supportAction)
 bind(supportLink.Activated,supportAction)
 bind(closeKey.Activated,kill)

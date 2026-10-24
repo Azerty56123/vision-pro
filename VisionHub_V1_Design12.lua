@@ -39,6 +39,7 @@ local frames,timer,fps=0,0,0
 local uiTimer=0
 local slots={}
 local sections,activeRows={},{}
+local emptySearch
 local live={}
 local frame,scale,rail,nav,navLayout,content,scroll,bodyLayout
 local mini,overlay,footer,search,heading,subheading
@@ -388,11 +389,16 @@ local function section(title,description,expanded)
  obj("UIListLayout",{SortOrder=Enum.SortOrder.LayoutOrder,Padding=UDim.new(0,0)},card)
  local head=button(card,"",{Size=UDim2.new(1,0,0,46),
   BackgroundColor3=C.panel})
+ local indicator=obj("Frame",{BackgroundColor3=C.purple,BorderSizePixel=0,
+  BackgroundTransparency=expanded==false and 1 or 0,
+  Position=UDim2.fromOffset(0,8),Size=UDim2.fromOffset(3,30)},head)
+ round(indicator,1)
  text(head,title,13,C.white,true,{Position=UDim2.fromOffset(16,5),
   Size=UDim2.new(1,-58,0,35)})
- local arrow=text(head,expanded==false and "⌄" or "⌃",18,C.muted,true,{
+ local arrow=text(head,"⌄",18,C.muted,true,{
   Position=UDim2.new(1,-35,0,8),Size=UDim2.fromOffset(22,27),
-  TextXAlignment=Enum.TextXAlignment.Center})
+  TextXAlignment=Enum.TextXAlignment.Center,
+  Rotation=expanded==false and 0 or 180})
  local body=obj("Frame",{BackgroundTransparency=1,BorderSizePixel=0,
   Size=UDim2.new(1,0,0,0),AutomaticSize=Enum.AutomaticSize.Y,
   Visible=expanded~=false},card)
@@ -401,12 +407,26 @@ local function section(title,description,expanded)
  obj("UIListLayout",{SortOrder=Enum.SortOrder.LayoutOrder,
   Padding=UDim.new(0,5)},body)
  local group={frame=card,body=body,collapsed=expanded==false,
-  title=string.lower(title.." "..(description or "")),items={}}
+  title=string.lower(title.." "..(description or "")),items={},
+  arrow=arrow,indicator=indicator}
  table.insert(sections,group)
+ listen(head.MouseEnter,function()
+  head.BackgroundColor3=C.row
+  arrow.TextColor3=C.purple
+ end,true)
+ listen(head.MouseLeave,function()
+  head.BackgroundColor3=C.panel
+  arrow.TextColor3=C.muted
+ end,true)
  listen(head.Activated,function()
   group.collapsed=not group.collapsed
   body.Visible=not group.collapsed
-  arrow.Text=group.collapsed and "⌄" or "⌃"
+  local rotation=group.collapsed and 0 or 180
+  if effects.animations then
+   Tween:Create(arrow,TweenInfo.new(.18,Enum.EasingStyle.Quad,Enum.EasingDirection.Out),
+    {Rotation=rotation}):Play()
+  else arrow.Rotation=rotation end
+  indicator.BackgroundTransparency=group.collapsed and 1 or 0
  end,true)
  return body,group
 end
@@ -456,9 +476,19 @@ local function stat(to,g,key,value,liveName)
  remember(g,c,key)
 end
 local function action(to,g,name,fn,accent)
- local b=button(to,"◆    "..name,{BackgroundColor3=accent and C.accent or C.row,
-  Size=UDim2.new(1,0,0,35),TextXAlignment=Enum.TextXAlignment.Left})
+ local b=button(to,"  "..name,{BackgroundColor3=accent and C.accent or C.row,
+  Size=UDim2.new(1,0,0,36),TextXAlignment=Enum.TextXAlignment.Left})
  obj("UIPadding",{PaddingLeft=UDim.new(0,12)},b)
+ if accent then
+  obj("Frame",{BackgroundColor3=C.purple,BorderSizePixel=0,
+   Size=UDim2.fromOffset(3,20),Position=UDim2.fromOffset(0,8)},b)
+ end
+ listen(b.MouseEnter,function()
+  b.BackgroundColor3=accent and Color3.fromRGB(74,46,109) or Color3.fromRGB(39,35,45)
+ end,true)
+ listen(b.MouseLeave,function()
+  b.BackgroundColor3=accent and C.accent or C.row
+ end,true)
  listen(b.Activated,function()
   local ok,err=pcall(fn)
   if not ok then status("Erreur: "..tostring(err))end
@@ -532,25 +562,38 @@ local function slider(to,g,name,key,lo,hi,fn)
 end
 local function filter()
  local q=string.lower(search.Text or ""):match("^%s*(.-)%s*$")
+ local foundAny=false
  for _,g in ipairs(sections) do
   local titleMatch=q=="" or g.title:find(q,1,true)~=nil
   local any=false
   for _,v in ipairs(g.items) do
    local display=titleMatch or v.name:find(q,1,true)~=nil
-   v.ui.Visible=display;if display then any=true end
+   v.ui.Visible=display
+   if display then any=true end
   end
   g.frame.Visible=titleMatch or any
+  if g.frame.Visible then foundAny=true end
   if not g.runtime then
    g.body.Visible=(q~="" and (titleMatch or any)) or
     (q=="" and not g.collapsed)
+   if q~="" and g.frame.Visible then
+    g.arrow.Rotation=180
+    g.indicator.BackgroundTransparency=0
+   elseif q=="" then
+    g.arrow.Rotation=g.collapsed and 0 or 180
+    g.indicator.BackgroundTransparency=g.collapsed and 1 or 0
+   end
   end
+ end
+ if emptySearch and emptySearch.Parent then
+  emptySearch.Visible=q~="" and not foundAny
  end
 end
 listen(search:GetPropertyChangedSignal("Text"),filter)
 local function clear()
  for _,c in ipairs(pages) do pcall(function()c:Disconnect()end)end
  table.clear(pages)
- sections={};live={}
+ sections={};live={};emptySearch=nil
  for _,c in ipairs(scroll:GetChildren())do
   if not c:IsA("UIListLayout")then c:Destroy()end
  end
@@ -661,6 +704,13 @@ render=function()
   stat(p,g,"Palette","Noir / Violet")
   action(p,g,"Copier GitHub",function()copyOrShow("https://github.com/Azerty56123/vision-pro","GitHub")end)
  end
+ emptySearch=obj("Frame",{BackgroundColor3=C.panel,BorderSizePixel=0,
+  Size=UDim2.new(1,-4,0,72),Visible=false},scroll)
+ round(emptySearch,4)
+ text(emptySearch,"Aucun résultat",13,C.white,true,{
+  Position=UDim2.fromOffset(18,10),Size=UDim2.new(1,-36,0,25)})
+ text(emptySearch,"Essaie un autre mot-clé.",11,C.muted,false,{
+  Position=UDim2.fromOffset(18,36),Size=UDim2.new(1,-36,0,21)})
  filter()
 end
 -- La barre gauche conserve les fonctions Vision, mais reproduit la présentation

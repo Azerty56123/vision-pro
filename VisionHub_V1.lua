@@ -305,12 +305,13 @@ create("Frame",header,{BackgroundColor3=A.border,BorderSizePixel=0,
  Position=UDim2.new(0,0,1,-1),Size=UDim2.new(1,0,0,1)})
 -- Identity shared by both windows.
 monogram(header,14,8,32)
+-- Intentional larger wordmark spacing: matches the open, airy visual reference.
 label(header,"VISION",16,A.white,true,{
- Position=UDim2.fromOffset(57,10),Size=UDim2.fromOffset(82,28)})
+ Position=UDim2.fromOffset(57,10),Size=UDim2.fromOffset(98,28)})
 label(header,"HUB",16,A.cyan,true,{
- Position=UDim2.fromOffset(158,10),Size=UDim2.fromOffset(48,28)})
+ Position=UDim2.fromOffset(192,10),Size=UDim2.fromOffset(48,28)})
 local titleGame=label(header,"/  "..selected.name,10,A.muted,true,{
- Position=UDim2.fromOffset(222,12),Size=UDim2.fromOffset(190,25)})
+ Position=UDim2.fromOffset(266,12),Size=UDim2.fromOffset(190,25)})
 -- A separate search wrapper prevents Roblox TextBox placeholder text from
 -- rendering underneath an ImageLabel (a visible overlap in the screenshots).
 local searchHolder=create("Frame",header,{
@@ -865,6 +866,24 @@ end)
 -- REVERB-INSPIRED KEY PANEL: blue/cyan border, status-log left, key controls right.
 local gateShade=create("Frame",gui,{Name="GateShade",BackgroundColor3=Color3.new(0,0,0),
  BackgroundTransparency=.34,BorderSizePixel=0,Size=UDim2.fromScale(1,1)})
+-- Soft outer neon aura behind the panel; two progressively fainter outline
+-- strokes create a diffuse effect without filling the screen cyan.
+local outerHalo=create("Frame",gateShade,{
+ Name="KeyOuterGlow",BackgroundTransparency=1,BorderSizePixel=0,
+ Size=UDim2.fromOffset(670,446),AnchorPoint=Vector2.new(.5,.5),
+ Position=UDim2.fromScale(.5,.5)})
+corner(outerHalo,22)
+create("UIStroke",outerHalo,{
+ ApplyStrokeMode=Enum.ApplyStrokeMode.Border,
+ Color=Color3.fromRGB(39,186,231),Thickness=14,Transparency=.91})
+local innerHalo=create("Frame",gateShade,{
+ Name="KeyNearGlow",BackgroundTransparency=1,BorderSizePixel=0,
+ Size=UDim2.fromOffset(665,441),AnchorPoint=Vector2.new(.5,.5),
+ Position=UDim2.fromScale(.5,.5)})
+corner(innerHalo,20)
+create("UIStroke",innerHalo,{
+ ApplyStrokeMode=Enum.ApplyStrokeMode.Border,
+ Color=Color3.fromRGB(89,227,255),Thickness=6,Transparency=.78})
 local keyPanel=create("Frame",gateShade,{Name="KeySystem",
  BackgroundColor3=Color3.fromRGB(5,12,20),BorderSizePixel=0,
  Size=UDim2.fromOffset(662,438),
@@ -877,16 +896,42 @@ create("UIGradient",keyPanel,{Rotation=100,Color=ColorSequence.new({
  ColorSequenceKeypoint.new(1,Color3.fromRGB(5,13,20))})})
 -- upper cyan accent and top brand
 -- Shared cyan V insignia, with subtle ring, in both hub and access screen.
-local keyAccent=create("Frame",keyPanel,{BackgroundColor3=A.cyan,BorderSizePixel=0,
+-- Blue neon strip: a diffuse aura behind a sharp bright cyan core.
+local stripAura=create("Frame",keyPanel,{
+ Name="NeonStripAura",BackgroundColor3=A.cyan,
+ BackgroundTransparency=.90,BorderSizePixel=0,
+ Position=UDim2.fromOffset(8,9),Size=UDim2.fromOffset(17,55)})
+corner(stripAura,8)
+local stripMid=create("Frame",keyPanel,{
+ BackgroundColor3=A.cyan,BackgroundTransparency=.72,
+ BorderSizePixel=0,Position=UDim2.fromOffset(11,13),
+ Size=UDim2.fromOffset(11,47)})
+corner(stripMid,6)
+local stripNear=create("Frame",keyPanel,{
+ BackgroundColor3=Color3.fromRGB(84,228,255),BackgroundTransparency=.44,
+ BorderSizePixel=0,Position=UDim2.fromOffset(13,15),
+ Size=UDim2.fromOffset(7,43)})
+corner(stripNear,4)
+local keyAccent=create("Frame",keyPanel,{
+ BackgroundColor3=Color3.fromRGB(137,243,255),BorderSizePixel=0,
  Position=UDim2.fromOffset(15,17),Size=UDim2.fromOffset(3,39)})
 corner(keyAccent,2)
+-- The logo aura is placed BEFORE the badge so the V and its outline stay sharp.
+local badgeGlow=create("Frame",keyPanel,{
+ Name="BadgeGlow",BackgroundColor3=A.cyan,
+ BackgroundTransparency=.91,BorderSizePixel=0,
+ Position=UDim2.fromOffset(20,8),Size=UDim2.fromOffset(54,54)})
+corner(badgeGlow,27)
+create("UIStroke",badgeGlow,{
+ Color=A.cyan,Transparency=.73,Thickness=5,
+ ApplyStrokeMode=Enum.ApplyStrokeMode.Border})
 monogram(keyPanel,26,14,42)
 label(keyPanel,"VISION",19,A.white,true,{
- Position=UDim2.fromOffset(84,13),Size=UDim2.fromOffset(90,28)})
+ Position=UDim2.fromOffset(84,13),Size=UDim2.fromOffset(102,28)})
 label(keyPanel,"HUB",19,A.cyan,true,{
- Position=UDim2.fromOffset(190,13),Size=UDim2.fromOffset(56,28)})
+ Position=UDim2.fromOffset(223,13),Size=UDim2.fromOffset(56,28)})
 label(keyPanel,"SYSTÈME DE CLÉS",10,A.muted,true,{
- Position=UDim2.fromOffset(85,41),Size=UDim2.fromOffset(180,18)})
+ Position=UDim2.fromOffset(85,41),Size=UDim2.fromOffset(190,18)})
 label(keyPanel,"ACCESS PANEL  ·  V1",10,A.muted,true,{
  Position=UDim2.new(1,-198,0,19),Size=UDim2.fromOffset(151,24),
  TextXAlignment=Enum.TextXAlignment.Right})
@@ -894,8 +939,16 @@ local exitGate=button(keyPanel,"×",{
  Position=UDim2.new(1,-44,0,14),Size=UDim2.fromOffset(29,29),
  BackgroundColor3=A.field,TextSize=15})
 corner(exitGate,9);outline(exitGate,A.border,.7)
-create("Frame",keyPanel,{BackgroundColor3=A.cyan,BorderSizePixel=0,
- Position=UDim2.fromOffset(17,70),Size=UDim2.new(1,-34,0,1)})
+-- Glowing horizontal divider: soft blue layers and a 1px white-cyan center.
+create("Frame",keyPanel,{BackgroundColor3=A.cyan,BackgroundTransparency=.93,
+ BorderSizePixel=0,Position=UDim2.fromOffset(17,64),
+ Size=UDim2.new(1,-34,0,13)})
+create("Frame",keyPanel,{BackgroundColor3=A.cyan,BackgroundTransparency=.75,
+ BorderSizePixel=0,Position=UDim2.fromOffset(17,68),
+ Size=UDim2.new(1,-34,0,5)})
+create("Frame",keyPanel,{BackgroundColor3=Color3.fromRGB(127,238,255),
+ BorderSizePixel=0,Position=UDim2.fromOffset(17,70),
+ Size=UDim2.new(1,-34,0,1)})
 
 -- left: loader log (status rail) like Reverb.
 local logPanel=create("Frame",keyPanel,{BackgroundColor3=Color3.fromRGB(7,17,23),

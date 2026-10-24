@@ -386,7 +386,7 @@ end
 local function section(title,description,expanded)
  local sectionId=shown.."::"..title
  local remembered=savedSections[sectionId]
- local isOpen=remembered==nil and expanded~=false or remembered
+ local isOpen=(remembered==nil and expanded~=false) or (remembered==true)
  local card=obj("Frame",{BackgroundColor3=C.panel,BorderSizePixel=0,
   Size=UDim2.new(1,-4,0,0),AutomaticSize=Enum.AutomaticSize.Y},scroll)
  round(card,4)

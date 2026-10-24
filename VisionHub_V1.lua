@@ -942,7 +942,8 @@ local entry=create("TextBox",rightGate,{BackgroundColor3=Color3.fromRGB(9,20,28)
  TextXAlignment=Enum.TextXAlignment.Left,Position=UDim2.fromOffset(5,68),
  Size=UDim2.fromOffset(399,43)})
 corner(entry,10);outline(entry,Color3.fromRGB(44,91,110),.8)
-create("UIPadding",entry,{PaddingLeft=UDim.new(0,13)})
+create("UIPadding",entry,{PaddingLeft=UDim.new(0,42)})
+artwork(entry,"key",13,12,19,19,A.muted)
 bind(entry.Focused,function()
  local edge=entry:FindFirstChildOfClass("UIStroke")
  if edge then edge.Color=A.cyan end

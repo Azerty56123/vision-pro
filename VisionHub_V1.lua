@@ -306,11 +306,11 @@ create("Frame",header,{BackgroundColor3=A.border,BorderSizePixel=0,
 -- Identity shared by both windows.
 monogram(header,14,8,32)
 label(header,"VISION",16,A.white,true,{
- Position=UDim2.fromOffset(56,10),Size=UDim2.fromOffset(80,28)})
+ Position=UDim2.fromOffset(57,10),Size=UDim2.fromOffset(82,28)})
 label(header,"HUB",16,A.cyan,true,{
- Position=UDim2.fromOffset(140,10),Size=UDim2.fromOffset(46,28)})
+ Position=UDim2.fromOffset(158,10),Size=UDim2.fromOffset(48,28)})
 local titleGame=label(header,"/  "..selected.name,10,A.muted,true,{
- Position=UDim2.fromOffset(199,12),Size=UDim2.fromOffset(215,25)})
+ Position=UDim2.fromOffset(222,12),Size=UDim2.fromOffset(190,25)})
 search=create("TextBox",header,{BackgroundColor3=A.card,BorderSizePixel=0,
  Position=UDim2.new(1,-275,0,9),Size=UDim2.fromOffset(174,31),
  Text="",ClearTextOnFocus=false,PlaceholderText="Search modules...",
@@ -691,17 +691,17 @@ local function card(which,definition)
  local host=which=="right" and right or left
  local c=create("Frame",host,{BackgroundColor3=A.card,BorderSizePixel=0,
   Size=UDim2.new(1,0,0,0),AutomaticSize=Enum.AutomaticSize.Y})
- corner(c,10);outline(c,A.border,.7)
+ corner(c,9);outline(c,A.border,.65)
  local lay=create("UIListLayout",c,{SortOrder=Enum.SortOrder.LayoutOrder,
   Padding=UDim.new(0,0)})
- local title=button(c,"",{BackgroundColor3=A.card,Size=UDim2.new(1,0,0,51)})
- corner(title,10)
+ local title=button(c,"",{BackgroundColor3=A.card,Size=UDim2.new(1,0,0,49)})
+ corner(title,9)
  -- Compact, uniform card title: proper white outline icon, no big cyan tiles.
- artwork(title,"module",15,16,19,19,A.muted)
+ artwork(title,"module",16,15,18,18,A.muted)
  label(title,definition.title,12,A.white,true,{
-  Position=UDim2.fromOffset(43,10),Size=UDim2.new(1,-85,0,28)})
- local arrow=artwork(title,"chevron",0,0,17,17,A.muted)
- arrow.Position=UDim2.new(1,-31,0,17)
+  Position=UDim2.fromOffset(42,10),Size=UDim2.new(1,-82,0,28)})
+ local arrow=artwork(title,"chevron",0,0,16,16,A.muted)
+ arrow.Position=UDim2.new(1,-30,0,16)
 local inside=create("Frame",c,{BackgroundTransparency=1,Size=UDim2.new(1,0,0,0),
   AutomaticSize=Enum.AutomaticSize.Y,Visible=true})
  create("UIPadding",inside,{PaddingLeft=UDim.new(0,8),
@@ -817,8 +817,8 @@ for i,name in ipairs(tabs) do
   BorderSizePixel=0,Position=UDim2.fromOffset(0,8),Size=UDim2.fromOffset(3,23)})
  navIcon(b,name)
  label(b,tabLabels[name] or name,12,A.muted,true,{
-  Name="NavTitle",Position=UDim2.fromOffset(49,7),
-  Size=UDim2.new(1,-53,0,25)
+  Name="NavTitle",Position=UDim2.fromOffset(47,7),
+  Size=UDim2.new(1,-50,0,25)
  })
  navButtons[name]=b
  bind(b.MouseEnter,function()
@@ -880,11 +880,11 @@ local keyAccent=create("Frame",keyPanel,{BackgroundColor3=A.cyan,BorderSizePixel
 corner(keyAccent,2)
 monogram(keyPanel,26,14,42)
 label(keyPanel,"VISION",19,A.white,true,{
- Position=UDim2.fromOffset(82,13),Size=UDim2.fromOffset(88,28)})
+ Position=UDim2.fromOffset(84,13),Size=UDim2.fromOffset(90,28)})
 label(keyPanel,"HUB",19,A.cyan,true,{
- Position=UDim2.fromOffset(178,13),Size=UDim2.fromOffset(55,28)})
-label(keyPanel,"KEY SYSTEM",10,A.muted,true,{
- Position=UDim2.fromOffset(83,40),Size=UDim2.fromOffset(180,19)})
+ Position=UDim2.fromOffset(190,13),Size=UDim2.fromOffset(56,28)})
+label(keyPanel,"SYSTÈME DE CLÉS",10,A.muted,true,{
+ Position=UDim2.fromOffset(85,41),Size=UDim2.fromOffset(180,18)})
 label(keyPanel,"ACCESS PANEL  ·  V1",10,A.muted,true,{
  Position=UDim2.new(1,-198,0,19),Size=UDim2.fromOffset(151,24),
  TextXAlignment=Enum.TextXAlignment.Right})
@@ -942,8 +942,9 @@ local entry=create("TextBox",rightGate,{BackgroundColor3=Color3.fromRGB(9,20,28)
  TextXAlignment=Enum.TextXAlignment.Left,Position=UDim2.fromOffset(5,68),
  Size=UDim2.fromOffset(399,43)})
 corner(entry,10);outline(entry,Color3.fromRGB(44,91,110),.8)
-create("UIPadding",entry,{PaddingLeft=UDim.new(0,42)})
-artwork(entry,"key",13,12,19,19,A.muted)
+-- TextBox placeholder in Roblox can overlap child icons on some executors.
+-- Keep the access field clean; only the left padding is applied.
+create("UIPadding",entry,{PaddingLeft=UDim.new(0,16)})
 bind(entry.Focused,function()
  local edge=entry:FindFirstChildOfClass("UIStroke")
  if edge then edge.Color=A.cyan end

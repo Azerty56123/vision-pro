@@ -390,7 +390,7 @@ fitToScreen=function()
   search.Position=UDim2.new(1,-209,0,9);search.Size=UDim2.fromOffset(128,31)
   titleGame.Visible=false
   pageTitle.Position=UDim2.fromOffset(14,4);pageDescription.Position=UDim2.fromOffset(14,30)
-  for _,b in pairs(navButtons) do b.Size=UDim2.fromOffset(100,33)end
+  for _,b in pairs(navButtons) do b.Size=UDim2.fromOffset(119,37)end
  else
   app.Size=UDim2.fromOffset(865,548)
   appScale.Scale=math.clamp(math.min(nums.zoom/100,(v.X-14)/865,(v.Y-14)/548),.45,1.15)
@@ -406,7 +406,7 @@ fitToScreen=function()
   search.Position=UDim2.new(1,-275,0,9);search.Size=UDim2.fromOffset(174,31)
   titleGame.Visible=true
   pageTitle.Position=UDim2.fromOffset(18,4);pageDescription.Position=UDim2.fromOffset(18,30)
-  for _,b in pairs(navButtons) do b.Size=UDim2.new(1,0,0,37)end
+  for _,b in pairs(navButtons) do b.Size=UDim2.new(1,0,0,39)end
  end
 end
 local function canvasHeight()
@@ -490,7 +490,7 @@ local function action(id)
 end
 local function controlInfo(parent,section,item)
  local f=row(parent,44)
- label(f,item.label,11,A.white,true,{Position=UDim2.fromOffset(12,5),
+ label(f,item.label,11,A.white,true,{Position=UDim2.fromOffset(13,5),
   Size=UDim2.new(1,-23,0,18)})
  local value=label(f,readValue(item.value),10,A.muted,false,{
   Position=UDim2.fromOffset(12,24),Size=UDim2.new(1,-22,0,15)})
@@ -602,7 +602,7 @@ local function controlDrop(parent,section,item)
  label(f,item.label,11,A.white,true,{Position=UDim2.fromOffset(12,6),
   Size=UDim2.new(.5,-12,0,21)})
  local chosen=1
- local drop=button(f,values[chosen].."  ⌄",{
+ local drop=button(f,values[chosen].."  v",{
   Position=UDim2.new(.47,0,0,10),
   Size=UDim2.new(.53,-11,0,30),BackgroundColor3=A.field,TextSize=10
  })
@@ -615,7 +615,7 @@ local function controlDrop(parent,section,item)
   local option=button(optFrame,v,{Size=UDim2.new(1,0,0,26),LayoutOrder=i,
    BackgroundColor3=A.field,TextSize=10})
   bind(option.Activated,function()
-   chosen=i;drop.Text=v.."  ⌄"
+   chosen=i;drop.Text=v.."  v"
    optFrame.Visible=false;f.Size=UDim2.new(1,0,0,59)
    if item.id=="fovPreset" then
     local preset=i==1 and 70 or i==2 and 90 or 60
@@ -640,12 +640,17 @@ local function card(which,definition)
   Padding=UDim.new(0,0)})
  local title=button(c,"",{BackgroundColor3=A.card,Size=UDim2.new(1,0,0,51)})
  corner(title,11)
- label(title,"≋",19,A.muted,true,{Position=UDim2.fromOffset(9,5),
-  Size=UDim2.fromOffset(29,29),TextXAlignment=Enum.TextXAlignment.Center})
- label(title,definition.title,12,A.white,true,{Position=UDim2.fromOffset(37,7),
-  Size=UDim2.new(1,-77,0,19)})
- local arrow=label(title,"⌄",16,A.muted,true,{
-  Position=UDim2.new(1,-27,0,10),Size=UDim2.fromOffset(19,21),
+ local headerIcon=create("Frame",title,{BackgroundColor3=A.cyanDark,BorderSizePixel=0,
+  Position=UDim2.fromOffset(12,12),Size=UDim2.fromOffset(27,27)})
+ corner(headerIcon,8)
+ for index=0,2 do
+  create("Frame",headerIcon,{BackgroundColor3=A.cyan,BorderSizePixel=0,
+   Position=UDim2.fromOffset(8,8+index*5),Size=UDim2.fromOffset(11,2)})
+ end
+ label(title,definition.title,12,A.white,true,{Position=UDim2.fromOffset(50,10),
+  Size=UDim2.new(1,-92,0,28)})
+ local arrow=label(title,"v",13,A.light,true,{
+  Position=UDim2.new(1,-31,0,13),Size=UDim2.fromOffset(22,22),
   TextXAlignment=Enum.TextXAlignment.Center})
  local inside=create("Frame",c,{BackgroundTransparency=1,Size=UDim2.new(1,0,0,0),
   AutomaticSize=Enum.AutomaticSize.Y,Visible=true})
@@ -724,10 +729,52 @@ render=function()
  end
  applySearch();canvasHeight()
 end
-local tabs={
- {"Overview","◫"},{"Game","⌘"},{"Player","♙"},
- {"Visuals","◉"},{"Settings","⚙"},{"About","☆"}
+-- Lightweight vector icons built from Roblox UI primitives: no missing Unicode glyphs.
+local function vectorLine(target,x1,y1,x2,y2,t,color)
+ local dx,dy=x2-x1,y2-y1
+ local len=math.sqrt(dx*dx+dy*dy)
+ if len<.01 then return end
+ local seg=create("Frame",target,{BackgroundColor3=color or A.light,BorderSizePixel=0,
+  AnchorPoint=Vector2.new(.5,.5),Position=UDim2.fromOffset((x1+x2)/2,(y1+y2)/2),
+  Size=UDim2.fromOffset(len,t or 2),
+  Rotation=math.deg(math.atan2(dy,dx))})
+ corner(seg,2)
+ return seg
+end
+local ICONS={
+ Overview={{{3,3},{10,3},{10,10},{3,10},{3,3}},{{14,3},{21,3},{21,10},{14,10},{14,3}},
+           {{3,14},{10,14},{10,21},{3,21},{3,14}},{{14,14},{21,14},{21,21},{14,21},{14,14}}},
+ Game={{{12,4},{12,20}},{{4,12},{20,12}},{{8,8},{16,16}},{{16,8},{8,16}}},
+ Player={{{5,20},{6,16},{9,14},{15,14},{18,16},{19,20}}},
+ Visuals={{{2,12},{6,7},{12,4},{18,7},{22,12},{18,17},{12,20},{6,17},{2,12}}},
+ Settings={{{12,2},{12,5}},{{12,19},{12,22}},{{2,12},{5,12}},{{19,12},{22,12}},
+           {{5,5},{7,7}},{{17,17},{19,19}},{{19,5},{17,7}},{{7,17},{5,19}}},
+ About={{{4,5},{20,5},{20,17},{14,17},{10,22},{10,17},{4,17},{4,5}}}
 }
+local function navIcon(buttonInstance,kind)
+ local canvasIcon=create("Frame",buttonInstance,{BackgroundTransparency=1,
+  Position=UDim2.fromOffset(12,7),Size=UDim2.fromOffset(24,24)})
+ if kind=="Player" then
+  local head=create("Frame",canvasIcon,{BackgroundTransparency=1,
+   Position=UDim2.fromOffset(8,3),Size=UDim2.fromOffset(8,8)})
+  corner(head,5);outline(head,A.light,1.7)
+ elseif kind=="Visuals" then
+  local eye=create("Frame",canvasIcon,{BackgroundColor3=A.light,
+   BorderSizePixel=0,Position=UDim2.fromOffset(9,9),Size=UDim2.fromOffset(6,6)})
+  corner(eye,4)
+ elseif kind=="Settings" then
+  local ring=create("Frame",canvasIcon,{BackgroundTransparency=1,
+   Position=UDim2.fromOffset(8,8),Size=UDim2.fromOffset(8,8)})
+  corner(ring,5);outline(ring,A.light,1.7)
+ end
+ for _,chain in ipairs(ICONS[kind] or {}) do
+  for i=2,#chain do
+   vectorLine(canvasIcon,chain[i-1][1],chain[i-1][2],chain[i][1],chain[i][2],1.6,A.light)
+  end
+ end
+end
+
+local tabs={"Overview","Game","Player","Visuals","Settings","About"}
 local function goPage(name)
  current=name
  pageTitle.Text=name
@@ -737,24 +784,34 @@ local function goPage(name)
  search.Text=""
  for n,b in pairs(navButtons)do
   local chosen=n==name
-  b.BackgroundColor3=chosen and A.row or A.side
-  b.TextColor3=chosen and A.white or A.muted
+  b.BackgroundColor3=chosen and A.field or A.side
+  local textLabel=b:FindFirstChild("NavTitle")
+  if textLabel then textLabel.TextColor3=chosen and A.white or A.muted end
   local bar=b:FindFirstChild("Selected")
-  if bar then bar.BackgroundColor3=chosen and A.cyan or A.side end
+  if bar then bar.BackgroundTransparency=chosen and 0 or 1 end
  end
  render()
 end
-for i,info in ipairs(tabs)do
- local name,symbol=info[1],info[2]
- local b=button(nav,"  "..symbol.."    "..name,{
-  BackgroundColor3=A.side,Size=UDim2.new(1,0,0,37),
-  LayoutOrder=i,TextXAlignment=Enum.TextXAlignment.Left,
-  TextColor3=A.muted
+for i,name in ipairs(tabs) do
+ local tabName=name
+ local b=button(nav,"",{BackgroundColor3=A.side,
+  Size=UDim2.new(1,0,0,39),LayoutOrder=i,TextXAlignment=Enum.TextXAlignment.Left})
+ corner(b,9)
+ create("Frame",b,{Name="Selected",BackgroundColor3=A.cyan,BackgroundTransparency=1,
+  BorderSizePixel=0,Position=UDim2.fromOffset(0,8),Size=UDim2.fromOffset(3,23)})
+ navIcon(b,name)
+ label(b,name,12,A.muted,true,{
+  Name="NavTitle",Position=UDim2.fromOffset(47,7),
+  Size=UDim2.new(1,-51,0,25)
  })
- create("Frame",b,{Name="Selected",BackgroundColor3=A.side,
-  BorderSizePixel=0,Position=UDim2.fromOffset(0,6),Size=UDim2.fromOffset(3,25)})
  navButtons[name]=b
- bind(b.Activated,function()goPage(name)end)
+ bind(b.MouseEnter,function()
+  if current~=tabName then b.BackgroundColor3=A.field end
+ end)
+ bind(b.MouseLeave,function()
+  if current~=tabName then b.BackgroundColor3=A.side end
+ end)
+ bind(b.Activated,function()goPage(tabName)end)
 end
 goPage("Overview")
 fitToScreen()

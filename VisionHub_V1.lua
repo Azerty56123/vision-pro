@@ -884,6 +884,9 @@ corner(innerHalo,20)
 create("UIStroke",innerHalo,{
  ApplyStrokeMode=Enum.ApplyStrokeMode.Border,
  Color=Color3.fromRGB(89,227,255),Thickness=6,Transparency=.78})
+-- Keep the halo dimensions in lockstep with the central panel on any viewport.
+local outerHaloScale=create("UIScale",outerHalo,{Scale=1})
+local innerHaloScale=create("UIScale",innerHalo,{Scale=1})
 local keyPanel=create("Frame",gateShade,{Name="KeySystem",
  BackgroundColor3=Color3.fromRGB(5,12,20),BorderSizePixel=0,
  Size=UDim2.fromOffset(662,438),
@@ -1104,11 +1107,17 @@ local function updateCamera()
    fitToScreen()
    if gateShade.Parent then
     local v=cam.ViewportSize
-    gateScale.Scale=math.clamp(math.min(1,(v.X-16)/662,(v.Y-16)/438),.28,1)
+    local glowZoom=math.clamp(math.min(1,(v.X-24)/670,(v.Y-24)/446),.28,1)
+    gateScale.Scale=glowZoom
+    outerHaloScale.Scale=glowZoom
+    innerHaloScale.Scale=glowZoom
    end
   end)
   local v=cam.ViewportSize
-  gateScale.Scale=math.clamp(math.min(1,(v.X-16)/662,(v.Y-16)/438),.28,1)
+  local glowZoom=math.clamp(math.min(1,(v.X-24)/670,(v.Y-24)/446),.28,1)
+    gateScale.Scale=glowZoom
+    outerHaloScale.Scale=glowZoom
+    innerHaloScale.Scale=glowZoom
  end
  fitToScreen()
 end

@@ -1,4 +1,4 @@
---[[ VISION HUB V1 • SENA-INSPIRED MULTI-GAME LOADER
+--[[ VISION WARE V1 • SENA-INSPIRED MULTI-GAME LOADER
   Original Vision design; Sena-like layout and Reverb-like access flow.
   Each supported game profile is defined in a separate games/*.lua file.
   Functional: key demo, optional HTTPS key verification, two-column cards,
@@ -369,6 +369,16 @@ corner(footer,15)
 create("Frame",footer,{BackgroundColor3=A.side,BorderSizePixel=0,
  Position=UDim2.fromOffset(0,0),Size=UDim2.new(1,0,0,15)})
 create("Frame",footer,{BackgroundColor3=A.border,BorderSizePixel=0,Size=UDim2.new(1,0,0,1)})
+-- Sena-like compact status pills on the footer (behind live labels).
+local function footerTag(pos,size)
+ local pill=create("Frame",footer,{BackgroundColor3=A.field,BorderSizePixel=0,
+  Position=pos,Size=size})
+ corner(pill,5)
+ return pill
+end
+footerTag(UDim2.new(1,-280,0,4),UDim2.fromOffset(165,22))
+footerTag(UDim2.new(1,-111,0,4),UDim2.fromOffset(57,22))
+footerTag(UDim2.new(1,-51,0,4),UDim2.fromOffset(44,22))
 footerMessage=label(footer,"●  SYSTEM READY",10,A.good,true,{
  Position=UDim2.fromOffset(13,4),Size=UDim2.fromOffset(320,24)})
 local footerExec=label(footer,"Executor: "..(type(identifyexecutor)=="function"
@@ -1082,7 +1092,7 @@ end)
 bind(helpButton.Activated,function()
  local url="https://github.com/Azerty56123/vision-pro"
  message(clipboard(url) and "Support GitHub link copied." or
-  "Support: Vision Hub GitHub repository.",false)
+  "Support: Vision Ware GitHub repository.",false)
 end)
 bind(exitGate.Activated,kill)
 log("Vision Ware loader initialized")

@@ -399,3 +399,367 @@ bind(lLay:GetPropertyChangedSignal("AbsoluteContentSize"),canvasHeight)
 bind(rLay:GetPropertyChangedSignal("AbsoluteContentSize"),canvasHeight)
 bind(left:GetPropertyChangedSignal("AbsoluteSize"),canvasHeight)
 bind(right:GetPropertyChangedSignal("AbsoluteSize"),canvasHeight)
+
+-- Components: compact Sena-like cards with controls in two columns.
+local filterRecords={}
+local tabSections={}
+local expandStates={}
+local function clearCards()
+ clearPageLinks()
+ liveLabels={}
+ filterRecords={}
+ for _,area in ipairs({left,right}) do
+  for _,ch in ipairs(area:GetChildren()) do
+   if not ch:IsA("UIListLayout") then ch:Destroy()end
+  end
+ end
+ canvas.CanvasPosition=Vector2.new(0,0)
+end
+local function row(parent,h)
+ local f=create("Frame",parent,{BackgroundColor3=A.row,BorderSizePixel=0,
+  Size=UDim2.new(1,0,0,h or 54)})
+ corner(f,5)
+ return f
+end
+local function register(section,f,title)
+ table.insert(section.items,{ui=f,text=string.lower(title)})
+end
+local function isTrue(id)
+ return stored[id]==true
+end
+local function action(id)
+ if id=="copyPlace" then
+  status(clipboard(game.PlaceId) and "Place ID copied" or "Place ID: "..game.PlaceId)
+ elseif id=="copyCoords" then
+  status(clipboard(pos()) and "Coordinates copied" or "XYZ: "..pos())
+ elseif id=="savePos1" or id=="savePos2" then
+  local i=id=="savePos1" and 1 or 2
+  local r=root()
+  if r then positions[i]=r.CFrame;status("Position "..i.." saved")
+  else status("Character unavailable")end
+ elseif id=="gotoPos1" or id=="gotoPos2" then
+  local i=id=="gotoPos1" and 1 or 2
+  if not positions[i] or not player.Character then
+   status("Save position "..i.." first");return
+  end
+  local ok=pcall(function()player.Character:PivotTo(positions[i])end)
+  status(ok and "Local return attempted" or "Return unavailable")
+ elseif id=="equipTool" then
+  local h=human()
+  local pack=player:FindFirstChildOfClass("Backpack")
+  local tool=pack and pack:FindFirstChildOfClass("Tool")
+  if not h or not tool then return status("No available Tool")end
+  local ok=pcall(function()h:EquipTool(tool)end)
+  status(ok and "Tool equip requested" or "Cannot equip Tool")
+ elseif id=="useTool" then
+  local ch=player.Character
+  local tool=ch and ch:FindFirstChildOfClass("Tool")
+  if not tool then return status("Equip a Tool first")end
+  local ok=pcall(function()tool:Activate()end)
+  status(ok and "Tool activation requested" or "Cannot activate Tool")
+ elseif id=="resetMovement" then
+  speed(16);jump(50);status("Movement reset to 16 / 50")
+  if render then render()end
+ elseif id=="recenter" then
+  app.Position=UDim2.fromScale(.5,.5);status("Window centered")
+ elseif id=="minimize" then openApp(false)
+ elseif id=="close" then kill()
+ else status("Unavailable command: "..tostring(id))end
+end
+local function controlInfo(parent,section,item)
+ local f=row(parent,44)
+ label(f,item.label,11,A.white,true,{Position=UDim2.fromOffset(12,5),
+  Size=UDim2.new(1,-23,0,18)})
+ local value=label(f,readValue(item.value),10,A.muted,false,{
+  Position=UDim2.fromOffset(12,24),Size=UDim2.new(1,-22,0,15)})
+ if type(item.value)=="string" and item.value:sub(1,1)=="@" then
+  table.insert(liveLabels,{id=item.value,target=value})
+ end
+ register(section,f,item.label.." "..tostring(item.value))
+end
+local function controlToggle(parent,section,item)
+ local f=row(parent,59)
+ label(f,item.label,11,A.white,true,{Position=UDim2.fromOffset(11,9),
+  Size=UDim2.new(1,-77,0,20)})
+ label(f,item.desc or "",9,A.muted,false,{Position=UDim2.fromOffset(11,31),
+  Size=UDim2.new(1,-77,0,17)})
+ local b=button(f,"",{Position=UDim2.new(1,-53,0,17),
+  Size=UDim2.fromOffset(41,23),
+  BackgroundColor3=isTrue(item.id) and A.cyanDark or A.border})
+ corner(b,12)
+ local dot=create("Frame",b,{BackgroundColor3=isTrue(item.id) and A.cyan or A.light,
+  BorderSizePixel=0,Position=UDim2.fromOffset(isTrue(item.id) and 21 or 4,4),
+  Size=UDim2.fromOffset(15,15)})
+ corner(dot,8)
+ bind(b.Activated,function()
+  stored[item.id]=not isTrue(item.id)
+  local state=isTrue(item.id)
+  b.BackgroundColor3=state and A.cyanDark or A.border
+  dot.BackgroundColor3=state and A.cyan or A.light
+  local goal=UDim2.fromOffset(state and 21 or 4,4)
+  if stored.animations then Tween:Create(dot,TweenInfo.new(.14),{Position=goal}):Play()
+  else dot.Position=goal end
+  if item.id=="bright" then applyBright(state)end
+  status(item.label.." : "..(state and "ON" or "OFF"))
+ end,true)
+ register(section,f,item.label.." "..(item.desc or ""))
+end
+local function controlSlider(parent,section,item)
+ local lo,hi=item.min or 0,item.max or 100
+ if hi<=lo then return end
+ local id=item.id
+ local f=row(parent,81)
+ label(f,item.label,11,A.white,true,{Position=UDim2.fromOffset(12,7),
+  Size=UDim2.new(1,-80,0,21)})
+ local val=label(f,tostring(nums[id] or lo),10,A.muted,true,{
+  Position=UDim2.new(1,-75,0,7),Size=UDim2.fromOffset(60,21),
+  TextXAlignment=Enum.TextXAlignment.Right})
+ local track=create("Frame",f,{BackgroundColor3=A.border,BorderSizePixel=0,
+  Position=UDim2.new(0,13,0,55),Size=UDim2.new(1,-26,0,6)})
+ corner(track,4)
+ local fill=create("Frame",track,{BackgroundColor3=A.light,BorderSizePixel=0,
+  Size=UDim2.fromScale(math.clamp(((nums[id] or lo)-lo)/(hi-lo),0,1),1)})
+ corner(fill,4)
+ local dot=create("Frame",track,{BackgroundColor3=A.white,BorderSizePixel=0,
+  AnchorPoint=Vector2.new(.5,.5),Position=UDim2.fromScale(fill.Size.X.Scale,.5),
+  Size=UDim2.fromOffset(11,11)})
+ corner(dot,6)
+ local zone=button(f,"",{BackgroundTransparency=1,
+  Position=UDim2.new(0,12,0,40),Size=UDim2.new(1,-24,0,34)})
+ local dragging=false
+ local touchInput
+ local function set(x)
+  local fraction=math.clamp((x-track.AbsolutePosition.X)/
+   math.max(1,track.AbsoluteSize.X),0,1)
+  local nextVal=math.floor(lo+fraction*(hi-lo)+.5)
+  if nums[id]~=nextVal then
+   nums[id]=nextVal
+   val.Text=tostring(nextVal)
+   fill.Size=UDim2.fromScale(fraction,1)
+   dot.Position=UDim2.fromScale(fraction,.5)
+   if id=="speed" then speed(nextVal)
+   elseif id=="jump" then jump(nextVal)
+   elseif id=="fov" then fov(nextVal)
+   elseif id=="zoom" then fitToScreen()
+   end
+  end
+ end
+ bind(zone.InputBegan,function(i)
+  if i.UserInputType==Enum.UserInputType.MouseButton1 or i.UserInputType==Enum.UserInputType.Touch then
+   dragging=true;touchInput=i;set(i.Position.X)
+  end
+ end,true)
+ bind(UIS.InputChanged,function(i)
+  if dragging and (i.UserInputType==Enum.UserInputType.MouseMovement
+    or (i.UserInputType==Enum.UserInputType.Touch and i==touchInput)) then
+   set(i.Position.X)
+  end
+ end,true)
+ bind(UIS.InputEnded,function(i)
+  if i==touchInput or (touchInput and touchInput.UserInputType==Enum.UserInputType.MouseButton1
+   and i.UserInputType==Enum.UserInputType.MouseButton1) then
+   dragging=false;touchInput=nil
+  end
+ end,true)
+ register(section,f,item.label)
+end
+local function controlButton(parent,section,item)
+ local b=button(parent,item.label,{Size=UDim2.new(1,0,0,35),
+  BackgroundColor3=A.field})
+ outline(b,A.border,.6)
+ bind(b.Activated,function()
+  local ok,err=pcall(action,item.id)
+  if not ok then status("Action error: "..tostring(err))end
+ end,true)
+ register(section,b,item.label)
+end
+local function controlDrop(parent,section,item)
+ local values=item.values or {}
+ if #values==0 then return end
+ local f=row(parent,59)
+ label(f,item.label,11,A.white,true,{Position=UDim2.fromOffset(12,6),
+  Size=UDim2.new(.5,-12,0,21)})
+ local chosen=1
+ local drop=button(f,values[chosen].."  ⌄",{
+  Position=UDim2.new(.47,0,0,10),
+  Size=UDim2.new(.53,-11,0,30),BackgroundColor3=A.field,TextSize=10
+ })
+ outline(drop,A.border,.8)
+ local optFrame=create("Frame",f,{BackgroundTransparency=1,
+  Size=UDim2.new(1,-20,0,0),Position=UDim2.fromOffset(10,54),Visible=false})
+ local stack=create("UIListLayout",optFrame,{SortOrder=Enum.SortOrder.LayoutOrder,
+  Padding=UDim.new(0,3)})
+ for i,v in ipairs(values) do
+  local option=button(optFrame,v,{Size=UDim2.new(1,0,0,26),LayoutOrder=i,
+   BackgroundColor3=A.field,TextSize=10})
+  bind(option.Activated,function()
+   chosen=i;drop.Text=v.."  ⌄"
+   optFrame.Visible=false;f.Size=UDim2.new(1,0,0,59)
+   if item.id=="fovPreset" then
+    local preset=i==1 and 70 or i==2 and 90 or 60
+    fov(preset)
+    status("FOV preset: "..preset)
+   end
+  end,true)
+ end
+ bind(drop.Activated,function()
+  optFrame.Visible=not optFrame.Visible
+  f.Size=UDim2.new(1,0,0,optFrame.Visible and (61+#values*29) or 59)
+  if optFrame.Visible then optFrame.Size=UDim2.new(1,-20,0,#values*29)end
+ end,true)
+ register(section,f,item.label)
+end
+local function card(which,definition)
+ local host=which=="right" and right or left
+ local c=create("Frame",host,{BackgroundColor3=A.card,BorderSizePixel=0,
+  Size=UDim2.new(1,0,0,0),AutomaticSize=Enum.AutomaticSize.Y})
+ corner(c,7);outline(c,A.border,.7)
+ local lay=create("UIListLayout",c,{SortOrder=Enum.SortOrder.LayoutOrder,
+  Padding=UDim.new(0,0)})
+ local title=button(c,"",{BackgroundColor3=A.card,Size=UDim2.new(1,0,0,44)})
+ label(title,"≋",19,A.muted,true,{Position=UDim2.fromOffset(9,5),
+  Size=UDim2.fromOffset(29,29),TextXAlignment=Enum.TextXAlignment.Center})
+ label(title,definition.title,12,A.white,true,{Position=UDim2.fromOffset(37,7),
+  Size=UDim2.new(1,-77,0,19)})
+ local arrow=label(title,"⌄",16,A.muted,true,{
+  Position=UDim2.new(1,-27,0,10),Size=UDim2.fromOffset(19,21),
+  TextXAlignment=Enum.TextXAlignment.Center})
+ local inside=create("Frame",c,{BackgroundTransparency=1,Size=UDim2.new(1,0,0,0),
+  AutomaticSize=Enum.AutomaticSize.Y,Visible=true})
+ create("UIPadding",inside,{PaddingLeft=UDim.new(0,8),
+  PaddingRight=UDim.new(0,8),PaddingBottom=UDim.new(0,9),
+  PaddingTop=UDim.new(0,2)})
+ create("UIListLayout",inside,{SortOrder=Enum.SortOrder.LayoutOrder,
+  Padding=UDim.new(0,6)})
+ local record={card=c,title=string.lower(definition.title.." "..(definition.subtitle or "")),
+  items={},body=inside}
+ table.insert(filterRecords,record)
+ bind(title.Activated,function()
+  inside.Visible=not inside.Visible
+  arrow.Rotation=inside.Visible and 0 or 180
+ end,true)
+ for _,item in ipairs(definition.items or {}) do
+  if item.type=="info" then controlInfo(inside,record,item)
+  elseif item.type=="toggle" then controlToggle(inside,record,item)
+  elseif item.type=="slider" then controlSlider(inside,record,item)
+  elseif item.type=="dropdown" then controlDrop(inside,record,item)
+  elseif item.type=="button" then controlButton(inside,record,item)
+  end
+ end
+ return c
+end
+local function applySearch()
+ if not search or not search.Parent then return end
+ local query=string.lower(search.Text or ""):match("^%s*(.-)%s*$")
+ for _,g in ipairs(filterRecords) do
+  local heading=query=="" or g.title:find(query,1,true)~=nil
+  local matching=false
+  for _,item in ipairs(g.items) do
+   local show=heading or item.text:find(query,1,true)~=nil
+   item.ui.Visible=show
+   if show then matching=true end
+  end
+  g.card.Visible=heading or matching
+  if query~="" and g.card.Visible then g.body.Visible=true end
+ end
+ canvasHeight()
+end
+bind(search:GetPropertyChangedSignal("Text"),applySearch)
+render=function()
+ if closed then return end
+ clearCards()
+ local count=0
+ for _,def in ipairs(allSections) do
+  if def.tab==current then
+   count=count+1
+   card(def.column,def)
+  end
+ end
+ if current=="About" then
+  count=count+1
+  card("left",{title="Vision Hub V1",subtitle="Modules et design",items={
+   {type="info",label="Version",value="1.0"},
+   {type="info",label="UI Theme",value="Sena-inspired"},
+   {type="info",label="Key Screen",value="Reverb-inspired"},
+   {type="info",label="Game Profile",value="@profile"},
+   {type="button",id="copyPlace",label="Copy Game ID"}
+  }})
+  card("right",{title="Modules",subtitle="Dossiers séparés",items={
+   {type="info",label="Detected",value=selected.id},
+   {type="info",label="Universal",value="games/universal.lua"},
+   {type="info",label="Game-specific",value="games/"..profileId..".lua"},
+   {type="info",label="Real Auto Farm",value="Not configured"}
+  }})
+ end
+ if count==0 then
+  card("left",{title="No specialized module",subtitle="Game profile in development",items={
+   {type="info",label="Game",value="@game"},
+   {type="info",label="Detected profile",value="@profile"},
+   {type="info",label="Place ID",value="@place"},
+   {type="button",id="copyPlace",label="Copy Place ID"}
+  }})
+ end
+ applySearch();canvasHeight()
+end
+local tabs={
+ {"Overview","◫"},{"Game","⌘"},{"Player","♙"},
+ {"Visuals","◉"},{"Settings","⚙"},{"About","☆"}
+}
+local function goPage(name)
+ current=name
+ pageTitle.Text=name
+ pageDescription.Text=name=="Game" and selected.description or
+  (name=="Overview" and "Session overview & quick controls" or
+  (name=="About" and "Community / project information" or "Player preferences"))
+ search.Text=""
+ for n,b in pairs(navButtons)do
+  local chosen=n==name
+  b.BackgroundColor3=chosen and A.row or A.side
+  b.TextColor3=chosen and A.white or A.muted
+  local bar=b:FindFirstChild("Selected")
+  if bar then bar.BackgroundColor3=chosen and A.cyan or A.side end
+ end
+ render()
+end
+for i,info in ipairs(tabs)do
+ local name,symbol=info[1],info[2]
+ local b=button(nav,"  "..symbol.."    "..name,{
+  BackgroundColor3=A.side,Size=UDim2.new(1,0,0,37),
+  LayoutOrder=i,TextXAlignment=Enum.TextXAlignment.Left,
+  TextColor3=A.muted
+ })
+ create("Frame",b,{Name="Selected",BackgroundColor3=A.side,
+  BorderSizePixel=0,Position=UDim2.fromOffset(0,6),Size=UDim2.fromOffset(3,25)})
+ navButtons[name]=b
+ bind(b.Activated,function()goPage(name)end)
+end
+goPage("Overview")
+fitToScreen()
+bind(player.CharacterAdded,function(ch)
+ task.defer(function()
+  if closed then return end
+  local h=ch:WaitForChild("Humanoid",7)
+  if not h or closed then return end
+  if nums.speed~=16 then speed(nums.speed)end
+  if nums.jump~=50 then jump(nums.jump)end
+ end)
+end)
+bind(Run.Heartbeat,function(dt)
+ if closed then return end
+ fpsElapsed=fpsElapsed+dt;frames=frames+1;updateElapsed=updateElapsed+dt
+ if fpsElapsed>.7 then fps=math.floor(frames/fpsElapsed+.5);frames=0;fpsElapsed=0 end
+ if updateElapsed>.45 then
+  updateElapsed=0
+  for _,item in ipairs(liveLabels) do
+   if item.target.Parent then item.target.Text=readValue(item.id)end
+  end
+  footerFps.Text=tostring(fps).." FPS"
+  local parts={}
+  if stored.fps then table.insert(parts,"FPS "..fps)end
+  if stored.ping then table.insert(parts,"PING "..readValue("@ping"))end
+  if stored.players then table.insert(parts,"PLAYERS "..#Players:GetPlayers())end
+  if stored.xyz then table.insert(parts,"XYZ "..pos())end
+  overlay.Visible=#parts>0
+  overlayText.Text=table.concat(parts,"  •  ")
+ end
+end)

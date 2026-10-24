@@ -859,30 +859,26 @@ local keyPanel=create("Frame",gateShade,{Name="KeySystem",
  BackgroundColor3=Color3.fromRGB(5,12,20),BorderSizePixel=0,
  Size=UDim2.fromOffset(662,438),
  AnchorPoint=Vector2.new(.5,.5),Position=UDim2.fromScale(.5,.5)})
-corner(keyPanel,20);outline(keyPanel,Color3.fromRGB(37,159,192),1.1)
+corner(keyPanel,18);outline(keyPanel,Color3.fromRGB(37,159,192),.9)
 local gateScale=create("UIScale",keyPanel,{Scale=1})
 create("UIGradient",keyPanel,{Rotation=100,Color=ColorSequence.new({
  ColorSequenceKeypoint.new(0,Color3.fromRGB(7,19,29)),
  ColorSequenceKeypoint.new(.55,Color3.fromRGB(5,10,18)),
  ColorSequenceKeypoint.new(1,Color3.fromRGB(5,13,20))})})
 -- upper cyan accent and top brand
+-- Shared cyan V insignia, with subtle ring, in both hub and access screen.
 local keyAccent=create("Frame",keyPanel,{BackgroundColor3=A.cyan,BorderSizePixel=0,
- Position=UDim2.fromOffset(17,16),Size=UDim2.fromOffset(4,40)})
-corner(keyAccent,3)
-local emblem=create("Frame",keyPanel,{BackgroundColor3=A.cyanDark,
- BorderSizePixel=0,Position=UDim2.fromOffset(26,14),
- Size=UDim2.fromOffset(35,35)})
-corner(emblem,12);outline(emblem,A.cyan,1.1)
-label(emblem,"V",20,A.cyan,true,{Size=UDim2.fromScale(1,1),
- TextXAlignment=Enum.TextXAlignment.Center})
-label(keyPanel,"VISION",19,A.white,true,{Position=UDim2.fromOffset(71,12),
- Size=UDim2.fromOffset(86,28)})
-label(keyPanel,"HUB",19,A.cyan,true,{Position=UDim2.fromOffset(159,12),
- Size=UDim2.fromOffset(63,28)})
-label(keyPanel,"KEY SYSTEM",10,A.muted,true,{Position=UDim2.fromOffset(72,39),
- Size=UDim2.fromOffset(180,20)})
-label(keyPanel,"ACCESS PANEL · v1.0",10,A.muted,true,{
- Position=UDim2.new(1,-187,0,18),Size=UDim2.fromOffset(150,25),
+ Position=UDim2.fromOffset(15,17),Size=UDim2.fromOffset(3,39)})
+corner(keyAccent,2)
+monogram(keyPanel,26,14,42)
+label(keyPanel,"VISION",19,A.white,true,{
+ Position=UDim2.fromOffset(82,13),Size=UDim2.fromOffset(88,28)})
+label(keyPanel,"HUB",19,A.cyan,true,{
+ Position=UDim2.fromOffset(178,13),Size=UDim2.fromOffset(55,28)})
+label(keyPanel,"KEY SYSTEM",10,A.muted,true,{
+ Position=UDim2.fromOffset(83,40),Size=UDim2.fromOffset(180,19)})
+label(keyPanel,"ACCESS PANEL  ·  V1",10,A.muted,true,{
+ Position=UDim2.new(1,-198,0,19),Size=UDim2.fromOffset(151,24),
  TextXAlignment=Enum.TextXAlignment.Right})
 local exitGate=button(keyPanel,"×",{
  Position=UDim2.new(1,-44,0,14),Size=UDim2.fromOffset(29,29),
@@ -895,9 +891,10 @@ create("Frame",keyPanel,{BackgroundColor3=A.cyan,BorderSizePixel=0,
 local logPanel=create("Frame",keyPanel,{BackgroundColor3=Color3.fromRGB(7,17,23),
  BorderSizePixel=0,Position=UDim2.fromOffset(17,85),
  Size=UDim2.fromOffset(199,309)})
-corner(logPanel,14);outline(logPanel,Color3.fromRGB(33,80,98),.9)
-label(logPanel,"/  LOADER LOG",11,A.cyan,true,{
- Position=UDim2.fromOffset(10,11),Size=UDim2.fromOffset(170,21)})
+corner(logPanel,12);outline(logPanel,Color3.fromRGB(33,80,98),.8)
+artwork(logPanel,"menu",12,14,16,16,A.cyan)
+label(logPanel,"LOADER LOG",11,A.cyan,true,{
+ Position=UDim2.fromOffset(35,11),Size=UDim2.fromOffset(148,22)})
 create("Frame",logPanel,{BackgroundColor3=Color3.fromRGB(24,65,79),
  BorderSizePixel=0,Position=UDim2.fromOffset(12,42),
  Size=UDim2.new(1,-24,0,1)})
@@ -921,7 +918,7 @@ local function log(message)
   })
  end
 end
-label(logPanel,"●  LOCAL MODE",9,A.good,true,{
+label(logPanel,"●  "..(configured() and "SERVICE CONNECTED" or "DEVELOPMENT MODE"),9,A.good,true,{
  Position=UDim2.new(0,13,1,-30),Size=UDim2.new(1,-26,0,19)})
 -- right-side credentials and action buttons.
 local rightGate=create("Frame",keyPanel,{BackgroundTransparency=1,
@@ -936,7 +933,7 @@ local entry=create("TextBox",rightGate,{BackgroundColor3=Color3.fromRGB(9,20,28)
  PlaceholderColor3=A.muted,Font=Enum.Font.Gotham,TextSize=12,
  TextXAlignment=Enum.TextXAlignment.Left,Position=UDim2.fromOffset(5,68),
  Size=UDim2.fromOffset(399,43)})
-corner(entry,12);outline(entry,Color3.fromRGB(44,91,110),.95)
+corner(entry,10);outline(entry,Color3.fromRGB(44,91,110),.8)
 create("UIPadding",entry,{PaddingLeft=UDim.new(0,13)})
 bind(entry.Focused,function()
  local edge=entry:FindFirstChildOfClass("UIStroke")
@@ -950,20 +947,20 @@ local localStatus=label(rightGate,"Ready to verify",10,A.light,false,{
  Position=UDim2.fromOffset(7,120),Size=UDim2.fromOffset(390,20)})
 local enterButton=button(rightGate,"CONTINUE",{
  Position=UDim2.fromOffset(5,153),Size=UDim2.fromOffset(399,44),
- BackgroundColor3=Color3.fromRGB(12,37,53),Font=Enum.Font.GothamBold})
-corner(enterButton,11);outline(enterButton,Color3.fromRGB(43,111,138),.9)
+ BackgroundColor3=Color3.fromRGB(13,46,65),Font=Enum.Font.GothamBold,TextSize=12})
+corner(enterButton,10);outline(enterButton,Color3.fromRGB(43,111,138),.8)
 local generateButton=button(rightGate,"GET FREE KEY",{
  Position=UDim2.fromOffset(5,209),Size=UDim2.fromOffset(399,44),
- BackgroundColor3=Color3.fromRGB(12,45,63),Font=Enum.Font.GothamBold})
-corner(generateButton,11);outline(generateButton,Color3.fromRGB(45,119,148),.9)
+ BackgroundColor3=Color3.fromRGB(15,55,76),Font=Enum.Font.GothamBold,TextSize=12})
+corner(generateButton,10);outline(generateButton,Color3.fromRGB(45,119,148),.8)
+-- High-contrast blue CTA. Gradients attached to TextButtons also tint the text;
+-- solid fill is deliberate so the label remains readable.
 local helpButton=button(rightGate,"HELP / SUPPORT",{
  Position=UDim2.fromOffset(5,265),Size=UDim2.fromOffset(399,44),
- BackgroundColor3=Color3.fromRGB(13,145,200),Font=Enum.Font.GothamBold})
-corner(helpButton,11)
-create("UIGradient",helpButton,{Rotation=0,Color=ColorSequence.new({
- ColorSequenceKeypoint.new(0,Color3.fromRGB(7,149,207)),
- ColorSequenceKeypoint.new(1,Color3.fromRGB(26,210,240))
-})})
+ BackgroundColor3=Color3.fromRGB(10,158,217),Font=Enum.Font.GothamBold,
+ TextColor3=Color3.fromRGB(246,251,255),TextSize=12})
+corner(helpButton,10)
+outline(helpButton,Color3.fromRGB(32,201,242),.9)
 create("Frame",keyPanel,{BackgroundColor3=A.border,BorderSizePixel=0,
  Position=UDim2.new(0,17,1,-35),Size=UDim2.new(1,-34,0,1)})
 label(keyPanel,"●  "..(configured() and "KEY SERVER CONFIGURED" or "LOCAL TEST MODE").."  •  V1",9,A.good,true,{

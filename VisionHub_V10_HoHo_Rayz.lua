@@ -43,6 +43,7 @@ local showingFPS,showingXYZ,showingPlayerCount,showFullbright,animateToggles=fal
 local fpsValue,fpsFrames,fpsTimer,drawTimer=0,0,0,0
 local originalFOV
 local currentFOV=70
+local onSmallScreen=false
 local savedPosition
 local keyBusy=false
 local function serverConfigured()
@@ -285,7 +286,62 @@ local function adjust()
     if gone then return end
     local cam=workspace.CurrentCamera
     local size=cam and cam.ViewportSize or Vector2.new(1280,720)
-    mainScale.Scale=math.clamp(math.min(zoom,(size.X-16)/852,(size.Y-16)/525),.27,1.15)
+    onSmallScreen=size.X<680
+    if onSmallScreen then
+        mainWindow.Size=UDim2.fromOffset(440,640)
+        mainScale.Scale=math.clamp(math.min(zoom,(size.X-12)/440,(size.Y-12)/640),.32,1)
+        emblem.Visible=false
+        emblemBase.Visible=false
+        sideBrand.Visible=false
+        sideStat.Visible=false
+        side.Position=UDim2.fromOffset(0,43)
+        side.Size=UDim2.new(1,0,0,44)
+        nav.Position=UDim2.fromOffset(7,5)
+        nav.Size=UDim2.new(1,-14,0,33)
+        nav.ScrollingDirection=Enum.ScrollingDirection.X
+        nav.AutomaticCanvasSize=Enum.AutomaticSize.X
+        nav:FindFirstChildOfClass('UIListLayout').FillDirection=Enum.FillDirection.Horizontal
+        content.Position=UDim2.fromOffset(0,88)
+        content.Size=UDim2.new(1,0,1,-118)
+        cols:FindFirstChildOfClass('UIListLayout').FillDirection=Enum.FillDirection.Vertical
+        left.Size=UDim2.new(1,-6,0,0)
+        right.Size=UDim2.new(1,-6,0,0)
+        title.Position=UDim2.fromOffset(15,7)
+        title.Size=UDim2.fromOffset(175,27)
+        subtitle.Position=UDim2.fromOffset(15,34)
+        search.Position=UDim2.new(1,-173,0,14)
+        search.Size=UDim2.fromOffset(160,29)
+        for _,tab in pairs(navButtons or {}) do
+            tab.Size=UDim2.fromOffset(93,29)
+        end
+    else
+        mainWindow.Size=UDim2.fromOffset(852,525)
+        mainScale.Scale=math.clamp(math.min(zoom,(size.X-16)/852,(size.Y-16)/525),.4,1.15)
+        emblem.Visible=true
+        emblemBase.Visible=true
+        sideBrand.Visible=true
+        sideStat.Visible=true
+        side.Position=UDim2.fromOffset(0,43)
+        side.Size=UDim2.new(0,178,1,-73)
+        nav.Position=UDim2.fromOffset(10,128)
+        nav.Size=UDim2.new(1,-20,1,-192)
+        nav.ScrollingDirection=Enum.ScrollingDirection.Y
+        nav.AutomaticCanvasSize=Enum.AutomaticSize.Y
+        nav:FindFirstChildOfClass('UIListLayout').FillDirection=Enum.FillDirection.Vertical
+        content.Position=UDim2.fromOffset(178,43)
+        content.Size=UDim2.new(1,-178,1,-73)
+        cols:FindFirstChildOfClass('UIListLayout').FillDirection=Enum.FillDirection.Horizontal
+        left.Size=UDim2.new(.61,-6,0,0)
+        right.Size=UDim2.new(.39,-6,0,0)
+        title.Position=UDim2.fromOffset(18,7)
+        title.Size=UDim2.fromOffset(250,27)
+        subtitle.Position=UDim2.fromOffset(18,34)
+        search.Position=UDim2.new(1,-195,0,15)
+        search.Size=UDim2.fromOffset(178,29)
+        for _,tab in pairs(navButtons or {}) do
+            tab.Size=UDim2.new(1,0,0,29)
+        end
+    end
 end
 adjust()
 connect(header.InputBegan,function(input)
@@ -298,8 +354,8 @@ connect(UIS.InputChanged,function(input)
     if not moving then return end
     if input.UserInputType==Enum.UserInputType.MouseMovement or input==touchID then
         local v=workspace.CurrentCamera and workspace.CurrentCamera.ViewportSize or Vector2.new(1280,720)
-        local hx=426*mainScale.Scale
-        local hy=262.5*mainScale.Scale
+        local hx=(onSmallScreen and 220 or 426)*mainScale.Scale
+        local hy=(onSmallScreen and 320 or 262.5)*mainScale.Scale
         local delta=input.Position-dragStart
         mainWindow.Position=UDim2.fromOffset(
             math.clamp(centerStart.X+delta.X,math.min(hx,v.X/2),math.max(v.X-hx,v.X/2)),
@@ -515,12 +571,14 @@ connect(search:GetPropertyChangedSignal('Text'),filter)
 local function updateCanvas()
     task.defer(function()
         if not gone and scroll.Parent then
-            scroll.CanvasSize=UDim2.fromOffset(0,math.max(left.AbsoluteSize.Y,right.AbsoluteSize.Y)+20)
+            scroll.CanvasSize=UDim2.fromOffset(0,(onSmallScreen and (left.AbsoluteSize.Y+right.AbsoluteSize.Y+20) or math.max(left.AbsoluteSize.Y,right.AbsoluteSize.Y))+20)
         end
     end)
 end
 connect(leftLayout:GetPropertyChangedSignal('AbsoluteContentSize'),updateCanvas)
 connect(rightLayout:GetPropertyChangedSignal('AbsoluteContentSize'),updateCanvas)
+connect(left:GetPropertyChangedSignal('AbsoluteSize'),updateCanvas)
+connect(right:GetPropertyChangedSignal('AbsoluteSize'),updateCanvas)
 
 local function copied(str,titleValue)
     status(pasteValue(str) and titleValue..' copié' or titleValue..' : '..str)

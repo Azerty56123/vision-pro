@@ -746,6 +746,60 @@ renderPage = function()
     elseif currentPage == "Divers" then
         local a = section(left, "Outils", "Fonctions d'interface")
         addAction(a, "Afficher la page d'accueil", function() changePage("Accueil")
+ end, true)
+        addAction(a, "Masquer le hub", function() showWindow(false) end)
+        local b = section(right, "Informations", "Environnement")
+        infoLine(b, "Joueur", player.Name)
+        infoLine(b, "Place ID", tostring(game.PlaceId))
+        infoLine(b, "Game ID", tostring(game.GameId))
+        infoLine(b, "Environnement", runtimeName)
+    elseif currentPage == "Paramètres" then
+        local a = section(left, "Interface", "Options locales")
+        addToggle(a, "Animations", "Transitions des interrupteurs", "UI.Animations", true)
+        addToggle(a, "Notifications", "Messages dans la barre d'état", "UI.Notifications", true)
+        addDropdown(a, "Taille de l'interface", "UI.Size", {"Normale", "Compacte", "Grande"})
+        local b = section(right, "Fenêtre", "Actions disponibles")
+        addAction(b, "Recentrer la fenêtre", function()
+            window.Position = UDim2.fromScale(0.5, 0.5)
+            feedback("Fenêtre recentrée")
+        end, true)
+        addAction(b, "Masquer l'interface", function() showWindow(false) end)
+        addAction(b, "Quitter Vision Hub", function() stop() end)
+    end
+end
+
+-- Options réellement reliées au fonctionnement de cette UI.
+ACTIONS["UI.Animations"] = function(v) animations = v; feedback("Animations " .. (v and "activées" or "désactivées")) end
+ACTIONS["UI.Notifications"] = function(v)
+    showNotifications = v
+    if v then feedback("Notifications activées") end
+end
+ACTIONS["UI.Size"] = function(v)
+    uiZoom = (v == "Compacte" and 0.87) or (v == "Grande" and 1.08) or 1
+    refreshLayout()
+end
+
+bind(search:GetPropertyChangedSignal("Text"), function()
+    local query = string.lower(search.Text):match("^%s*(.-)%s*$")
+    local found = false
+    for _, group in ipairs(sections) do
+        local headingMatch = query == "" or string.find(group.text, query, 1, true) ~= nil
+        local count = 0
+        for _, item in ipairs(group.rows) do
+            if item.ui and item.ui.Parent then
+                local matched = headingMatch or string.find(item.text, query, 1, true) ~= nil
+                item.ui.Visible = matched
+                if matched then count = count + 1 end
+            end
+        end
+        local show = headingMatch or count > 0
+        group.ui.Visible = show
+        if show then found = true end
+    end
+    emptyResults.Visible = query ~= "" and not found
+end)
+
+changePage("Accueil")
 reopen.Visible = false
 
 
@@ -928,60 +982,6 @@ bindGateViewport()
 
 -- Gate server-side : l'accès normal requiert une réponse {ok=true}.
 -- Les actions des onglets sont encore des maquettes, comme dans V5.
- end, true)
-        addAction(a, "Masquer le hub", function() showWindow(false) end)
-        local b = section(right, "Informations", "Environnement")
-        infoLine(b, "Joueur", player.Name)
-        infoLine(b, "Place ID", tostring(game.PlaceId))
-        infoLine(b, "Game ID", tostring(game.GameId))
-        infoLine(b, "Environnement", runtimeName)
-    elseif currentPage == "Paramètres" then
-        local a = section(left, "Interface", "Options locales")
-        addToggle(a, "Animations", "Transitions des interrupteurs", "UI.Animations", true)
-        addToggle(a, "Notifications", "Messages dans la barre d'état", "UI.Notifications", true)
-        addDropdown(a, "Taille de l'interface", "UI.Size", {"Normale", "Compacte", "Grande"})
-        local b = section(right, "Fenêtre", "Actions disponibles")
-        addAction(b, "Recentrer la fenêtre", function()
-            window.Position = UDim2.fromScale(0.5, 0.5)
-            feedback("Fenêtre recentrée")
-        end, true)
-        addAction(b, "Masquer l'interface", function() showWindow(false) end)
-        addAction(b, "Quitter Vision Hub", function() stop() end)
-    end
-end
-
--- Options réellement reliées au fonctionnement de cette UI.
-ACTIONS["UI.Animations"] = function(v) animations = v; feedback("Animations " .. (v and "activées" or "désactivées")) end
-ACTIONS["UI.Notifications"] = function(v)
-    showNotifications = v
-    if v then feedback("Notifications activées") end
-end
-ACTIONS["UI.Size"] = function(v)
-    uiZoom = (v == "Compacte" and 0.87) or (v == "Grande" and 1.08) or 1
-    refreshLayout()
-end
-
-bind(search:GetPropertyChangedSignal("Text"), function()
-    local query = string.lower(search.Text):match("^%s*(.-)%s*$")
-    local found = false
-    for _, group in ipairs(sections) do
-        local headingMatch = query == "" or string.find(group.text, query, 1, true) ~= nil
-        local count = 0
-        for _, item in ipairs(group.rows) do
-            if item.ui and item.ui.Parent then
-                local matched = headingMatch or string.find(item.text, query, 1, true) ~= nil
-                item.ui.Visible = matched
-                if matched then count = count + 1 end
-            end
-        end
-        local show = headingMatch or count > 0
-        group.ui.Visible = show
-        if show then found = true end
-    end
-    emptyResults.Visible = query ~= "" and not found
-end)
-
-changePage("Accueil")
 
 -- Relancer le script enlève l'ancienne fenêtre et déconnecte ses événements.
 -- Utilisation : interface seulement, sans actions de jeu ou contournement.

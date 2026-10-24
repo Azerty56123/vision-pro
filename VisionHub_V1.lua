@@ -12,6 +12,7 @@ local Run=game:GetService("RunService")
 local Lighting=game:GetService("Lighting")
 local Http=game:GetService("HttpService")
 local Tween=game:GetService("TweenService")
+local Marketplace=game:GetService("MarketplaceService")
 local player=Players.LocalPlayer
 if not player then return end
 local pg=player:FindFirstChildOfClass("PlayerGui") or player:WaitForChild("PlayerGui",10)
@@ -19,6 +20,13 @@ if not pg then return end
 local NAME="VisionHubV1_Sena"
 local BASE="https://raw.githubusercontent.com/Azerty56123/vision-pro/main/"
 local TEST_KEY="VISION-TEST-ILLIMITE-2026"
+local GAME_TITLE=game.Name
+local okName,placeInfo=pcall(function()
+ return Marketplace:GetProductInfo(game.PlaceId,Enum.InfoType.Asset)
+end)
+if okName and type(placeInfo)=="table" and type(placeInfo.Name)=="string" and placeInfo.Name~="" then
+ GAME_TITLE=placeInfo.Name
+end
 local KEY_API="https://vision-pro-beta-v4.YOUR-SUBDOMAIN.workers.dev"
 for _,name in ipairs({NAME,"VisionHubV1_Design12","VisionHubV11_Design12","VisionHubV10"}) do
  local old=pg:FindFirstChild(name)
@@ -113,7 +121,7 @@ local function detect()
  if id==142823291 then return "mm2" end
  if id==286090429 then return "arsenal" end
  if id==292439477 then return "phantom_forces" end
- local name=string.lower(game.Name or "")
+ local name=string.lower(GAME_TITLE or game.Name or "")
  if name:find("tycoon",1,true) then return "tycoon" end
  if name:find("obby",1,true) or name:find("parkour",1,true) then return "obby" end
  if name:find("war",1,true) or name:find("army",1,true)
@@ -200,7 +208,7 @@ local function pos()
  return string.format("%.1f, %.1f, %.1f",p.X,p.Y,p.Z)
 end
 local function readValue(key)
- if key=="@game" then return game.Name end
+ if key=="@game" then return GAME_TITLE end
  if key=="@profile" then return selected.name end
  if key=="@players" then return tostring(#Players:GetPlayers())end
  if key=="@place" then return tostring(game.PlaceId)end

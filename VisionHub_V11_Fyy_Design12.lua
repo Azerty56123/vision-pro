@@ -28,11 +28,12 @@ local sessions,pages={},{}
 local dead,unlocked=false,false
 local screenZoom=1
 local shown="Accueil"
-local effects={fps=false,xyz=false,players=false,bright=false,animations=true}
-local vals={fov=70,zoom=100}
+local effects={fps=false,xyz=false,players=false,ping=false,bright=false,animations=true}
+local vals={fov=70,zoom=100,speed=16,jump=50}
 local startingLight={Brightness=Lighting.Brightness,ClockTime=Lighting.ClockTime,
 FogEnd=Lighting.FogEnd,Ambient=Lighting.Ambient,OutdoorAmbient=Lighting.OutdoorAmbient}
 local originalFOV
+local originalHumanoids=setmetatable({}, {__mode="k"})
 local frames,timer,fps=0,0,0
 local uiTimer=0
 local slots={}
@@ -103,6 +104,38 @@ local function brightness(on)
   for k,v in pairs(startingLight) do pcall(function()Lighting[k]=v end)end
  end
 end
+local function setSpeed(v)
+ vals.speed=v
+ local h=player.Character and player.Character:FindFirstChildOfClass("Humanoid")
+ if h then
+  if not originalHumanoids[h] then
+   originalHumanoids[h]={walk=h.WalkSpeed,jump=h.JumpPower,use=h.UseJumpPower}
+  end
+  pcall(function()h.WalkSpeed=v end)
+ end
+end
+local function setJump(v)
+ vals.jump=v
+ local h=player.Character and player.Character:FindFirstChildOfClass("Humanoid")
+ if h then
+  if not originalHumanoids[h] then
+   originalHumanoids[h]={walk=h.WalkSpeed,jump=h.JumpPower,use=h.UseJumpPower}
+  end
+  pcall(function()h.UseJumpPower=true;h.JumpPower=v end)
+ end
+end
+local function firstTool()
+ local h=player.Character and player.Character:FindFirstChildOfClass("Humanoid")
+ local backpack=player:FindFirstChildOfClass("Backpack")
+ local tool=backpack and backpack:FindFirstChildOfClass("Tool")
+ if not h or not tool then return false end
+ return pcall(function()h:EquipTool(tool)end)
+end
+local function activateTool()
+ local tool=player.Character and player.Character:FindFirstChildOfClass("Tool")
+ if not tool then return false end
+ return pcall(function()tool:Activate()end)
+end
 local function setFOV(v)
  vals.fov=v
  local cam=workspace.CurrentCamera
@@ -115,6 +148,11 @@ local function quit()
  if dead then return end
  dead=true
  if effects.bright then brightness(false)end
+ for h,values in pairs(originalHumanoids) do
+  if h and h.Parent then pcall(function()
+   h.WalkSpeed=values.walk;h.UseJumpPower=values.use;h.JumpPower=values.jump
+  end)end
+ end
  if originalFOV and workspace.CurrentCamera then pcall(function()
   workspace.CurrentCamera.FieldOfView=originalFOV
  end)end
@@ -437,6 +475,13 @@ render=function()
   stat(p,g,"Experience",game.Name)
   stat(p,g,"Auto Farm par jeu","Module manquant")
   stat(p,g,"Place ID",game.PlaceId)
+  p,g=section("Outils equipés","Actions manuelles compatibles avec Tools",true)
+  action(p,g,"Equiper le premier outil du sac",function()
+   status(firstTool() and "Outil equipe" or "Aucun Tool trouve")
+  end,true)
+  action(p,g,"Activer l'outil equipe une fois",function()
+   status(activateTool() and "Activation demandee" or "Aucun outil tenu")
+  end)
   p,g=section("Information","Compatibilite",false)
   action(p,g,"Copier ID pour creer un module",function()copyOrShow(game.PlaceId,"Place ID")end,true)
  elseif shown=="Téléportation" then
@@ -457,6 +502,12 @@ render=function()
   toggle(p,g,"Afficher XYZ","Position a l'ecran","xyz")
   action(p,g,"Copier XYZ",function()copyOrShow(posString(),"XYZ")end)
  elseif shown=="Joueur" then
+  p,g=section("Mouvement","Controles locaux du personnage",true)
+  slider(p,g,"WalkSpeed","speed",8,100,setSpeed)
+  slider(p,g,"JumpPower","jump",20,140,setJump)
+  action(p,g,"Remettre vitesse et saut par defaut",function()
+   setSpeed(16);setJump(50);render();status("Mouvement restaure")
+  end)
   p,g=section("Camera","Reglages du joueur",true)
   slider(p,g,"Champ de vision (FOV)","fov",50,110,setFOV)
   action(p,g,"Revenir au FOV 70",function()setFOV(70);render()end)
@@ -471,6 +522,7 @@ render=function()
   toggle(p,g,"Compteur FPS","Images par seconde","fps")
   toggle(p,g,"Coordonnees XYZ","Position du joueur","xyz")
   toggle(p,g,"Nombre de joueurs","Compteur direct","players")
+  toggle(p,g,"Afficher ping","Latence reseau","ping")
   p,g=section("Camera","Vue locale",false)
   slider(p,g,"Camera FOV","fov",50,110,setFOV)
  elseif shown=="Scripts" then
@@ -517,7 +569,16 @@ for i,pair in ipairs(tabs) do
  listen(b.Activated,function()go(tab)end)
 end
 go("Accueil");resize()
-
+listen(player.CharacterAdded,function(char)
+ task.defer(function()
+  if dead then return end
+  local h=char:WaitForChild("Humanoid",8)
+  if h and not dead then
+   if vals.speed~=16 then setSpeed(vals.speed)end
+   if vals.jump~=50 then setJump(vals.jump)end
+  end
+ end)
+end)
 listen(Run.Heartbeat,function(dt)
  if dead then return end
  frames=frames+1;timer=timer+dt;uiTimer=uiTimer+dt
@@ -538,6 +599,10 @@ listen(Run.Heartbeat,function(dt)
   if effects.fps then table.insert(out,"FPS "..tostring(fps))end
   if effects.xyz then table.insert(out,"XYZ "..posString())end
   if effects.players then table.insert(out,"JOUEURS "..tostring(#Players:GetPlayers()))end
+  if effects.ping then
+   local ok,v=pcall(function()return player:GetNetworkPing()end)
+   table.insert(out,ok and "PING "..tostring(math.floor(v*1000+.5)).."ms" or "PING —")
+  end
   hud.Visible=#out>0
   hudText.Text=table.concat(out,"  |  ")
  end

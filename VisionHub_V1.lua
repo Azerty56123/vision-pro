@@ -875,7 +875,7 @@ local outerHalo=create("Frame",gateShade,{
 corner(outerHalo,22)
 create("UIStroke",outerHalo,{
  ApplyStrokeMode=Enum.ApplyStrokeMode.Border,
- Color=Color3.fromRGB(39,186,231),Thickness=14,Transparency=.91})
+ Color=Color3.fromRGB(18,154,240),Thickness=8,Transparency=.94})
 local innerHalo=create("Frame",gateShade,{
  Name="KeyNearGlow",BackgroundTransparency=1,BorderSizePixel=0,
  Size=UDim2.fromOffset(665,441),AnchorPoint=Vector2.new(.5,.5),
@@ -883,7 +883,7 @@ local innerHalo=create("Frame",gateShade,{
 corner(innerHalo,20)
 create("UIStroke",innerHalo,{
  ApplyStrokeMode=Enum.ApplyStrokeMode.Border,
- Color=Color3.fromRGB(89,227,255),Thickness=6,Transparency=.78})
+ Color=Color3.fromRGB(51,193,255),Thickness=3,Transparency=.83})
 -- Keep the halo dimensions in lockstep with the central panel on any viewport.
 local outerHaloScale=create("UIScale",outerHalo,{Scale=1})
 local innerHaloScale=create("UIScale",innerHalo,{Scale=1})
@@ -891,73 +891,39 @@ local keyPanel=create("Frame",gateShade,{Name="KeySystem",
  BackgroundColor3=Color3.fromRGB(5,12,20),BorderSizePixel=0,
  Size=UDim2.fromOffset(662,438),
  AnchorPoint=Vector2.new(.5,.5),Position=UDim2.fromScale(.5,.5)})
-corner(keyPanel,18);outline(keyPanel,Color3.fromRGB(37,159,192),.9)
+corner(keyPanel,12);outline(keyPanel,Color3.fromRGB(45,172,238),1)
 local gateScale=create("UIScale",keyPanel,{Scale=1})
 create("UIGradient",keyPanel,{Rotation=100,Color=ColorSequence.new({
  ColorSequenceKeypoint.new(0,Color3.fromRGB(7,19,29)),
  ColorSequenceKeypoint.new(.55,Color3.fromRGB(5,10,18)),
  ColorSequenceKeypoint.new(1,Color3.fromRGB(5,13,20))})})
--- upper cyan accent and top brand
--- Shared cyan V insignia, with subtle ring, in both hub and access screen.
--- Blue neon strip: a diffuse aura behind a sharp bright cyan core.
-local stripAura=create("Frame",keyPanel,{
- Name="NeonStripAura",BackgroundColor3=A.cyan,
- BackgroundTransparency=.90,BorderSizePixel=0,
- Position=UDim2.fromOffset(8,9),Size=UDim2.fromOffset(17,55)})
-corner(stripAura,8)
-local stripMid=create("Frame",keyPanel,{
- BackgroundColor3=A.cyan,BackgroundTransparency=.72,
- BorderSizePixel=0,Position=UDim2.fromOffset(11,13),
- Size=UDim2.fromOffset(11,47)})
-corner(stripMid,6)
-local stripNear=create("Frame",keyPanel,{
- BackgroundColor3=Color3.fromRGB(84,228,255),BackgroundTransparency=.44,
- BorderSizePixel=0,Position=UDim2.fromOffset(13,15),
- Size=UDim2.fromOffset(7,43)})
-corner(stripNear,4)
-local keyAccent=create("Frame",keyPanel,{
- BackgroundColor3=Color3.fromRGB(137,243,255),BorderSizePixel=0,
- Position=UDim2.fromOffset(15,17),Size=UDim2.fromOffset(3,39)})
-corner(keyAccent,2)
--- The logo aura is placed BEFORE the badge so the V and its outline stay sharp.
-local badgeGlow=create("Frame",keyPanel,{
- Name="BadgeGlow",BackgroundColor3=A.cyan,
- BackgroundTransparency=.91,BorderSizePixel=0,
- Position=UDim2.fromOffset(20,8),Size=UDim2.fromOffset(54,54)})
-corner(badgeGlow,27)
-create("UIStroke",badgeGlow,{
- Color=A.cyan,Transparency=.73,Thickness=5,
- ApplyStrokeMode=Enum.ApplyStrokeMode.Border})
-monogram(keyPanel,26,14,42)
-label(keyPanel,"VISION",19,A.white,true,{
- Position=UDim2.fromOffset(84,13),Size=UDim2.fromOffset(102,28)})
-label(keyPanel,"HUB",19,A.cyan,true,{
- Position=UDim2.fromOffset(223,13),Size=UDim2.fromOffset(56,28)})
-label(keyPanel,"SYSTÈME DE CLÉS",10,A.muted,true,{
- Position=UDim2.fromOffset(85,41),Size=UDim2.fromOffset(190,18)})
-label(keyPanel,"ACCESS PANEL  ·  V1",10,A.muted,true,{
- Position=UDim2.new(1,-198,0,19),Size=UDim2.fromOffset(151,24),
- TextXAlignment=Enum.TextXAlignment.Right})
+-- REVERB-style composition: small logo and identity stack at left.
+-- The branding stays Vision Ware; only the original layout is adapted.
+monogram(keyPanel,28,14,43)
+local keyBadgeAura=create("Frame",keyPanel,{
+ Name="BadgeAura",BackgroundTransparency=1,BorderSizePixel=0,
+ Position=UDim2.fromOffset(24,10),Size=UDim2.fromOffset(51,51)})
+corner(keyBadgeAura,26)
+local keyBadgeGlow=outline(keyBadgeAura,Color3.fromRGB(46,204,255),4)
+keyBadgeGlow.Transparency=.83
+label(keyPanel,"VISION",14,A.white,true,{
+ Position=UDim2.fromOffset(29,67),Size=UDim2.fromOffset(76,22)})
+label(keyPanel,"WARE",14,A.cyan,true,{
+ Position=UDim2.fromOffset(110,67),Size=UDim2.fromOffset(64,22)})
+label(keyPanel,"KEY SYSTEM",9,A.cyan,true,{
+ Position=UDim2.fromOffset(30,89),Size=UDim2.fromOffset(144,16)})
+create("Frame",keyPanel,{BackgroundColor3=Color3.fromRGB(53,187,232),
+ BackgroundTransparency=.2,BorderSizePixel=0,
+ Position=UDim2.fromOffset(20,115),Size=UDim2.fromOffset(186,1)})
 local exitGate=button(keyPanel,"×",{
- Position=UDim2.new(1,-44,0,14),Size=UDim2.fromOffset(29,29),
- BackgroundColor3=A.field,TextSize=15})
-corner(exitGate,9);outline(exitGate,A.border,.7)
--- Glowing horizontal divider: soft blue layers and a 1px white-cyan center.
-create("Frame",keyPanel,{BackgroundColor3=A.cyan,BackgroundTransparency=.93,
- BorderSizePixel=0,Position=UDim2.fromOffset(17,64),
- Size=UDim2.new(1,-34,0,13)})
-create("Frame",keyPanel,{BackgroundColor3=A.cyan,BackgroundTransparency=.75,
- BorderSizePixel=0,Position=UDim2.fromOffset(17,68),
- Size=UDim2.new(1,-34,0,5)})
-create("Frame",keyPanel,{BackgroundColor3=Color3.fromRGB(127,238,255),
- BorderSizePixel=0,Position=UDim2.fromOffset(17,70),
- Size=UDim2.new(1,-34,0,1)})
-
+ Position=UDim2.new(1,-33,0,12),Size=UDim2.fromOffset(20,22),
+ BackgroundColor3=A.side,TextSize=14,TextColor3=A.muted})
+corner(exitGate,4)
 -- left: loader log (status rail) like Reverb.
 local logPanel=create("Frame",keyPanel,{BackgroundColor3=Color3.fromRGB(7,17,23),
- BorderSizePixel=0,Position=UDim2.fromOffset(17,85),
- Size=UDim2.fromOffset(199,309)})
-corner(logPanel,12);outline(logPanel,Color3.fromRGB(33,80,98),.8)
+ BorderSizePixel=0,Position=UDim2.fromOffset(17,127),
+ Size=UDim2.fromOffset(198,268)})
+corner(logPanel,5);outline(logPanel,Color3.fromRGB(28,70,88),.65)
 artwork(logPanel,"menu",12,14,16,16,A.cyan)
 label(logPanel,"LOADER LOG",11,A.cyan,true,{
  Position=UDim2.fromOffset(35,11),Size=UDim2.fromOffset(148,22)})
@@ -965,7 +931,7 @@ create("Frame",logPanel,{BackgroundColor3=Color3.fromRGB(24,65,79),
  BorderSizePixel=0,Position=UDim2.fromOffset(12,42),
  Size=UDim2.new(1,-24,0,1)})
 local logs=create("Frame",logPanel,{BackgroundTransparency=1,
- Position=UDim2.fromOffset(12,54),Size=UDim2.new(1,-24,0,216)})
+ Position=UDim2.fromOffset(12,52),Size=UDim2.new(1,-24,0,176)})
 create("UIListLayout",logs,{SortOrder=Enum.SortOrder.LayoutOrder,
  Padding=UDim.new(0,7)})
 local logEntries={}
@@ -988,18 +954,20 @@ label(logPanel,"●  "..(configured() and "SERVICE CONNECTED" or "DEVELOPMENT MO
  Position=UDim2.new(0,13,1,-30),Size=UDim2.new(1,-26,0,19)})
 -- right-side credentials and action buttons.
 local rightGate=create("Frame",keyPanel,{BackgroundTransparency=1,
- Position=UDim2.fromOffset(232,88),Size=UDim2.fromOffset(415,307)})
-label(rightGate,"VISION ACCESS",16,A.white,true,{
- Position=UDim2.fromOffset(5,1),Size=UDim2.fromOffset(385,28)})
-label(rightGate,"One key · all game profiles",10,A.muted,false,{
- Position=UDim2.fromOffset(5,34),Size=UDim2.fromOffset(388,19)})
+ Position=UDim2.fromOffset(228,30),Size=UDim2.fromOffset(419,365)})
+label(rightGate,"GAME  //",10,A.cyan,true,{
+ Position=UDim2.fromOffset(5,4),Size=UDim2.fromOffset(76,23)})
+label(rightGate,string.upper(selected.name),10,A.light,true,{
+ Position=UDim2.fromOffset(86,4),Size=UDim2.fromOffset(280,23)})
+label(rightGate,"ACCESS  //  VISION WARE V1",10,A.muted,true,{
+ Position=UDim2.fromOffset(5,31),Size=UDim2.fromOffset(391,20)})
 local entry=create("TextBox",rightGate,{BackgroundColor3=Color3.fromRGB(9,20,28),
  BorderSizePixel=0,Text="",ClearTextOnFocus=false,
  PlaceholderText="Enter your access key...",TextColor3=A.white,
  PlaceholderColor3=A.muted,Font=Enum.Font.Gotham,TextSize=12,
- TextXAlignment=Enum.TextXAlignment.Left,Position=UDim2.fromOffset(5,68),
- Size=UDim2.fromOffset(399,43)})
-corner(entry,10);outline(entry,Color3.fromRGB(44,91,110),.8)
+ TextXAlignment=Enum.TextXAlignment.Left,Position=UDim2.fromOffset(5,58),
+ Size=UDim2.fromOffset(399,45)})
+corner(entry,5);outline(entry,Color3.fromRGB(34,76,91),.65)
 -- TextBox placeholder in Roblox can overlap child icons on some executors.
 -- Keep the access field clean; only the left padding is applied.
 create("UIPadding",entry,{PaddingLeft=UDim.new(0,16)})
@@ -1012,23 +980,23 @@ bind(entry.FocusLost,function()
  if edge then edge.Color=Color3.fromRGB(44,91,110)end
 end)
 local localStatus=label(rightGate,"Ready to verify",10,A.light,false,{
- Position=UDim2.fromOffset(7,120),Size=UDim2.fromOffset(390,20)})
+ Position=UDim2.fromOffset(7,111),Size=UDim2.fromOffset(390,18)})
 local enterButton=button(rightGate,"CONTINUE",{
- Position=UDim2.fromOffset(5,153),Size=UDim2.fromOffset(399,44),
+ Position=UDim2.fromOffset(5,181),Size=UDim2.fromOffset(399,43),
  BackgroundColor3=Color3.fromRGB(13,46,65),Font=Enum.Font.GothamBold,TextSize=12})
-corner(enterButton,10);outline(enterButton,Color3.fromRGB(43,111,138),.8)
+corner(enterButton,5);outline(enterButton,Color3.fromRGB(43,111,138),.65)
 local generateButton=button(rightGate,"GET FREE KEY",{
- Position=UDim2.fromOffset(5,209),Size=UDim2.fromOffset(399,44),
+ Position=UDim2.fromOffset(5,234),Size=UDim2.fromOffset(399,43),
  BackgroundColor3=Color3.fromRGB(15,55,76),Font=Enum.Font.GothamBold,TextSize=12})
-corner(generateButton,10);outline(generateButton,Color3.fromRGB(45,119,148),.8)
+corner(generateButton,5);outline(generateButton,Color3.fromRGB(45,119,148),.65)
 -- High-contrast blue CTA. Gradients attached to TextButtons also tint the text;
 -- solid fill is deliberate so the label remains readable.
 local helpButton=button(rightGate,"HELP / SUPPORT",{
- Position=UDim2.fromOffset(5,265),Size=UDim2.fromOffset(399,44),
+ Position=UDim2.fromOffset(5,287),Size=UDim2.fromOffset(399,43),
  BackgroundColor3=Color3.fromRGB(10,158,217),Font=Enum.Font.GothamBold,
  TextColor3=Color3.fromRGB(246,251,255),TextSize=12})
-corner(helpButton,10)
-outline(helpButton,Color3.fromRGB(32,201,242),.9)
+corner(helpButton,5)
+outline(helpButton,Color3.fromRGB(32,201,242),.65)
 create("Frame",keyPanel,{BackgroundColor3=A.border,BorderSizePixel=0,
  Position=UDim2.new(0,17,1,-35),Size=UDim2.new(1,-34,0,1)})
 label(keyPanel,"●  "..(configured() and "KEY SERVER CONFIGURED" or "LOCAL TEST MODE").."  •  V1",9,A.good,true,{

@@ -62,7 +62,7 @@ local function applyFullbright(value)
 end
 local records={}
 local liveInfo={}
-local search,mainWindow,openMini,navButtons,hud,keyOverlay,footerStatus
+local search,mainWindow,openMini,navButtons,hud,keyOverlay,footerStatus,sideState
 local render
 local changePage
 
@@ -117,6 +117,7 @@ local gui=mk('ScreenGui',{Name=GUI_NAME,ResetOnSpawn=false,DisplayOrder=90,
 connect(gui.Destroying,stop)
 local function status(str)
     if footerStatus and footerStatus.Parent then footerStatus.Text='Status: '..str end
+    if sideState and sideState.Parent then sideState.Text='Status: '..str end
 end
 local function openMain(isVisible)
     if gone or not unlocked then return end
@@ -192,14 +193,14 @@ local emblemBase=mk('Frame',{
 txt(side,'VISION HUB',12,color.white,true,{Position=UDim2.fromOffset(10,96),
     Size=UDim2.fromOffset(158,24),TextXAlignment=Enum.TextXAlignment.Center})
 local nav=mk('ScrollingFrame',{BackgroundTransparency=1,BorderSizePixel=0,
-    Position=UDim2.fromOffset(10,131),Size=UDim2.new(1,-20,1,-201),
+    Position=UDim2.fromOffset(10,128),Size=UDim2.new(1,-20,1,-192),
     ScrollBarThickness=0,AutomaticCanvasSize=Enum.AutomaticSize.Y,
     CanvasSize=UDim2.new()},side)
-mk('UIListLayout',{SortOrder=Enum.SortOrder.LayoutOrder,Padding=UDim.new(0,4)},nav)
+mk('UIListLayout',{SortOrder=Enum.SortOrder.LayoutOrder,Padding=UDim.new(0,3)},nav)
 local sideStat=mk('Frame',{BackgroundColor3=color.bg,BorderSizePixel=0,
     Position=UDim2.new(0,12,1,-61),Size=UDim2.new(1,-24,0,51)},side)
 round(sideStat,6);border(sideStat,color.line,.8)
-local sideState=txt(sideStat,'Status: Ready',10,color.green,true,{Position=UDim2.fromOffset(9,5),Size=UDim2.new(1,-17,0,19)})
+sideState=txt(sideStat,'Status: Ready',10,color.green,true,{Position=UDim2.fromOffset(9,5),Size=UDim2.new(1,-17,0,19)})
 txt(sideStat,'Game: '..game.Name,9,color.muted,false,{Position=UDim2.fromOffset(9,27),Size=UDim2.new(1,-17,0,18)})
 
 local content=mk('Frame',{BackgroundTransparency=1,Position=UDim2.fromOffset(178,43),
@@ -624,7 +625,7 @@ changePage=function(target)
 end
 for i,v in ipairs(menu) do
     local name=v[1]
-    local b=button(nav,'  '..v[2]..'    '..name,UDim2.new(),UDim2.new(1,0,0,32))
+    local b=button(nav,'  '..v[2]..'    '..name,UDim2.new(),UDim2.new(1,0,0,29))
     b.LayoutOrder=i;b.Font=Enum.Font.GothamMedium
     b.TextXAlignment=Enum.TextXAlignment.Left
     b.BackgroundColor3=color.surface;b.TextColor3=color.muted

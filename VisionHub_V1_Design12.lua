@@ -40,6 +40,7 @@ local uiTimer=0
 local slots={}
 local sections,activeRows={},{}
 local emptySearch
+local savedSections={}
 local live={}
 local frame,scale,rail,nav,navLayout,content,scroll,bodyLayout
 local mini,overlay,footer,search,heading,subheading
@@ -383,6 +384,9 @@ end
 -- MODULES REPLIABLES
 -- Petits accordéons noirs Fyy : titres seuls, flèche minimaliste.
 local function section(title,description,expanded)
+ local sectionId=shown.."::"..title
+ local remembered=savedSections[sectionId]
+ local isOpen=remembered==nil and expanded~=false or remembered
  local card=obj("Frame",{BackgroundColor3=C.panel,BorderSizePixel=0,
   Size=UDim2.new(1,-4,0,0),AutomaticSize=Enum.AutomaticSize.Y},scroll)
  round(card,4)
@@ -390,7 +394,7 @@ local function section(title,description,expanded)
  local head=button(card,"",{Size=UDim2.new(1,0,0,46),
   BackgroundColor3=C.panel})
  local indicator=obj("Frame",{BackgroundColor3=C.purple,BorderSizePixel=0,
-  BackgroundTransparency=expanded==false and 1 or 0,
+  BackgroundTransparency=isOpen and 0 or 1,
   Position=UDim2.fromOffset(0,8),Size=UDim2.fromOffset(3,30)},head)
  round(indicator,1)
  text(head,title,13,C.white,true,{Position=UDim2.fromOffset(16,5),
@@ -398,15 +402,15 @@ local function section(title,description,expanded)
  local arrow=text(head,"⌄",18,C.muted,true,{
   Position=UDim2.new(1,-35,0,8),Size=UDim2.fromOffset(22,27),
   TextXAlignment=Enum.TextXAlignment.Center,
-  Rotation=expanded==false and 0 or 180})
+  Rotation=isOpen and 180 or 0})
  local body=obj("Frame",{BackgroundTransparency=1,BorderSizePixel=0,
   Size=UDim2.new(1,0,0,0),AutomaticSize=Enum.AutomaticSize.Y,
-  Visible=expanded~=false},card)
+  Visible=isOpen},card)
  obj("UIPadding",{PaddingLeft=UDim.new(0,8),PaddingRight=UDim.new(0,8),
   PaddingTop=UDim.new(0,7),PaddingBottom=UDim.new(0,9)},body)
  obj("UIListLayout",{SortOrder=Enum.SortOrder.LayoutOrder,
   Padding=UDim.new(0,5)},body)
- local group={frame=card,body=body,collapsed=expanded==false,
+ local group={frame=card,body=body,collapsed=not isOpen,
   title=string.lower(title.." "..(description or "")),items={},
   arrow=arrow,indicator=indicator}
  table.insert(sections,group)
@@ -420,6 +424,7 @@ local function section(title,description,expanded)
  end,true)
  listen(head.Activated,function()
   group.collapsed=not group.collapsed
+  savedSections[sectionId]=not group.collapsed
   body.Visible=not group.collapsed
   local rotation=group.collapsed and 0 or 180
   if effects.animations then
@@ -732,7 +737,11 @@ go=function(name)
  search.Text=""
  for title,b in pairs(navButtons) do
   local selected=title==name
-  b.BackgroundColor3=selected and C.panel or C.rail
+  local bg=selected and C.panel or C.rail
+  if effects.animations then
+   Tween:Create(b,TweenInfo.new(.14,Enum.EasingStyle.Quad,Enum.EasingDirection.Out),
+    {BackgroundColor3=bg}):Play()
+  else b.BackgroundColor3=bg end
   local accentBar=b:FindFirstChild("SelectionBar")
   if accentBar then accentBar.BackgroundTransparency=selected and 0 or 1 end
   local caption=b:FindFirstChild("Caption")

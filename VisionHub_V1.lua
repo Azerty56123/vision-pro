@@ -851,19 +851,20 @@ local keyPanel=create("Frame",gateShade,{Name="KeySystem",
  BackgroundColor3=Color3.fromRGB(5,12,20),BorderSizePixel=0,
  Size=UDim2.fromOffset(648,383),
  AnchorPoint=Vector2.new(.5,.5),Position=UDim2.fromScale(.5,.5)})
-corner(keyPanel,7);outline(keyPanel,A.cyan,1.4)
+corner(keyPanel,18);outline(keyPanel,Color3.fromRGB(37,159,192),1.2)
 local gateScale=create("UIScale",keyPanel,{Scale=1})
 create("UIGradient",keyPanel,{Rotation=100,Color=ColorSequence.new({
  ColorSequenceKeypoint.new(0,Color3.fromRGB(7,19,29)),
  ColorSequenceKeypoint.new(.55,Color3.fromRGB(5,10,18)),
  ColorSequenceKeypoint.new(1,Color3.fromRGB(5,13,20))})})
 -- upper cyan accent and top brand
-create("Frame",keyPanel,{BackgroundColor3=A.cyan,BorderSizePixel=0,
- Position=UDim2.fromOffset(13,11),Size=UDim2.fromOffset(3,45)})
+local keyAccent=create("Frame",keyPanel,{BackgroundColor3=A.cyan,BorderSizePixel=0,
+ Position=UDim2.fromOffset(17,16),Size=UDim2.fromOffset(4,40)})
+corner(keyAccent,3)
 local emblem=create("Frame",keyPanel,{BackgroundColor3=A.cyanDark,
  BorderSizePixel=0,Position=UDim2.fromOffset(26,14),
  Size=UDim2.fromOffset(35,35)})
-corner(emblem,18);outline(emblem,A.cyan,1.2)
+corner(emblem,12);outline(emblem,A.cyan,1.1)
 label(emblem,"V",20,A.cyan,true,{Size=UDim2.fromScale(1,1),
  TextXAlignment=Enum.TextXAlignment.Center})
 label(keyPanel,"VISION",19,A.white,true,{Position=UDim2.fromOffset(71,12),
@@ -876,8 +877,9 @@ label(keyPanel,"ACCESS PANEL · v1.0",10,A.muted,true,{
  Position=UDim2.new(1,-187,0,18),Size=UDim2.fromOffset(150,25),
  TextXAlignment=Enum.TextXAlignment.Right})
 local exitGate=button(keyPanel,"×",{
- Position=UDim2.new(1,-33,0,16),Size=UDim2.fromOffset(19,22),
- BackgroundColor3=A.side,TextSize=16})
+ Position=UDim2.new(1,-44,0,14),Size=UDim2.fromOffset(29,29),
+ BackgroundColor3=A.field,TextSize=15})
+corner(exitGate,9);outline(exitGate,A.border,.7)
 create("Frame",keyPanel,{BackgroundColor3=A.cyan,BorderSizePixel=0,
  Position=UDim2.fromOffset(14,65),Size=UDim2.new(1,-28,0,1)})
 
@@ -885,7 +887,7 @@ create("Frame",keyPanel,{BackgroundColor3=A.cyan,BorderSizePixel=0,
 local logPanel=create("Frame",keyPanel,{BackgroundColor3=Color3.fromRGB(7,17,23),
  BorderSizePixel=0,Position=UDim2.fromOffset(15,78),
  Size=UDim2.fromOffset(194,264)})
-corner(logPanel,5);outline(logPanel,Color3.fromRGB(20,64,78),.9)
+corner(logPanel,13);outline(logPanel,Color3.fromRGB(33,80,98),.9)
 label(logPanel,"/  LOADER LOG",11,A.cyan,true,{
  Position=UDim2.fromOffset(10,11),Size=UDim2.fromOffset(170,21)})
 create("Frame",logPanel,{BackgroundColor3=Color3.fromRGB(24,65,79),
@@ -916,7 +918,7 @@ label(logPanel,"●  LOCAL MODE",9,A.good,true,{
 -- right-side credentials and action buttons.
 local rightGate=create("Frame",keyPanel,{BackgroundTransparency=1,
  Position=UDim2.fromOffset(224,79),Size=UDim2.fromOffset(408,267)})
-label(rightGate,"VISION ACCESS",13,A.white,true,{
+label(rightGate,"VISION ACCESS",15,A.white,true,{
  Position=UDim2.fromOffset(5,2),Size=UDim2.fromOffset(358,25)})
 label(rightGate,"One key · all game profiles",10,A.muted,false,{
  Position=UDim2.fromOffset(5,28),Size=UDim2.fromOffset(360,19)})
@@ -926,28 +928,37 @@ local entry=create("TextBox",rightGate,{BackgroundColor3=Color3.fromRGB(9,20,28)
  PlaceholderColor3=A.muted,Font=Enum.Font.Gotham,TextSize=11,
  TextXAlignment=Enum.TextXAlignment.Left,Position=UDim2.fromOffset(5,55),
  Size=UDim2.fromOffset(391,37)})
-corner(entry,4);outline(entry,Color3.fromRGB(19,67,89),1)
-create("UIPadding",entry,{PaddingLeft=UDim.new(0,12)})
-local localStatus=label(rightGate,"Ready to verify",10,A.muted,false,{
+corner(entry,11);outline(entry,Color3.fromRGB(44,91,110),.95)
+create("UIPadding",entry,{PaddingLeft=UDim.new(0,13)})
+bind(entry.Focused,function()
+ local edge=entry:FindFirstChildOfClass("UIStroke")
+ if edge then edge.Color=A.cyan end
+end)
+bind(entry.FocusLost,function()
+ local edge=entry:FindFirstChildOfClass("UIStroke")
+ if edge then edge.Color=Color3.fromRGB(44,91,110)end
+end)
+local localStatus=label(rightGate,"Ready to verify",10,A.light,false,{
  Position=UDim2.fromOffset(6,98),Size=UDim2.fromOffset(387,21)})
 local enterButton=button(rightGate,"CONTINUE",{
  Position=UDim2.fromOffset(5,130),Size=UDim2.fromOffset(391,36),
  BackgroundColor3=Color3.fromRGB(12,37,53),Font=Enum.Font.GothamBold})
-outline(enterButton,Color3.fromRGB(19,86,112),.7)
+corner(enterButton,10);outline(enterButton,Color3.fromRGB(43,111,138),.9)
 local generateButton=button(rightGate,"GET FREE KEY",{
  Position=UDim2.fromOffset(5,176),Size=UDim2.fromOffset(391,36),
  BackgroundColor3=Color3.fromRGB(12,45,63),Font=Enum.Font.GothamBold})
-outline(generateButton,Color3.fromRGB(18,92,123),.7)
+corner(generateButton,10);outline(generateButton,Color3.fromRGB(45,119,148),.9)
 local helpButton=button(rightGate,"HELP / SUPPORT",{
  Position=UDim2.fromOffset(5,222),Size=UDim2.fromOffset(391,36),
  BackgroundColor3=Color3.fromRGB(13,145,200),Font=Enum.Font.GothamBold})
+corner(helpButton,10)
 create("UIGradient",helpButton,{Rotation=0,Color=ColorSequence.new({
  ColorSequenceKeypoint.new(0,Color3.fromRGB(7,149,207)),
  ColorSequenceKeypoint.new(1,Color3.fromRGB(26,210,240))
 })})
 create("Frame",keyPanel,{BackgroundColor3=A.border,BorderSizePixel=0,
  Position=UDim2.new(0,14,1,-32),Size=UDim2.new(1,-28,0,1)})
-label(keyPanel,"●  ONLINE  •  "..(configured() and "SERVER KEY SERVICE" or "DEVELOPMENT KEY"),9,A.good,true,{
+label(keyPanel,"●  "..(configured() and "KEY SERVER CONFIGURED" or "LOCAL TEST MODE").."  •  V1",9,A.good,true,{
  Position=UDim2.new(0,17,1,-28),Size=UDim2.fromOffset(340,21)})
 label(keyPanel,"PC  /  MOBILE",9,A.muted,true,{
  Position=UDim2.new(1,-135,1,-28),Size=UDim2.fromOffset(117,21),
@@ -956,7 +967,7 @@ label(keyPanel,"PC  /  MOBILE",9,A.muted,true,{
 local checking=false
 local function message(str,errorFlag)
  localStatus.Text=tostring(str)
- localStatus.TextColor3=errorFlag and Color3.fromRGB(244,110,135) or A.muted
+ localStatus.TextColor3=errorFlag and Color3.fromRGB(244,110,135) or A.light
  log(str)
 end
 local function validate()

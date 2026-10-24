@@ -295,64 +295,60 @@ app=create("Frame",gui,{Name="MainWindow",BackgroundColor3=A.bg,BorderSizePixel=
  AnchorPoint=Vector2.new(.5,.5),ClipsDescendants=true,Visible=false})
 corner(app,15);outline(app,A.border,.9)
 appScale=create("UIScale",app,{Scale=1})
+-- VISION WARE / SENA desktop structure: the logo lives in the sidebar;
+-- the main toolbar contains the current category, description and search.
 header=create("Frame",app,{BackgroundColor3=A.side,BorderSizePixel=0,
- Size=UDim2.new(1,0,0,49),Active=true})
-corner(header,15)
--- Keep top corners rounded without rounding the bottom edge.
-create("Frame",header,{BackgroundColor3=A.side,BorderSizePixel=0,
- Position=UDim2.new(0,0,1,-16),Size=UDim2.new(1,0,0,16)})
+ Position=UDim2.fromOffset(210,0),Size=UDim2.new(1,-210,0,64),Active=true})
 create("Frame",header,{BackgroundColor3=A.border,BorderSizePixel=0,
  Position=UDim2.new(0,0,1,-1),Size=UDim2.new(1,0,0,1)})
--- Identity shared by both windows.
-monogram(header,14,8,32)
--- Intentional larger wordmark spacing: matches the open, airy visual reference.
-label(header,"VISION",16,A.white,true,{
- Position=UDim2.fromOffset(57,10),Size=UDim2.fromOffset(98,28)})
-label(header,"HUB",16,A.cyan,true,{
- Position=UDim2.fromOffset(192,10),Size=UDim2.fromOffset(48,28)})
-local titleGame=label(header,"/  "..selected.name,10,A.muted,true,{
- Position=UDim2.fromOffset(266,12),Size=UDim2.fromOffset(190,25)})
--- A separate search wrapper prevents Roblox TextBox placeholder text from
--- rendering underneath an ImageLabel (a visible overlap in the screenshots).
-local searchHolder=create("Frame",header,{
- BackgroundColor3=A.card,BorderSizePixel=0,
- Position=UDim2.new(1,-275,0,9),Size=UDim2.fromOffset(174,31)})
-corner(searchHolder,10)
-local searchEdge=outline(searchHolder,A.border,.8)
-artwork(searchHolder,"search",12,8,14,14,A.muted)
-search=create("TextBox",searchHolder,{
- BackgroundTransparency=1,BorderSizePixel=0,
- Position=UDim2.fromOffset(35,0),Size=UDim2.new(1,-39,1,0),
- Text="",ClearTextOnFocus=false,PlaceholderText="Search modules...",
+local searchHolder=create("Frame",header,{BackgroundColor3=A.card,BorderSizePixel=0,
+ Position=UDim2.new(1,-248,0,16),Size=UDim2.fromOffset(153,31)})
+corner(searchHolder,7)
+local searchEdge=outline(searchHolder,A.border,.6)
+artwork(searchHolder,"search",10,8,15,15,A.muted)
+search=create("TextBox",searchHolder,{BackgroundTransparency=1,BorderSizePixel=0,
+ Position=UDim2.fromOffset(34,0),Size=UDim2.new(1,-39,1,0),
+ Text="",ClearTextOnFocus=false,PlaceholderText="Search",
  Font=Enum.Font.Gotham,TextSize=11,TextColor3=A.white,
  PlaceholderColor3=A.muted,TextXAlignment=Enum.TextXAlignment.Left})
 bind(search.Focused,function()searchEdge.Color=A.cyan end)
 bind(search.FocusLost,function()searchEdge.Color=A.border end)
-local hide=button(header,"−",{Position=UDim2.new(1,-78,0,10),Size=UDim2.fromOffset(29,29),BackgroundColor3=A.field})
-local close=button(header,"×",{Position=UDim2.new(1,-42,0,10),Size=UDim2.fromOffset(29,29),BackgroundColor3=A.field})
-corner(hide,9);corner(close,9)
-outline(hide,A.border,.75);outline(close,A.border,.75)
+local hide=button(header,"−",{
+ Position=UDim2.new(1,-77,0,17),Size=UDim2.fromOffset(26,27),
+ BackgroundColor3=A.side})
+local close=button(header,"×",{
+ Position=UDim2.new(1,-41,0,17),Size=UDim2.fromOffset(26,27),
+ BackgroundColor3=A.side})
+corner(hide,6);corner(close,6)
 tabRail=create("Frame",app,{BackgroundColor3=A.side,BorderSizePixel=0,
- Position=UDim2.fromOffset(0,49),Size=UDim2.new(0,184,1,-79)})
+ Position=UDim2.fromOffset(0,0),Size=UDim2.new(0,210,1,-30)})
 create("Frame",tabRail,{BackgroundColor3=A.border,BorderSizePixel=0,
  Position=UDim2.new(1,-1,0,0),Size=UDim2.new(0,1,1,0)})
-local railTitle=label(tabRail,"WORKSPACE",10,A.muted,true,{
- Position=UDim2.fromOffset(16,15),Size=UDim2.fromOffset(152,17)})
+local sideBadge=monogram(tabRail,16,13,34)
+local brandFirst=label(tabRail,"VISION",14,A.white,true,{
+ Position=UDim2.fromOffset(58,13),Size=UDim2.fromOffset(67,24)})
+local brandSecond=label(tabRail,"WARE",14,A.cyan,true,{
+ Position=UDim2.fromOffset(130,13),Size=UDim2.fromOffset(60,24)})
+local titleGame=label(tabRail,selected.name,10,A.muted,false,{
+ Position=UDim2.fromOffset(59,36),Size=UDim2.fromOffset(128,16)})
+local railTitle=label(tabRail,"WORKSPACE",9,A.muted,true,{
+ Position=UDim2.fromOffset(15,73),Size=UDim2.fromOffset(155,15),
+ Visible=false})
 nav=create("ScrollingFrame",tabRail,{BackgroundTransparency=1,BorderSizePixel=0,
- Position=UDim2.fromOffset(10,48),Size=UDim2.new(1,-20,1,-60),
+ Position=UDim2.fromOffset(9,92),Size=UDim2.new(1,-18,1,-107),
  ScrollingDirection=Enum.ScrollingDirection.Y,
  CanvasSize=UDim2.new(),AutomaticCanvasSize=Enum.AutomaticSize.Y,
  ScrollBarThickness=0})
 local navLayout=create("UIListLayout",nav,{
  SortOrder=Enum.SortOrder.LayoutOrder,Padding=UDim.new(0,4)})
 body=create("Frame",app,{BackgroundTransparency=1,BorderSizePixel=0,
- Position=UDim2.fromOffset(184,49),Size=UDim2.new(1,-184,1,-79)})
-local pageTitle=label(body,"Overview",16,A.white,true,{
- Position=UDim2.fromOffset(18,4),Size=UDim2.fromOffset(340,27)})
-local pageDescription=label(body,selected.description,10,A.muted,false,{
- Position=UDim2.fromOffset(18,34),Size=UDim2.new(1,-30,0,19)})
+ Position=UDim2.fromOffset(210,64),Size=UDim2.new(1,-210,1,-94)})
+local pageTitle=label(header,"Overview",14,A.white,true,{
+ Position=UDim2.fromOffset(19,5),Size=UDim2.fromOffset(340,25)})
+local pageDescription=label(header,selected.description,10,A.muted,false,{
+ Position=UDim2.fromOffset(19,29),Size=UDim2.fromOffset(340,22)})
 canvas=create("ScrollingFrame",body,{BackgroundTransparency=1,BorderSizePixel=0,
- Position=UDim2.fromOffset(14,58),Size=UDim2.new(1,-26,1,-63),
+ Position=UDim2.fromOffset(12,13),Size=UDim2.new(1,-23,1,-19),
  CanvasSize=UDim2.fromOffset(0,0),ScrollBarThickness=3,
  ScrollBarImageColor3=A.cyan,ScrollingDirection=Enum.ScrollingDirection.Y})
 columns=create("Frame",canvas,{BackgroundTransparency=1,BorderSizePixel=0,
@@ -386,7 +382,7 @@ footerFps=label(footer,"-- FPS",10,A.muted,true,{
 label(footer,"v1.0",9,A.muted,true,{
  Position=UDim2.new(1,-54,0,4),Size=UDim2.fromOffset(39,23),
  TextXAlignment=Enum.TextXAlignment.Right})
-mini=button(gui,"VISION HUB",{Position=UDim2.new(1,-160,.5,-20),
+mini=button(gui,"VISION WARE",{Position=UDim2.new(1,-160,.5,-20),
  Size=UDim2.fromOffset(146,38),BackgroundColor3=A.cyanDark,Visible=false})
 corner(mini,11);outline(mini,A.cyan,.8)
 overlay=create("Frame",gui,{BackgroundColor3=A.side,BorderSizePixel=0,
@@ -435,36 +431,40 @@ fitToScreen=function()
  if small then
   app.Size=UDim2.fromOffset(450,650)
   appScale.Scale=math.clamp(math.min(nums.zoom/100,(v.X-12)/450,(v.Y-12)/650),.3,1)
-  tabRail.Position=UDim2.fromOffset(0,49);tabRail.Size=UDim2.new(1,0,0,43)
-  railTitle.Visible=false
-  nav.Position=UDim2.fromOffset(7,4);nav.Size=UDim2.new(1,-14,0,35)
+  header.Position=UDim2.fromOffset(0,0);header.Size=UDim2.new(1,0,0,64)
+  tabRail.Position=UDim2.fromOffset(0,64);tabRail.Size=UDim2.new(1,0,0,42)
+  sideBadge.Visible=false;brandFirst.Visible=false;brandSecond.Visible=false
+  titleGame.Visible=false;railTitle.Visible=false
+  nav.Position=UDim2.fromOffset(7,4);nav.Size=UDim2.new(1,-14,0,36)
   nav.ScrollingDirection=Enum.ScrollingDirection.X
   nav.AutomaticCanvasSize=Enum.AutomaticSize.X
   navLayout.FillDirection=Enum.FillDirection.Horizontal
-  body.Position=UDim2.fromOffset(0,92);body.Size=UDim2.new(1,0,1,-122)
+  body.Position=UDim2.fromOffset(0,106);body.Size=UDim2.new(1,0,1,-136)
   colLayout.FillDirection=Enum.FillDirection.Vertical
   left.Size=UDim2.new(1,-6,0,0);right.Size=UDim2.new(1,-6,0,0)
-  searchHolder.Position=UDim2.new(1,-209,0,9)
-  searchHolder.Size=UDim2.fromOffset(128,31)
-  titleGame.Visible=false
-  pageTitle.Position=UDim2.fromOffset(14,4);pageDescription.Position=UDim2.fromOffset(14,30)
-  for _,b in pairs(navButtons) do b.Size=UDim2.fromOffset(119,37)end
+  searchHolder.Position=UDim2.new(1,-204,0,16)
+  searchHolder.Size=UDim2.fromOffset(126,31)
+  pageTitle.Position=UDim2.fromOffset(14,5);pageDescription.Position=UDim2.fromOffset(14,29)
+  canvas.Position=UDim2.fromOffset(10,11);canvas.Size=UDim2.new(1,-19,1,-16)
+  for _,b in pairs(navButtons) do b.Size=UDim2.fromOffset(118,36)end
  else
   app.Size=UDim2.fromOffset(865,548)
   appScale.Scale=math.clamp(math.min(nums.zoom/100,(v.X-14)/865,(v.Y-14)/548),.45,1.15)
-  tabRail.Position=UDim2.fromOffset(0,49);tabRail.Size=UDim2.new(0,184,1,-79)
-  railTitle.Visible=true
-  nav.Position=UDim2.fromOffset(10,48);nav.Size=UDim2.new(1,-20,1,-60)
+  header.Position=UDim2.fromOffset(210,0);header.Size=UDim2.new(1,-210,0,64)
+  tabRail.Position=UDim2.fromOffset(0,0);tabRail.Size=UDim2.new(0,210,1,-30)
+  sideBadge.Visible=true;brandFirst.Visible=true;brandSecond.Visible=true
+  titleGame.Visible=true;railTitle.Visible=false
+  nav.Position=UDim2.fromOffset(9,92);nav.Size=UDim2.new(1,-18,1,-107)
   nav.ScrollingDirection=Enum.ScrollingDirection.Y
   nav.AutomaticCanvasSize=Enum.AutomaticSize.Y
   navLayout.FillDirection=Enum.FillDirection.Vertical
-  body.Position=UDim2.fromOffset(184,49);body.Size=UDim2.new(1,-184,1,-79)
+  body.Position=UDim2.fromOffset(210,64);body.Size=UDim2.new(1,-210,1,-94)
   colLayout.FillDirection=Enum.FillDirection.Horizontal
   left.Size=UDim2.new(.5,-5,0,0);right.Size=UDim2.new(.5,-5,0,0)
-  searchHolder.Position=UDim2.new(1,-275,0,9)
-  searchHolder.Size=UDim2.fromOffset(174,31)
-  titleGame.Visible=true
-  pageTitle.Position=UDim2.fromOffset(18,4);pageDescription.Position=UDim2.fromOffset(18,30)
+  searchHolder.Position=UDim2.new(1,-248,0,16)
+  searchHolder.Size=UDim2.fromOffset(153,31)
+  pageTitle.Position=UDim2.fromOffset(19,5);pageDescription.Position=UDim2.fromOffset(19,29)
+  canvas.Position=UDim2.fromOffset(12,13);canvas.Size=UDim2.new(1,-23,1,-19)
   for _,b in pairs(navButtons) do b.Size=UDim2.new(1,0,0,39)end
  end
 end
@@ -758,7 +758,7 @@ render=function()
  end
  if current=="About" then
   count=count+1
-  card("left",{title="Vision Hub V1",subtitle="Modules et design",items={
+  card("left",{title="VISION WARE V1",subtitle="Modules et design",items={
    {type="info",label="Version",value="1.0"},
    {type="info",label="UI Theme",value="Sena-inspired"},
    {type="info",label="Key Screen",value="Reverb-inspired"},

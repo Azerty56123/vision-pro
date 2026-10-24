@@ -593,25 +593,67 @@ async function visionGeneratePublic(request, env) {
 }
 
 
-const VISION_PUBLIC_KEY_HTML = `<!doctype html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#140b10">
-<title>Vision Hub - Key System</title><style>
-:root{font:14px system-ui,Arial,sans-serif;color-scheme:dark}*{box-sizing:border-box}
-body{min-height:100vh;margin:0;display:grid;place-items:center;padding:20px;color:#fff;background:radial-gradient(ellipse at top,#531527,#110c12 60%,#070709)}
-main{width:min(430px,100%);padding:30px;border-radius:17px;background:linear-gradient(#231820,#120f13);border:1px solid #692037;box-shadow:0 25px 80px #0008}
-.logo{font-size:31px;text-align:center;font-weight:900;letter-spacing:-1px}.logo span{color:#f23158}
-h1{font-size:18px;margin:30px 0 8px}p{font-size:13px;line-height:1.7;color:#bbb0b8}
-.tag{color:#c9a6b2;text-align:center;font-size:11px;letter-spacing:2px;margin-top:6px}
-button{cursor:pointer;width:100%;font-weight:700;color:white;background:linear-gradient(#eb244c,#aa0e2c);border:1px solid #ff3e5d;border-radius:8px;padding:12px;font-size:12px}
-button:disabled{opacity:.55;cursor:wait}#key{background:#09070a;border:1px solid #733145;border-radius:8px;padding:14px;margin:16px 0;word-break:break-all;font:12px monospace}
-#status{min-height:28px;margin-top:13px;color:#b9abb3;font-size:12px}a{color:#ff7491}
-</style></head><body><main><div class="logo">VISION <span>HUB</span></div>
-<div class="tag">KEY SYSTEM · CLÉ 24H</div><h1>Obtenir une clé</h1>
-<p>Générez une clé valide pendant 24 heures. Limite : trois créations par adresse IP sur 24 heures. Aucun mot de passe Roblox nécessaire.</p>
-<button id="generate">GÉNÉRER MA CLÉ</button><div id="status" role="status" aria-live="polite">Prêt.</div>
-<div id="key" hidden></div><button id="copy" hidden style="background:#32232e;border-color:#6b2738">COPIER LA CLÉ</button>
-<p>Dans Vision Hub : collez-la dans « ENTER KEY HERE » puis appuyez sur « SUBMIT KEY ».</p>
-<p><a href="https://github.com/Azerty56123/vision-pro" rel="noopener noreferrer">Aide et support du projet</a></p>
-</main><script>
+const VISION_PUBLIC_KEY_HTML = `<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#08080b">
+<title>Vision Community • Key System</title>
+<style>
+:root{font:13px system-ui,-apple-system,"Segoe UI",sans-serif;color-scheme:dark;
+--bg:#050506;--rail:#0b0b0d;--card:#131317;--item:#1a191f;--line:#27222e;
+--accent:#914dde;--accent2:#382257;--text:#ece9f1;--muted:#97939d}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;display:grid;place-items:center;padding:20px;
+background:#050506;color:var(--text)}
+main{width:min(440px,100%);padding:0 22px 20px;background:var(--rail);
+border:1px solid var(--line);border-radius:7px;box-shadow:0 24px 70px #0008}
+.brand{height:74px;display:flex;align-items:center;gap:10px;position:relative}
+.symbol{font-family:Georgia,serif;font-size:43px;line-height:1;color:var(--accent)}
+.brand-title{font-size:23px;font-weight:750;letter-spacing:-.7px}
+.brand-title b{color:var(--accent)}
+.brand-line{height:2px;background:var(--accent);margin:0 0 23px}
+.eyebrow{color:var(--muted);font-size:10px;letter-spacing:2px;text-transform:uppercase}
+h1{font-size:19px;font-weight:650;margin:12px 0 9px}
+p{color:var(--muted);font-size:12px;line-height:1.7;margin:8px 0 18px}
+button{display:block;width:100%;border-radius:4px;border:1px solid #653d94;
+background:linear-gradient(180deg,#50306f,#33234c);color:var(--text);
+font-weight:700;font-size:11px;letter-spacing:.5px;cursor:pointer;padding:13px}
+button:hover{filter:brightness(1.12)}button:disabled{opacity:.65;cursor:wait}
+#key{margin:13px 0 9px;padding:13px;border:1px solid var(--line);
+background:#08080a;border-radius:4px;word-break:break-all;
+color:#e9dbf8;font:12px ui-monospace,Consolas,monospace}
+#status{min-height:27px;color:var(--muted);font-size:12px;margin:13px 0}
+#copy{margin-bottom:12px;background:var(--item);border-color:var(--line)}
+.steps{border-top:1px solid var(--line);padding-top:17px;margin:22px 0 12px;
+color:var(--muted);font-size:10px;letter-spacing:.6px;text-align:center}
+a{color:#c18dfd}footer{color:var(--muted);font-size:11px;text-align:center}
+</style>
+</head>
+<body>
+<main>
+<header class="brand">
+<span class="symbol">Ϝ</span>
+<span class="brand-title"><b>Vision</b> Community</span>
+</header>
+<div class="brand-line"></div>
+<div class="eyebrow">Vision Hub · Access Key</div>
+<h1>Générer votre clé</h1>
+<p>Créez une clé valide pendant 24 heures, puis collez-la dans Vision Hub.
+Trois clés maximum peuvent être générées par IP sur 24 heures.
+Aucun mot de passe Roblox n’est demandé.</p>
+<button id="generate" type="button">GET KEY · GÉNÉRER MA CLÉ</button>
+<div id="status" role="status" aria-live="polite">● Prêt.</div>
+<div id="key" hidden></div>
+<button id="copy" type="button" hidden>COPIER LA CLÉ</button>
+<div class="steps">01 GET KEY &nbsp; • &nbsp; 02 ENTER KEY &nbsp; • &nbsp; 03 SUBMIT</div>
+<footer>
+Utilisez votre clé dans Vision Hub. <a href="https://github.com/Azerty56123/vision-pro"
+rel="noopener noreferrer">Support GitHub</a>
+</footer>
+</main>
+<script>
 const $=id=>document.getElementById(id);
 $("generate").onclick=async()=>{
  $("generate").disabled=true;$("status").textContent="Création en cours";$("key").hidden=true;$("copy").hidden=true;

@@ -763,3 +763,193 @@ bind(Run.Heartbeat,function(dt)
   overlayText.Text=table.concat(parts,"  •  ")
  end
 end)
+
+-- REVERB-INSPIRED KEY PANEL: blue/cyan border, status-log left, key controls right.
+local gateShade=create("Frame",gui,{Name="GateShade",BackgroundColor3=Color3.new(0,0,0),
+ BackgroundTransparency=.34,BorderSizePixel=0,Size=UDim2.fromScale(1,1)})
+local keyPanel=create("Frame",gateShade,{Name="KeySystem",
+ BackgroundColor3=Color3.fromRGB(5,12,20),BorderSizePixel=0,
+ Size=UDim2.fromOffset(648,383),
+ AnchorPoint=Vector2.new(.5,.5),Position=UDim2.fromScale(.5,.5)})
+corner(keyPanel,7);outline(keyPanel,A.cyan,1.4)
+local gateScale=create("UIScale",keyPanel,{Scale=1})
+create("UIGradient",keyPanel,{Rotation=100,Color=ColorSequence.new({
+ ColorSequenceKeypoint.new(0,Color3.fromRGB(7,19,29)),
+ ColorSequenceKeypoint.new(.55,Color3.fromRGB(5,10,18)),
+ ColorSequenceKeypoint.new(1,Color3.fromRGB(5,13,20))})})
+-- upper cyan accent and top brand
+create("Frame",keyPanel,{BackgroundColor3=A.cyan,BorderSizePixel=0,
+ Position=UDim2.fromOffset(13,11),Size=UDim2.fromOffset(3,45)})
+local emblem=create("Frame",keyPanel,{BackgroundColor3=A.cyanDark,
+ BorderSizePixel=0,Position=UDim2.fromOffset(26,14),
+ Size=UDim2.fromOffset(35,35)})
+corner(emblem,18);outline(emblem,A.cyan,1.2)
+label(emblem,"V",20,A.cyan,true,{Size=UDim2.fromScale(1,1),
+ TextXAlignment=Enum.TextXAlignment.Center})
+label(keyPanel,"VISION",19,A.white,true,{Position=UDim2.fromOffset(71,12),
+ Size=UDim2.fromOffset(86,28)})
+label(keyPanel,"HUB",19,A.cyan,true,{Position=UDim2.fromOffset(159,12),
+ Size=UDim2.fromOffset(63,28)})
+label(keyPanel,"KEY SYSTEM",10,A.muted,true,{Position=UDim2.fromOffset(72,39),
+ Size=UDim2.fromOffset(180,20)})
+label(keyPanel,"ACCESS PANEL · v1.0",10,A.muted,true,{
+ Position=UDim2.new(1,-187,0,18),Size=UDim2.fromOffset(150,25),
+ TextXAlignment=Enum.TextXAlignment.Right})
+local exitGate=button(keyPanel,"×",{
+ Position=UDim2.new(1,-33,0,16),Size=UDim2.fromOffset(19,22),
+ BackgroundColor3=A.side,TextSize=16})
+create("Frame",keyPanel,{BackgroundColor3=A.cyan,BorderSizePixel=0,
+ Position=UDim2.fromOffset(14,65),Size=UDim2.new(1,-28,0,1)})
+
+-- left: loader log (status rail) like Reverb.
+local logPanel=create("Frame",keyPanel,{BackgroundColor3=Color3.fromRGB(7,17,23),
+ BorderSizePixel=0,Position=UDim2.fromOffset(15,78),
+ Size=UDim2.fromOffset(194,264)})
+corner(logPanel,5);outline(logPanel,Color3.fromRGB(20,64,78),.9)
+label(logPanel,"/  LOADER LOG",11,A.cyan,true,{
+ Position=UDim2.fromOffset(10,11),Size=UDim2.fromOffset(170,21)})
+create("Frame",logPanel,{BackgroundColor3=Color3.fromRGB(24,65,79),
+ BorderSizePixel=0,Position=UDim2.fromOffset(10,38),
+ Size=UDim2.fromOffset(172,1)})
+local logs=create("Frame",logPanel,{BackgroundTransparency=1,
+ Position=UDim2.fromOffset(10,46),Size=UDim2.fromOffset(175,176)})
+create("UIListLayout",logs,{SortOrder=Enum.SortOrder.LayoutOrder,
+ Padding=UDim.new(0,7)})
+local logEntries={}
+local function log(message)
+ if closed or not logs.Parent then return end
+ table.insert(logEntries,"> "..tostring(message))
+ if #logEntries>9 then table.remove(logEntries,1)end
+ for _,x in ipairs(logs:GetChildren())do
+  if x:IsA("TextLabel") then x:Destroy()end
+ end
+ for idx,msg in ipairs(logEntries)do
+  label(logs,msg,10,idx==#logEntries and A.cyan or
+   Color3.fromRGB(105,158,162),false,{
+   Size=UDim2.new(1,0,0,15),TextTruncate=Enum.TextTruncate.AtEnd,
+   LayoutOrder=idx
+  })
+ end
+end
+label(logPanel,"●  LOCAL MODE",9,A.good,true,{
+ Position=UDim2.fromOffset(12,235),Size=UDim2.fromOffset(170,19)})
+-- right-side credentials and action buttons.
+local rightGate=create("Frame",keyPanel,{BackgroundTransparency=1,
+ Position=UDim2.fromOffset(224,79),Size=UDim2.fromOffset(408,267)})
+label(rightGate,"VISION ACCESS",13,A.white,true,{
+ Position=UDim2.fromOffset(5,2),Size=UDim2.fromOffset(358,25)})
+label(rightGate,"One key · all game profiles",10,A.muted,false,{
+ Position=UDim2.fromOffset(5,28),Size=UDim2.fromOffset(360,19)})
+local entry=create("TextBox",rightGate,{BackgroundColor3=Color3.fromRGB(9,20,28),
+ BorderSizePixel=0,Text="",ClearTextOnFocus=false,
+ PlaceholderText="Enter your access key...",TextColor3=A.white,
+ PlaceholderColor3=A.muted,Font=Enum.Font.Gotham,TextSize=11,
+ TextXAlignment=Enum.TextXAlignment.Left,Position=UDim2.fromOffset(5,55),
+ Size=UDim2.fromOffset(391,37)})
+corner(entry,4);outline(entry,Color3.fromRGB(19,67,89),1)
+create("UIPadding",entry,{PaddingLeft=UDim.new(0,12)})
+local localStatus=label(rightGate,"Ready to verify",10,A.muted,false,{
+ Position=UDim2.fromOffset(6,98),Size=UDim2.fromOffset(387,21)})
+local enterButton=button(rightGate,"CONTINUE",{
+ Position=UDim2.fromOffset(5,130),Size=UDim2.fromOffset(391,36),
+ BackgroundColor3=Color3.fromRGB(12,37,53),Font=Enum.Font.GothamBold})
+outline(enterButton,Color3.fromRGB(19,86,112),.7)
+local generateButton=button(rightGate,"GET FREE KEY",{
+ Position=UDim2.fromOffset(5,176),Size=UDim2.fromOffset(391,36),
+ BackgroundColor3=Color3.fromRGB(12,45,63),Font=Enum.Font.GothamBold})
+outline(generateButton,Color3.fromRGB(18,92,123),.7)
+local helpButton=button(rightGate,"HELP / SUPPORT",{
+ Position=UDim2.fromOffset(5,222),Size=UDim2.fromOffset(391,36),
+ BackgroundColor3=Color3.fromRGB(13,145,200),Font=Enum.Font.GothamBold})
+create("UIGradient",helpButton,{Rotation=0,Color=ColorSequence.new({
+ ColorSequenceKeypoint.new(0,Color3.fromRGB(7,149,207)),
+ ColorSequenceKeypoint.new(1,Color3.fromRGB(26,210,240))
+})})
+create("Frame",keyPanel,{BackgroundColor3=A.border,BorderSizePixel=0,
+ Position=UDim2.new(0,14,1,-32),Size=UDim2.new(1,-28,0,1)})
+label(keyPanel,"●  ONLINE  •  "..(configured() and "SERVER KEY SERVICE" or "DEVELOPMENT KEY"),9,A.good,true,{
+ Position=UDim2.new(0,17,1,-28),Size=UDim2.fromOffset(340,21)})
+label(keyPanel,"PC  /  MOBILE",9,A.muted,true,{
+ Position=UDim2.new(1,-135,1,-28),Size=UDim2.fromOffset(117,21),
+ TextXAlignment=Enum.TextXAlignment.Right})
+
+local checking=false
+local function message(str,errorFlag)
+ localStatus.Text=tostring(str)
+ localStatus.TextColor3=errorFlag and Color3.fromRGB(244,110,135) or A.muted
+ log(str)
+end
+local function validate()
+ if checking or closed then return end
+ local key=(entry.Text or ""):match("^%s*(.-)%s*$"):upper()
+ if key=="" then message("Enter a valid key",true);return end
+ checking=true;enterButton.Text="VERIFYING..."
+ message("Checking access key...",false)
+ local ok,msg
+ if key==TEST_KEY then
+  ok,msg=true,"Development access granted"
+ else
+  ok,msg=verifyKeyRemote(key)
+ end
+ checking=false
+ if closed then return end
+ enterButton.Text="CONTINUE"
+ if ok then
+  message(msg,false)
+  unlocked=true
+  gateShade:Destroy()
+  openApp(true)
+  status("Profile: "..selected.name.."  •  "..msg)
+ else
+  message(msg,true)
+ end
+end
+bind(enterButton.Activated,validate)
+bind(entry.FocusLost,function(enterPressed)
+ if enterPressed then validate()end
+end)
+bind(generateButton.Activated,function()
+ if configured() then
+  local url=KEY_API:gsub("/+$","").."/key"
+  if clipboard(url) then
+   message("Key page copied. Open your browser.",false)
+  else
+   message("Open your Cloudflare /key page.",true)
+  end
+ else
+  entry.Text=TEST_KEY
+  message("Test key ready. Press CONTINUE.",false)
+ end
+end)
+bind(helpButton.Activated,function()
+ local url="https://github.com/Azerty56123/vision-pro"
+ message(clipboard(url) and "Support GitHub link copied." or
+  "Support: Vision Hub GitHub repository.",false)
+end)
+bind(exitGate.Activated,kill)
+log("Vision loader initialized")
+log("Profile: "..selected.name)
+log("Place: "..tostring(game.PlaceId))
+log("Modules: "..tostring(#allSections))
+log(configured() and "Cloudflare service configured" or "Development key mode")
+
+-- Handle new screen sizes and camera replacements.
+local cameraConnection
+local function updateCamera()
+ if cameraConnection then cameraConnection:Disconnect()end
+ local cam=workspace.CurrentCamera
+ if cam then
+  cameraConnection=bind(cam:GetPropertyChangedSignal("ViewportSize"),function()
+   fitToScreen()
+   if gateShade.Parent then
+    local v=cam.ViewportSize
+    gateScale.Scale=math.clamp(math.min(1,(v.X-16)/648,(v.Y-16)/383),.28,1)
+   end
+  end)
+  local v=cam.ViewportSize
+  gateScale.Scale=math.clamp(math.min(1,(v.X-16)/648,(v.Y-16)/383),.28,1)
+ end
+ fitToScreen()
+end
+bind(workspace:GetPropertyChangedSignal("CurrentCamera"),updateCamera)
+updateCamera()

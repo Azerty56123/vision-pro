@@ -592,12 +592,56 @@ async function visionGeneratePublic(request, env) {
   return reply({ok:true,key,id,label,expiresAt,maxActivations:data.maxActivations});
 }
 
+
+const VISION_PUBLIC_KEY_HTML = `<!doctype html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#140b10">
+<title>Vision Hub - Key System</title><style>
+:root{font:14px system-ui,Arial,sans-serif;color-scheme:dark}*{box-sizing:border-box}
+body{min-height:100vh;margin:0;display:grid;place-items:center;padding:20px;color:#fff;background:radial-gradient(ellipse at top,#531527,#110c12 60%,#070709)}
+main{width:min(430px,100%);padding:30px;border-radius:17px;background:linear-gradient(#231820,#120f13);border:1px solid #692037;box-shadow:0 25px 80px #0008}
+.logo{font-size:31px;text-align:center;font-weight:900;letter-spacing:-1px}.logo span{color:#f23158}
+h1{font-size:18px;margin:30px 0 8px}p{font-size:13px;line-height:1.7;color:#bbb0b8}
+.tag{color:#c9a6b2;text-align:center;font-size:11px;letter-spacing:2px;margin-top:6px}
+button{cursor:pointer;width:100%;font-weight:700;color:white;background:linear-gradient(#eb244c,#aa0e2c);border:1px solid #ff3e5d;border-radius:8px;padding:12px;font-size:12px}
+button:disabled{opacity:.55;cursor:wait}#key{background:#09070a;border:1px solid #733145;border-radius:8px;padding:14px;margin:16px 0;word-break:break-all;font:12px monospace}
+#status{min-height:28px;margin-top:13px;color:#b9abb3;font-size:12px}a{color:#ff7491}
+</style></head><body><main><div class="logo">VISION <span>HUB</span></div>
+<div class="tag">KEY SYSTEM · CLÉ 24H</div><h1>Obtenir une clé</h1>
+<p>Générez une clé valide pendant 24 heures. Limite : trois créations par adresse IP sur 24 heures. Aucun mot de passe Roblox nécessaire.</p>
+<button id="generate">GÉNÉRER MA CLÉ</button><div id="status" role="status" aria-live="polite">Prêt.</div>
+<div id="key" hidden></div><button id="copy" hidden style="background:#32232e;border-color:#6b2738">COPIER LA CLÉ</button>
+<p>Dans Vision Hub : collez-la dans « ENTER KEY HERE » puis appuyez sur « SUBMIT KEY ».</p>
+<p><a href="https://github.com/Azerty56123/vision-pro" rel="noopener noreferrer">Aide et support du projet</a></p>
+</main><script>
+const $=id=>document.getElementById(id);
+$("generate").onclick=async()=>{
+ $("generate").disabled=true;$("status").textContent="Création en cours";$("key").hidden=true;$("copy").hidden=true;
+ try{
+  const response=await fetch("/api/public/generate",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({label:"Vision Hub Public",days:1,maxActivations:25})});
+  const data=await response.json();
+  if(!response.ok||data.ok!==true||typeof data.key!=="string")throw Error(data.message||"Erreur du serveur");
+  $("key").textContent=data.key;$("key").hidden=false;$("copy").hidden=false;
+  $("status").textContent="Clé créée. Elle expirera dans 24 heures.";
+ }catch(e){$("status").textContent=e.message||"Connexion impossible";}
+ finally{$("generate").disabled=false;}
+};
+$("copy").onclick=async()=>{try{await navigator.clipboard.writeText($("key").textContent);$("status").textContent="Clé copiée !";}
+catch(e){$("status").textContent="Copie impossible, sélectionnez la clé manuellement.";}};
+</script></body></html>`;
+function visionPublicKeyPage(){
+ return new Response(VISION_PUBLIC_KEY_HTML,{headers:{
+  "content-type":"text/html; charset=utf-8","cache-control":"no-store",
+  "x-content-type-options":"nosniff","x-frame-options":"DENY",
+  "content-security-policy":"default-src 'none';script-src 'unsafe-inline';style-src 'unsafe-inline';connect-src 'self';base-uri 'none';form-action 'none';frame-ancestors 'none'"
+ }});
+}
+
 // 6. CLOUDFLARE WORKER ROUTING
 // ============================================================================
 export default{
  async fetch(request,env){
   const url=new URL(request.url);
   if(url.pathname==="/admin"&&request.method==="GET")return html();
+  if(url.pathname==="/key"&&request.method==="GET")return visionPublicKeyPage();
   if(url.pathname==="/"&&request.method==="GET")return Response.redirect(url.origin+"/admin",302);
   if(!env.DB)return reply({ok:false,message:"D1 non configure"},503);
   if(!env.ADMIN_TOKEN||env.ADMIN_TOKEN.length<32)return reply({ok:false,message:"Secret admin non configure"},503);

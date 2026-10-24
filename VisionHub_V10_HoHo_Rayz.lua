@@ -176,6 +176,11 @@ mainWindow=mk('Frame',{Name='MainWindow',BackgroundColor3=color.bg,BorderSizePix
     Position=UDim2.fromScale(.5,.5),Visible=false,ClipsDescendants=true},gui)
 round(mainWindow,9)
 border(mainWindow,color.red,1.1)
+mk('UIGradient',{Rotation=15,Color=ColorSequence.new({
+ ColorSequenceKeypoint.new(0,color.bg),
+ ColorSequenceKeypoint.new(.67,Color3.fromRGB(18,9,14)),
+ ColorSequenceKeypoint.new(1,color.bg)
+})},mainWindow)
 mk('UIGradient',{
     Rotation=17,
     Color=ColorSequence.new({
@@ -222,7 +227,7 @@ local emblemBase=mk('Frame',{
     AnchorPoint=Vector2.new(.5,0),Position=UDim2.fromScale(.5,1),
     Size=UDim2.fromOffset(97,2)
 },side)
-txt(side,'VISION HUB',12,color.white,true,{Position=UDim2.fromOffset(10,96),
+local sideBrand=txt(side,'VISION HUB',12,color.white,true,{Position=UDim2.fromOffset(10,96),
     Size=UDim2.fromOffset(158,24),TextXAlignment=Enum.TextXAlignment.Center})
 local nav=mk('ScrollingFrame',{BackgroundTransparency=1,BorderSizePixel=0,
     Position=UDim2.fromOffset(10,128),Size=UDim2.new(1,-20,1,-192),
@@ -548,6 +553,14 @@ render=function()
         info(b,h,'Ping',pingOk and math.floor(ping*1000+.5)..' ms' or '—')
         local playerHumanoid=player.Character and player.Character:FindFirstChildOfClass('Humanoid')
         info(b,h,'Santé',playerHumanoid and math.floor(playerHumanoid.Health) or '—')
+        local playerPhoto=mk('ImageLabel',{
+            BackgroundTransparency=1,
+            Image='rbxthumb://type=AvatarHeadShot&id='..tostring(player.UserId)..'&w=150&h=150',
+            Size=UDim2.fromOffset(38,38),
+            Position=UDim2.new(1,-45,0,3),
+            ScaleType=Enum.ScaleType.Crop
+        },b)
+        round(playerPhoto,19);border(playerPhoto,color.redDark,.9)
         b,h=card(right,'◇  Quick Actions','Raccourcis')
         action(b,h,'Copier Place ID',function()copied(tostring(game.PlaceId),'Place ID')end,true)
         action(b,h,'Copier mes coordonnées',showXYZ)
@@ -692,6 +705,8 @@ local key=mk('Frame',{Name='KeyWindow',BackgroundColor3=Color3.fromRGB(29,25,29)
     BorderSizePixel=0,Size=UDim2.fromOffset(334,287),AnchorPoint=Vector2.new(.5,.5),
     Position=UDim2.fromScale(.5,.5)},keyOverlay)
 round(key,14);border(key,color.redDark,1.3)
+mk('Frame',{BackgroundColor3=color.red,BorderSizePixel=0,
+    Position=UDim2.fromOffset(83,2),Size=UDim2.fromOffset(170,2)},key)
 mk('UIGradient',{
     Rotation=90,
     Color=ColorSequence.new({
@@ -710,9 +725,11 @@ txt(key,'VISION',26,color.white,true,{
     Position=UDim2.fromOffset(82,11),Size=UDim2.fromOffset(119,40),
     TextXAlignment=Enum.TextXAlignment.Right
 })
-txt(key,'HUB',26,color.red,true,{
+local hubName=txt(key,'HUB',26,color.red,true,{
     Position=UDim2.fromOffset(203,11),Size=UDim2.fromOffset(76,40)
 })
+hubName.TextStrokeColor3=Color3.fromRGB(105,14,29)
+hubName.TextStrokeTransparency=.55
 local inputBar=mk('Frame',{BackgroundColor3=color.bg,BorderSizePixel=0,
     Position=UDim2.fromOffset(23,60),Size=UDim2.fromOffset(288,32)},key)
 round(inputBar,5);border(inputBar,color.line,1)

@@ -11,6 +11,8 @@
 local Players = game:GetService('Players')
 local UIS = game:GetService('UserInputService')
 local RunService = game:GetService('RunService')
+local Lighting = game:GetService('Lighting')
+local TweenService = game:GetService('TweenService')
 local player = Players.LocalPlayer
 if not player then return warn('Vision Hub: exécuter côté client uniquement.') end
 local playerGui = player:FindFirstChildOfClass('PlayerGui') or player:WaitForChild('PlayerGui', 12)
@@ -34,10 +36,30 @@ local gone=false
 local unlocked=false
 local activePage='Main'
 local zoom=1
-local showingFPS,showingXYZ=false,false
+local showingFPS,showingXYZ,showingPlayerCount,showFullbright,animateToggles=false,false,false,false,true
 local fpsValue,fpsFrames,fpsTimer,drawTimer=0,0,0,0
 local originalFOV
 local currentFOV=70
+local defaultLight={
+ Brightness=Lighting.Brightness,
+ Ambient=Lighting.Ambient,
+ OutdoorAmbient=Lighting.OutdoorAmbient,
+ ClockTime=Lighting.ClockTime,
+ FogEnd=Lighting.FogEnd
+}
+local function applyFullbright(value)
+ showFullbright=value
+ local settings=value and {
+  Brightness=3,
+  Ambient=Color3.fromRGB(182,182,182),
+  OutdoorAmbient=Color3.fromRGB(182,182,182),
+  ClockTime=12,
+  FogEnd=1000000
+ } or defaultLight
+ for property,v in pairs(settings) do
+  pcall(function() Lighting[property]=v end)
+ end
+end
 local records={}
 local search,mainWindow,openMini,navButtons,hud,keyOverlay,footerStatus
 local render
@@ -79,6 +101,7 @@ end
 local function stop()
     if gone then return end
     gone=true
+    if showFullbright then applyFullbright(false) end
     if originalFOV and workspace.CurrentCamera then
         pcall(function()workspace.CurrentCamera.FieldOfView=originalFOV end)
     end
@@ -249,8 +272,11 @@ connect(RunService.Heartbeat,function(dt)
             local p=playerPos()
             table.insert(bits,p and string.format('XYZ %.0f / %.0f / %.0f',p.X,p.Y,p.Z) or 'XYZ ---')
         end
+        if showingPlayerCount then
+            table.insert(bits,'JOUEURS '..tostring(#Players:GetPlayers()))
+        end
         hud.Text=table.concat(bits,'   |   ')
-        hud.Visible=showingFPS or showingXYZ
+        hud.Visible=showingFPS or showingXYZ or showingPlayerCount
     end
 end)
 
@@ -316,7 +342,12 @@ local function toggle(parent,group,name,description,value,callback)
     connect(knob.Activated,function()
         value=not value
         knob.BackgroundColor3=value and color.red or color.item
-        dot.Position=UDim2.fromOffset(value and 18 or 3,4)
+        local position=UDim2.fromOffset(value and 18 or 3,4)
+        if animateToggles then
+            TweenService:Create(dot,TweenInfo.new(0.15),{Position=position}):Play()
+        else
+            dot.Position=position
+        end
         callback(value)
     end,true)
     addRow(group,b,name..' '..description)
@@ -404,14 +435,18 @@ render=function()
         a,g=card(left,'▦  Main Features','Options fonctionnelles en direct')
         toggle(a,g,'Afficher les FPS','Compteur de performances',showingFPS,function(v)showingFPS=v end)
         toggle(a,g,'Afficher les coordonnées','Position du personnage',showingXYZ,function(v)showingXYZ=v end)
-        action(a,g,'Copier mes coordonnées',showXYZ)
+        toggle(a,g,'Fullbright','Éclairage clair en local',showFullbright,applyFullbright)
+        toggle(a,g,'Nombre de joueurs','Indicateur en direct',showingPlayerCount,function(v)showingPlayerCount=v end)
+        toggle(a,g,'Animations UI','Transitions des interrupteurs',animateToggles,function(v)animateToggles=v end)
         b,h=card(right,'♙  Player Info','Session Roblox')
         info(b,h,'Joueur',player.DisplayName)
         info(b,h,'User ID',player.UserId)
         info(b,h,'Place ID',game.PlaceId)
         info(b,h,'Joueurs',#Players:GetPlayers())
+        info(b,h,'Game ID',game.GameId)
         b,h=card(right,'◇  Quick Actions','Raccourcis')
         action(b,h,'Copier Place ID',function()copied(tostring(game.PlaceId),'Place ID')end,true)
+        action(b,h,'Copier mes coordonnées',showXYZ)
         action(b,h,'Recentrer le hub',function()mainWindow.Position=UDim2.fromScale(.5,.5);status('Fenêtre centrée')end)
         action(b,h,'Afficher les paramètres',function()changePage('Settings')end)
     elseif activePage=='Scripts' then
@@ -457,6 +492,8 @@ render=function()
         a,g=card(left,'☼  Visuals','Affichage en jeu')
         toggle(a,g,'Compteur FPS','Indicateur de performance',showingFPS,function(v)showingFPS=v end)
         toggle(a,g,'Coordonnées XYZ','Position du joueur',showingXYZ,function(v)showingXYZ=v end)
+        toggle(a,g,'Fullbright','Éclairage clair du client',showFullbright,applyFullbright)
+        toggle(a,g,'Compteur de joueurs','Affichage live',showingPlayerCount,function(v)showingPlayerCount=v end)
         slider(a,g,'Camera FOV',50,110,currentFOV,function(v)
             currentFOV=v
             local cam=workspace.CurrentCamera
@@ -474,6 +511,7 @@ render=function()
         end)
     elseif activePage=='Settings' then
         a,g=card(left,'⚙  Settings','Réglages de l’interface')
+        toggle(a,g,'Animations','Transitions des interrupteurs',animateToggles,function(v)animateToggles=v end)
         slider(a,g,'UI Scale (%)',65,110,math.floor(zoom*100),function(v)
             zoom=v/100;adjust()
         end)
@@ -552,11 +590,20 @@ round(keyInput,4);border(keyInput,color.redDark,.8)
 local getKey=button(key,'GET KEY',UDim2.fromOffset(23,101),UDim2.fromOffset(142,29),true)
 local how=button(key,'How To Get Key',UDim2.fromOffset(171,101),UDim2.fromOffset(140,29),true)
 local submit=button(key,'SUBMIT KEY',UDim2.fromOffset(23,137),UDim2.fromOffset(288,29),true)
+for _,redButton in ipairs({getKey,how,submit}) do
+    mk('UIGradient',{Color=ColorSequence.new(
+        Color3.fromRGB(237,26,57),Color3.fromRGB(169,10,34)
+    ),Rotation=90},redButton)
+end
 local keyAvatar=mk('Frame',{BackgroundColor3=color.redDark,BorderSizePixel=0,
     Position=UDim2.fromOffset(23,173),Size=UDim2.fromOffset(70,75)},key)
 round(keyAvatar,6)
-txt(keyAvatar,'V',42,color.red,true,{Size=UDim2.fromScale(1,1),
-    TextXAlignment=Enum.TextXAlignment.Center})
+local userAvatar=mk('ImageLabel',{
+    BackgroundTransparency=1,
+    Image='rbxthumb://type=AvatarHeadShot&id='..tostring(player.UserId)..'&w=150&h=150',
+    Size=UDim2.fromScale(1,1),ScaleType=Enum.ScaleType.Crop
+},keyAvatar)
+round(userAvatar,6)
 txt(key,'VISION HUB  |  SUPPORT',10,color.white,true,{Position=UDim2.fromOffset(103,174),
     Size=UDim2.fromOffset(207,17)})
 local support=button(key,'SUPPORT US',UDim2.fromOffset(103,194),UDim2.fromOffset(208,24))

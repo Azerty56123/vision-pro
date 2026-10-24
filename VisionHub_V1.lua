@@ -297,7 +297,7 @@ body=create("Frame",app,{BackgroundTransparency=1,BorderSizePixel=0,
 local pageTitle=label(body,"Overview",16,A.white,true,{
  Position=UDim2.fromOffset(18,4),Size=UDim2.fromOffset(340,27)})
 local pageDescription=label(body,selected.description,10,A.muted,false,{
- Position=UDim2.fromOffset(18,30),Size=UDim2.new(1,-30,0,19)})
+ Position=UDim2.fromOffset(18,34),Size=UDim2.new(1,-30,0,19)})
 canvas=create("ScrollingFrame",body,{BackgroundTransparency=1,BorderSizePixel=0,
  Position=UDim2.fromOffset(14,58),Size=UDim2.new(1,-26,1,-63),
  CanvasSize=UDim2.fromOffset(0,0),ScrollBarThickness=3,
@@ -635,20 +635,20 @@ local function card(which,definition)
  local host=which=="right" and right or left
  local c=create("Frame",host,{BackgroundColor3=A.card,BorderSizePixel=0,
   Size=UDim2.new(1,0,0,0),AutomaticSize=Enum.AutomaticSize.Y})
- corner(c,12);outline(c,A.border,.9)
+ corner(c,14);outline(c,A.border,.9)
  local lay=create("UIListLayout",c,{SortOrder=Enum.SortOrder.LayoutOrder,
   Padding=UDim.new(0,0)})
  local title=button(c,"",{BackgroundColor3=A.card,Size=UDim2.new(1,0,0,51)})
- corner(title,11)
+ corner(title,12)
  local headerIcon=create("Frame",title,{BackgroundColor3=A.cyanDark,BorderSizePixel=0,
-  Position=UDim2.fromOffset(12,12),Size=UDim2.fromOffset(27,27)})
- corner(headerIcon,8)
+  Position=UDim2.fromOffset(13,10),Size=UDim2.fromOffset(31,31)})
+ corner(headerIcon,10)
  for index=0,2 do
   create("Frame",headerIcon,{BackgroundColor3=A.cyan,BorderSizePixel=0,
-   Position=UDim2.fromOffset(8,8+index*5),Size=UDim2.fromOffset(11,2)})
+   Position=UDim2.fromOffset(9,8+index*6),Size=UDim2.fromOffset(13,2)})
  end
- label(title,definition.title,12,A.white,true,{Position=UDim2.fromOffset(50,10),
-  Size=UDim2.new(1,-92,0,28)})
+ label(title,definition.title,12,A.white,true,{Position=UDim2.fromOffset(54,11),
+  Size=UDim2.new(1,-100,0,26)})
  local arrow=label(title,"v",13,A.light,true,{
   Position=UDim2.new(1,-31,0,13),Size=UDim2.fromOffset(22,22),
   TextXAlignment=Enum.TextXAlignment.Center})
@@ -729,58 +729,75 @@ render=function()
  end
  applySearch();canvasHeight()
 end
--- Lightweight vector icons built from Roblox UI primitives: no missing Unicode glyphs.
-local function vectorLine(target,x1,y1,x2,y2,t,color)
+-- Refined icons, consistent outline style, all native Roblox Frames.
+-- Replaces the old makeshift star and stick-figure icons from the screenshots.
+local function iconLine(host,x1,y1,x2,y2,width)
  local dx,dy=x2-x1,y2-y1
- local len=math.sqrt(dx*dx+dy*dy)
- if len<.01 then return end
- local seg=create("Frame",target,{BackgroundColor3=color or A.light,BorderSizePixel=0,
-  AnchorPoint=Vector2.new(.5,.5),Position=UDim2.fromOffset((x1+x2)/2,(y1+y2)/2),
-  Size=UDim2.fromOffset(len,t or 2),
+ local distance=math.sqrt(dx*dx+dy*dy)
+ if distance<.01 then return end
+ local line=create("Frame",host,{BackgroundColor3=A.light,BorderSizePixel=0,
+  AnchorPoint=Vector2.new(.5,.5),
+  Position=UDim2.fromOffset((x1+x2)*.5,(y1+y2)*.5),
+  Size=UDim2.fromOffset(distance,width or 1.6),
   Rotation=math.deg(math.atan2(dy,dx))})
- corner(seg,2)
- return seg
+ corner(line,2);return line
 end
-local ICONS={
- Overview={{{3,3},{10,3},{10,10},{3,10},{3,3}},{{14,3},{21,3},{21,10},{14,10},{14,3}},
-           {{3,14},{10,14},{10,21},{3,21},{3,14}},{{14,14},{21,14},{21,21},{14,21},{14,14}}},
- Game={{{12,4},{12,20}},{{4,12},{20,12}},{{8,8},{16,16}},{{16,8},{8,16}}},
- Player={{{5,20},{6,16},{9,14},{15,14},{18,16},{19,20}}},
- Visuals={{{2,12},{6,7},{12,4},{18,7},{22,12},{18,17},{12,20},{6,17},{2,12}}},
- Settings={{{12,2},{12,5}},{{12,19},{12,22}},{{2,12},{5,12}},{{19,12},{22,12}},
-           {{5,5},{7,7}},{{17,17},{19,19}},{{19,5},{17,7}},{{7,17},{5,19}}},
- About={{{4,5},{20,5},{20,17},{14,17},{10,22},{10,17},{4,17},{4,5}}}
-}
-local function navIcon(buttonInstance,kind)
- local canvasIcon=create("Frame",buttonInstance,{BackgroundTransparency=1,
-  Position=UDim2.fromOffset(12,7),Size=UDim2.fromOffset(24,24)})
- if kind=="Player" then
-  local head=create("Frame",canvasIcon,{BackgroundTransparency=1,
-   Position=UDim2.fromOffset(8,3),Size=UDim2.fromOffset(8,8)})
-  corner(head,5);outline(head,A.light,1.7)
- elseif kind=="Visuals" then
-  local eye=create("Frame",canvasIcon,{BackgroundColor3=A.light,
-   BorderSizePixel=0,Position=UDim2.fromOffset(9,9),Size=UDim2.fromOffset(6,6)})
-  corner(eye,4)
- elseif kind=="Settings" then
-  local ring=create("Frame",canvasIcon,{BackgroundTransparency=1,
-   Position=UDim2.fromOffset(8,8),Size=UDim2.fromOffset(8,8)})
-  corner(ring,5);outline(ring,A.light,1.7)
- end
- for _,chain in ipairs(ICONS[kind] or {}) do
-  for i=2,#chain do
-   vectorLine(canvasIcon,chain[i-1][1],chain[i-1][2],chain[i][1],chain[i][2],1.6,A.light)
-  end
+local function iconBox(host,x,y,w,h,r,filled)
+ local f=create("Frame",host,{
+  BackgroundColor3=filled and A.light or A.side,
+  BackgroundTransparency=filled and 0 or 1,BorderSizePixel=0,
+  Position=UDim2.fromOffset(x,y),Size=UDim2.fromOffset(w,h)})
+ corner(f,r or 3)
+ if not filled then outline(f,A.light,1.5)end
+ return f
+end
+local function iconDot(host,x,y,diameter,filled)
+ return iconBox(host,x,y,diameter,diameter,diameter/2,filled)
+end
+local function navIcon(parent,which)
+ local canvasIcon=create("Frame",parent,{BackgroundTransparency=1,BorderSizePixel=0,
+  Position=UDim2.fromOffset(14,9),Size=UDim2.fromOffset(22,22)})
+ if which=="Overview" then
+  iconBox(canvasIcon,2,2,7,7,2,false);iconBox(canvasIcon,13,2,7,7,2,false)
+  iconBox(canvasIcon,2,13,7,7,2,false);iconBox(canvasIcon,13,13,7,7,2,false)
+ elseif which=="Game" then
+  iconBox(canvasIcon,1,6,20,12,6,false)
+  iconLine(canvasIcon,6,10,6,15,1.4);iconLine(canvasIcon,3.5,12.5,8.5,12.5,1.4)
+  iconDot(canvasIcon,14,10,2.5,true);iconDot(canvasIcon,17,13,2.5,true)
+ elseif which=="Player" then
+  iconDot(canvasIcon,7,2,8,false)
+  iconLine(canvasIcon,3,19,4,15,1.6);iconLine(canvasIcon,4,15,7,12,1.6)
+  iconLine(canvasIcon,7,12,15,12,1.6);iconLine(canvasIcon,15,12,18,15,1.6)
+  iconLine(canvasIcon,18,15,19,19,1.6);iconLine(canvasIcon,3,19,19,19,1.6)
+ elseif which=="Visuals" then
+  iconLine(canvasIcon,1.5,11,5,7,1.5);iconLine(canvasIcon,5,7,11,5,1.5)
+  iconLine(canvasIcon,11,5,17,7,1.5);iconLine(canvasIcon,17,7,20.5,11,1.5)
+  iconLine(canvasIcon,20.5,11,17,15,1.5);iconLine(canvasIcon,17,15,11,17,1.5)
+  iconLine(canvasIcon,11,17,5,15,1.5);iconLine(canvasIcon,5,15,1.5,11,1.5)
+  iconDot(canvasIcon,8.5,8.5,5,true)
+ elseif which=="Settings" then
+  iconLine(canvasIcon,3,5,19,5,1.5);iconLine(canvasIcon,3,11,19,11,1.5)
+  iconLine(canvasIcon,3,17,19,17,1.5)
+  iconDot(canvasIcon,6,2,6,false);iconDot(canvasIcon,13,8,6,false)
+  iconDot(canvasIcon,8,14,6,false)
+ elseif which=="About" then
+  iconBox(canvasIcon,2,3,18,14,3,false)
+  iconLine(canvasIcon,8,17,8,21,1.5);iconLine(canvasIcon,8,21,13,17,1.5)
+  iconLine(canvasIcon,6,8,16,8,1.4);iconLine(canvasIcon,6,12,13,12,1.4)
  end
 end
 
 local tabs={"Overview","Game","Player","Visuals","Settings","About"}
+local tabLabels={Overview="Overview",Game="Game",Player="Player",
+ Visuals="Visuals",Settings="Paramètres",About="About"}
 local function goPage(name)
  current=name
- pageTitle.Text=name
+ pageTitle.Text=tabLabels[name] or name
  pageDescription.Text=name=="Game" and selected.description or
   (name=="Overview" and "Session overview & quick controls" or
-  (name=="About" and "Community / project information" or "Player preferences"))
+  (name=="About" and "Community / project information" or
+  (name=="Settings" and "Interface preferences" or
+  (name=="Visuals" and "Visual & display options" or "Player preferences"))))
  search.Text=""
  for n,b in pairs(navButtons)do
   local chosen=n==name
@@ -800,9 +817,9 @@ for i,name in ipairs(tabs) do
  create("Frame",b,{Name="Selected",BackgroundColor3=A.cyan,BackgroundTransparency=1,
   BorderSizePixel=0,Position=UDim2.fromOffset(0,8),Size=UDim2.fromOffset(3,23)})
  navIcon(b,name)
- label(b,name,12,A.muted,true,{
-  Name="NavTitle",Position=UDim2.fromOffset(47,7),
-  Size=UDim2.new(1,-51,0,25)
+ label(b,tabLabels[name] or name,12,A.muted,true,{
+  Name="NavTitle",Position=UDim2.fromOffset(49,7),
+  Size=UDim2.new(1,-53,0,25)
  })
  navButtons[name]=b
  bind(b.MouseEnter,function()

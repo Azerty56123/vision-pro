@@ -882,176 +882,212 @@ bind(Run.Heartbeat,function(dt)
  end
 end)
 
--- REVERB-INSPIRED KEY PANEL: blue/cyan border, status-log left, key controls right.
-local gateShade=create("Frame",gui,{Name="GateShade",BackgroundColor3=Color3.new(0,0,0),
- BackgroundTransparency=.34,BorderSizePixel=0,Size=UDim2.fromScale(1,1)})
--- Soft outer neon aura behind the panel; two progressively fainter outline
--- strokes create a diffuse effect without filling the screen cyan.
+-- VISION WARE V1 / REVERB-REFERENCE KEY WINDOW
+-- Visual layout reconstructed from the provided 667x438 reference:
+-- small identity + // LOG left; game, key field, switch and 3 actions right.
+-- Keep original branding and real handlers: don't invent a premium shop URL.
+local gateShade=create("Frame",gui,{
+ Name="GateShade",BackgroundColor3=Color3.new(0,0,0),
+ BackgroundTransparency=.40,BorderSizePixel=0,Size=UDim2.fromScale(1,1)})
 local outerHalo=create("Frame",gateShade,{
  Name="KeyOuterGlow",BackgroundTransparency=1,BorderSizePixel=0,
- Size=UDim2.fromOffset(670,446),AnchorPoint=Vector2.new(.5,.5),
- Position=UDim2.fromScale(.5,.5)})
-corner(outerHalo,22)
+ AnchorPoint=Vector2.new(.5,.5),Position=UDim2.fromScale(.5,.5),
+ Size=UDim2.fromOffset(668,444)})
+corner(outerHalo,12)
 create("UIStroke",outerHalo,{
- ApplyStrokeMode=Enum.ApplyStrokeMode.Border,
- Color=Color3.fromRGB(18,154,240),Thickness=8,Transparency=.94})
+ ApplyStrokeMode=Enum.ApplyStrokeMode.Border,Color=Color3.fromRGB(17,146,232),
+ Thickness=9,Transparency=.93})
 local innerHalo=create("Frame",gateShade,{
  Name="KeyNearGlow",BackgroundTransparency=1,BorderSizePixel=0,
- Size=UDim2.fromOffset(665,441),AnchorPoint=Vector2.new(.5,.5),
- Position=UDim2.fromScale(.5,.5)})
-corner(innerHalo,20)
+ AnchorPoint=Vector2.new(.5,.5),Position=UDim2.fromScale(.5,.5),
+ Size=UDim2.fromOffset(665,441)})
+corner(innerHalo,11)
 create("UIStroke",innerHalo,{
- ApplyStrokeMode=Enum.ApplyStrokeMode.Border,
- Color=Color3.fromRGB(51,193,255),Thickness=3,Transparency=.83})
--- Keep the halo dimensions in lockstep with the central panel on any viewport.
+ ApplyStrokeMode=Enum.ApplyStrokeMode.Border,Color=Color3.fromRGB(76,215,255),
+ Thickness=4,Transparency=.79})
 local outerHaloScale=create("UIScale",outerHalo,{Scale=1})
 local innerHaloScale=create("UIScale",innerHalo,{Scale=1})
-local keyPanel=create("Frame",gateShade,{Name="KeySystem",
- BackgroundColor3=Color3.fromRGB(5,12,20),BorderSizePixel=0,
- Size=UDim2.fromOffset(662,438),
- AnchorPoint=Vector2.new(.5,.5),Position=UDim2.fromScale(.5,.5)})
-corner(keyPanel,12);outline(keyPanel,Color3.fromRGB(45,172,238),1)
+local keyPanel=create("Frame",gateShade,{
+ Name="KeySystem",BackgroundColor3=Color3.fromRGB(3,7,12),
+ BorderSizePixel=0,AnchorPoint=Vector2.new(.5,.5),
+ Position=UDim2.fromScale(.5,.5),Size=UDim2.fromOffset(662,438)})
+corner(keyPanel,10)
+outline(keyPanel,Color3.fromRGB(44,177,231),1)
 local gateScale=create("UIScale",keyPanel,{Scale=1})
-create("UIGradient",keyPanel,{Rotation=100,Color=ColorSequence.new({
- ColorSequenceKeypoint.new(0,Color3.fromRGB(7,19,29)),
- ColorSequenceKeypoint.new(.55,Color3.fromRGB(5,10,18)),
- ColorSequenceKeypoint.new(1,Color3.fromRGB(5,13,20))})})
--- REVERB-style composition: small logo and identity stack at left.
--- The branding stays Vision Ware; only the original layout is adapted.
-monogram(keyPanel,28,14,43)
-local keyBadgeAura=create("Frame",keyPanel,{
- Name="BadgeAura",BackgroundTransparency=1,BorderSizePixel=0,
- Position=UDim2.fromOffset(24,10),Size=UDim2.fromOffset(51,51)})
-corner(keyBadgeAura,26)
-local keyBadgeGlow=outline(keyBadgeAura,Color3.fromRGB(46,204,255),4)
-keyBadgeGlow.Transparency=.83
+create("UIGradient",keyPanel,{
+ Rotation=80,Color=ColorSequence.new({
+  ColorSequenceKeypoint.new(0,Color3.fromRGB(4,12,19)),
+  ColorSequenceKeypoint.new(.48,Color3.fromRGB(3,8,15)),
+  ColorSequenceKeypoint.new(1,Color3.fromRGB(4,10,17))
+ })})
+-- Precisely restrained neon stroke on the full frame. No opaque cyan border.
+local keyGlow=create("Frame",keyPanel,{
+ BackgroundTransparency=1,BorderSizePixel=0,
+ Position=UDim2.fromOffset(2,2),Size=UDim2.new(1,-4,1,-4)})
+corner(keyGlow,9)
+local haloStroke=outline(keyGlow,Color3.fromRGB(29,159,240),2)
+haloStroke.Transparency=.72
+
+-- LEFT COLUMN / emblem and compact brand stack.
+local keyBadge=monogram(keyPanel,45,15,47)
+local badgeAura=create("Frame",keyPanel,{
+ BackgroundTransparency=1,BorderSizePixel=0,
+ Position=UDim2.fromOffset(42,12),Size=UDim2.fromOffset(53,53)})
+corner(badgeAura,27)
+local badgeEdge=outline(badgeAura,Color3.fromRGB(45,208,252),3)
+badgeEdge.Transparency=.84
 label(keyPanel,"VISION",14,A.white,true,{
- Position=UDim2.fromOffset(29,67),Size=UDim2.fromOffset(76,22)})
+ Position=UDim2.fromOffset(42,73),Size=UDim2.fromOffset(71,20)})
 label(keyPanel,"WARE",14,A.cyan,true,{
- Position=UDim2.fromOffset(110,67),Size=UDim2.fromOffset(64,22)})
+ Position=UDim2.fromOffset(115,73),Size=UDim2.fromOffset(59,20)})
 label(keyPanel,"KEY SYSTEM",9,A.cyan,true,{
- Position=UDim2.fromOffset(30,89),Size=UDim2.fromOffset(144,16)})
-create("Frame",keyPanel,{BackgroundColor3=Color3.fromRGB(53,187,232),
- BackgroundTransparency=.2,BorderSizePixel=0,
- Position=UDim2.fromOffset(20,115),Size=UDim2.fromOffset(186,1)})
-local exitGate=button(keyPanel,"×",{
- Position=UDim2.new(1,-33,0,12),Size=UDim2.fromOffset(20,22),
- BackgroundColor3=A.side,TextSize=14,TextColor3=A.muted})
-corner(exitGate,4)
--- left: loader log (status rail) like Reverb.
-local logPanel=create("Frame",keyPanel,{BackgroundColor3=Color3.fromRGB(7,17,23),
- BorderSizePixel=0,Position=UDim2.fromOffset(17,127),
- Size=UDim2.fromOffset(198,268)})
-corner(logPanel,5);outline(logPanel,Color3.fromRGB(28,70,88),.65)
-artwork(logPanel,"menu",12,14,16,16,A.cyan)
-label(logPanel,"LOADER LOG",11,A.cyan,true,{
- Position=UDim2.fromOffset(35,11),Size=UDim2.fromOffset(148,22)})
-create("Frame",logPanel,{BackgroundColor3=Color3.fromRGB(24,65,79),
- BorderSizePixel=0,Position=UDim2.fromOffset(12,42),
- Size=UDim2.new(1,-24,0,1)})
-local logs=create("Frame",logPanel,{BackgroundTransparency=1,
- Position=UDim2.fromOffset(12,52),Size=UDim2.new(1,-24,0,176)})
-create("UIListLayout",logs,{SortOrder=Enum.SortOrder.LayoutOrder,
- Padding=UDim.new(0,7)})
+ Position=UDim2.fromOffset(45,94),Size=UDim2.fromOffset(140,18)})
+local leftRule=create("Frame",keyPanel,{
+ BackgroundColor3=Color3.fromRGB(63,178,221),BorderSizePixel=0,
+ BackgroundTransparency=.42,Position=UDim2.fromOffset(16,119),
+ Size=UDim2.fromOffset(163,1)})
+local closeKey=button(keyPanel,"×",{
+ Position=UDim2.new(1,-29,0,13),Size=UDim2.fromOffset(20,20),
+ BackgroundColor3=Color3.fromRGB(6,17,25),
+ TextColor3=A.muted,TextSize=14})
+corner(closeKey,3)
+
+-- LOG title is OUTSIDE the log box, as on the Reverb panel.
+label(keyPanel,"// LOG",9,A.cyan,true,{
+ Position=UDim2.fromOffset(16,130),Size=UDim2.fromOffset(150,19)})
+local logPanel=create("Frame",keyPanel,{
+ Name="AccessLog",BackgroundColor3=Color3.fromRGB(4,12,18),
+ BorderSizePixel=0,Position=UDim2.fromOffset(17,151),
+ Size=UDim2.fromOffset(163,244)})
+corner(logPanel,4)
+outline(logPanel,Color3.fromRGB(21,46,60),.6)
+local logs=create("Frame",logPanel,{
+ BackgroundTransparency=1,BorderSizePixel=0,
+ Position=UDim2.fromOffset(8,10),Size=UDim2.new(1,-16,1,-19)})
+create("UIListLayout",logs,{
+ SortOrder=Enum.SortOrder.LayoutOrder,Padding=UDim.new(0,6)})
 local logEntries={}
 local function log(message)
  if closed or not logs.Parent then return end
  table.insert(logEntries,"> "..tostring(message))
- if #logEntries>9 then table.remove(logEntries,1)end
- for _,x in ipairs(logs:GetChildren())do
-  if x:IsA("TextLabel") then x:Destroy()end
+ if #logEntries>11 then table.remove(logEntries,1)end
+ for _,child in ipairs(logs:GetChildren()) do
+  if child:IsA("TextLabel") then child:Destroy()end
  end
- for idx,msg in ipairs(logEntries)do
-  label(logs,msg,10,idx==#logEntries and A.cyan or
-   Color3.fromRGB(105,158,162),false,{
-   Size=UDim2.new(1,0,0,15),TextTruncate=Enum.TextTruncate.AtEnd,
-   LayoutOrder=idx
-  })
+ for idx,msg in ipairs(logEntries) do
+  label(logs,msg,9,idx==#logEntries and Color3.fromRGB(93,216,247)
+   or Color3.fromRGB(87,142,152),false,{
+   Size=UDim2.new(1,0,0,13),LayoutOrder=idx})
  end
 end
-label(logPanel,"●  "..(configured() and "SERVICE CONNECTED" or "DEVELOPMENT MODE"),9,A.good,true,{
- Position=UDim2.new(0,13,1,-30),Size=UDim2.new(1,-26,0,19)})
--- right-side credentials and action buttons.
-local rightGate=create("Frame",keyPanel,{BackgroundTransparency=1,
- Position=UDim2.fromOffset(228,30),Size=UDim2.fromOffset(419,365)})
-label(rightGate,"GAME  //",10,A.cyan,true,{
- Position=UDim2.fromOffset(5,4),Size=UDim2.fromOffset(76,23)})
-label(rightGate,string.upper(selected.name),10,A.light,true,{
- Position=UDim2.fromOffset(86,4),Size=UDim2.fromOffset(280,23)})
-label(rightGate,"ACCESS  //  VISION WARE V1",10,A.muted,true,{
- Position=UDim2.fromOffset(5,31),Size=UDim2.fromOffset(391,20)})
-local entry=create("TextBox",rightGate,{BackgroundColor3=Color3.fromRGB(9,20,28),
- BorderSizePixel=0,Text="",ClearTextOnFocus=false,
- PlaceholderText="Enter your access key...",TextColor3=A.white,
- PlaceholderColor3=A.muted,Font=Enum.Font.Gotham,TextSize=12,
- TextXAlignment=Enum.TextXAlignment.Left,Position=UDim2.fromOffset(5,58),
- Size=UDim2.fromOffset(399,45)})
-corner(entry,5);outline(entry,Color3.fromRGB(34,76,91),.65)
--- TextBox placeholder in Roblox can overlap child icons on some executors.
--- Keep the access field clean; only the left padding is applied.
-create("UIPadding",entry,{PaddingLeft=UDim.new(0,16)})
+
+-- RIGHT COLUMN / exact visual hierarchy: game row, framed key input,
+-- SAVE KEY with a compact green switch, then 3 nearly flat action bars.
+local rightGate=create("Frame",keyPanel,{
+ BackgroundTransparency=1,BorderSizePixel=0,
+ Position=UDim2.fromOffset(188,55),Size=UDim2.fromOffset(454,335)})
+label(rightGate,"GAME  //",9,A.cyan,true,{
+ Position=UDim2.fromOffset(0,0),Size=UDim2.fromOffset(65,20)})
+label(rightGate,string.upper(selected.name),9,A.cyan,true,{
+ Position=UDim2.fromOffset(70,0),Size=UDim2.fromOffset(372,20)})
+local inputBack=create("Frame",rightGate,{
+ BackgroundColor3=Color3.fromRGB(5,17,25),
+ BorderSizePixel=0,Position=UDim2.fromOffset(0,36),
+ Size=UDim2.fromOffset(452,54)})
+corner(inputBack,4)
+outline(inputBack,Color3.fromRGB(22,57,76),.7)
+label(inputBack,">",13,A.cyan,true,{
+ Position=UDim2.fromOffset(12,12),Size=UDim2.fromOffset(15,23)})
+local entry=create("TextBox",inputBack,{
+ Name="AccessKeyInput",BackgroundTransparency=1,BorderSizePixel=0,
+ Position=UDim2.fromOffset(30,0),Size=UDim2.new(1,-41,1,0),
+ Font=Enum.Font.Code,TextSize=12,Text="",
+ ClearTextOnFocus=false,TextColor3=Color3.fromRGB(119,217,245),
+ PlaceholderColor3=Color3.fromRGB(86,149,168),
+ PlaceholderText="VISION WARE · ENTER KEY",TextXAlignment=Enum.TextXAlignment.Left})
 bind(entry.Focused,function()
- local edge=entry:FindFirstChildOfClass("UIStroke")
- if edge then edge.Color=A.cyan end
+ local stroke=inputBack:FindFirstChildOfClass("UIStroke")
+ if stroke then stroke.Color=Color3.fromRGB(70,216,255)end
 end)
 bind(entry.FocusLost,function()
- local edge=entry:FindFirstChildOfClass("UIStroke")
- if edge then edge.Color=Color3.fromRGB(44,91,110)end
+ local stroke=inputBack:FindFirstChildOfClass("UIStroke")
+ if stroke then stroke.Color=Color3.fromRGB(22,57,76)end
 end)
-local localStatus=label(rightGate,"Ready to verify",10,A.light,false,{
- Position=UDim2.fromOffset(7,111),Size=UDim2.fromOffset(390,18)})
--- Session-only input retention. No sensitive key is stored on disk.
+local saveCaption=label(rightGate,"SAVE KEY  //  SESSION ONLY",10,A.white,false,{
+ Position=UDim2.fromOffset(0,99),Size=UDim2.fromOffset(353,23)})
+local saveHelp=label(rightGate,"Current session only · clears when closed",9,A.muted,false,{
+ Position=UDim2.fromOffset(0,118),Size=UDim2.fromOffset(342,16)})
 local keepKeyInput=true
-label(rightGate,"SAVE KEY  //  SESSION ONLY",10,A.light,true,{
- Position=UDim2.fromOffset(7,140),Size=UDim2.fromOffset(325,25)})
-local saveSwitch=button(rightGate,"",{BackgroundColor3=Color3.fromRGB(16,149,111),
- Position=UDim2.fromOffset(350,140),Size=UDim2.fromOffset(52,24)})
-corner(saveSwitch,13)
-local saveDot=create("Frame",saveSwitch,{BackgroundColor3=Color3.fromRGB(241,255,251),
- BorderSizePixel=0,Position=UDim2.fromOffset(30,3),Size=UDim2.fromOffset(18,18)})
-corner(saveDot,10)
+local saveSwitch=button(rightGate,"",{
+ Position=UDim2.fromOffset(390,106),Size=UDim2.fromOffset(61,23),
+ BackgroundColor3=Color3.fromRGB(17,187,137)})
+corner(saveSwitch,12)
+local saveDot=create("Frame",saveSwitch,{
+ BackgroundColor3=Color3.fromRGB(242,255,254),
+ BorderSizePixel=0,Position=UDim2.fromOffset(37,3),
+ Size=UDim2.fromOffset(17,17)})
+corner(saveDot,9)
+label(saveSwitch,"ON",9,Color3.fromRGB(6,65,49),true,{
+ Name="KeySwitchState",Position=UDim2.fromOffset(7,2),
+ Size=UDim2.fromOffset(25,18),TextXAlignment=Enum.TextXAlignment.Center})
 bind(saveSwitch.Activated,function()
  keepKeyInput=not keepKeyInput
- saveSwitch.BackgroundColor3=keepKeyInput and Color3.fromRGB(16,149,111)
-  or Color3.fromRGB(52,58,68)
- saveDot.Position=UDim2.fromOffset(keepKeyInput and 30 or 4,3)
+ saveSwitch.BackgroundColor3=keepKeyInput and
+  Color3.fromRGB(17,187,137) or Color3.fromRGB(59,64,73)
+ saveDot.Position=UDim2.fromOffset(keepKeyInput and 37 or 5,3)
+ local cap=saveSwitch:FindFirstChild("KeySwitchState")
+ if cap then
+  cap.Text=keepKeyInput and "ON" or "OFF"
+  cap.Position=UDim2.fromOffset(keepKeyInput and 7 or 28,2)
+ end
 end)
-local enterButton=button(rightGate,"CONTINUE",{
- Position=UDim2.fromOffset(5,181),Size=UDim2.fromOffset(399,43),
- BackgroundColor3=Color3.fromRGB(13,46,65),Font=Enum.Font.GothamBold,TextSize=12})
-corner(enterButton,5);outline(enterButton,Color3.fromRGB(43,111,138),.65)
-local generateButton=button(rightGate,"GET FREE KEY",{
- Position=UDim2.fromOffset(5,234),Size=UDim2.fromOffset(399,43),
- BackgroundColor3=Color3.fromRGB(15,55,76),Font=Enum.Font.GothamBold,TextSize=12})
-corner(generateButton,5);outline(generateButton,Color3.fromRGB(45,119,148),.65)
--- High-contrast blue CTA. Gradients attached to TextButtons also tint the text;
--- solid fill is deliberate so the label remains readable.
-local helpButton=button(rightGate,"HELP / SUPPORT",{
- Position=UDim2.fromOffset(5,287),Size=UDim2.fromOffset(399,43),
- BackgroundColor3=Color3.fromRGB(10,158,217),Font=Enum.Font.GothamBold,
- TextColor3=Color3.fromRGB(246,251,255),TextSize=12})
-corner(helpButton,5)
-outline(helpButton,Color3.fromRGB(32,201,242),.65)
-create("Frame",keyPanel,{BackgroundColor3=A.border,BorderSizePixel=0,
- Position=UDim2.new(0,17,1,-35),Size=UDim2.new(1,-34,0,1)})
-label(keyPanel,"●  "..(configured() and "KEY SERVER CONFIGURED" or "LOCAL TEST MODE").."  •  V1",9,A.good,true,{
- Position=UDim2.new(0,20,1,-30),Size=UDim2.fromOffset(360,21)})
-label(keyPanel,"PC  /  MOBILE",9,A.muted,true,{
- Position=UDim2.new(1,-146,1,-30),Size=UDim2.fromOffset(124,21),
- TextXAlignment=Enum.TextXAlignment.Right})
 
+local enterButton=button(rightGate,"CONTINUE",{
+ Position=UDim2.fromOffset(0,149),Size=UDim2.fromOffset(452,47),
+ BackgroundColor3=Color3.fromRGB(5,24,35),
+ Font=Enum.Font.GothamMedium,TextSize=12,
+ TextColor3=Color3.fromRGB(131,215,235)})
+corner(enterButton,4)
+outline(enterButton,Color3.fromRGB(12,44,61),.4)
+local generateButton=button(rightGate,"GET FREE KEY",{
+ Position=UDim2.fromOffset(0,209),Size=UDim2.fromOffset(452,47),
+ BackgroundColor3=Color3.fromRGB(5,24,35),
+ Font=Enum.Font.GothamMedium,TextSize=12,
+ TextColor3=Color3.fromRGB(131,215,235)})
+corner(generateButton,4)
+outline(generateButton,Color3.fromRGB(12,44,61),.4)
+-- Reverb's bright bottom CTA shape; keep the action truthful (GitHub support).
+local helpButton=button(rightGate,"HELP / SUPPORT",{
+ Position=UDim2.fromOffset(0,269),Size=UDim2.fromOffset(452,47),
+ BackgroundColor3=Color3.fromRGB(7,170,241),
+ Font=Enum.Font.GothamBold,TextSize=12,
+ TextColor3=Color3.fromRGB(3,27,43)})
+corner(helpButton,4)
+outline(helpButton,Color3.fromRGB(62,209,255),.8)
+
+-- Thin footer, just as in the Reverb screenshot.
+label(keyPanel,"●  "..(configured() and "ONLINE" or "TEST MODE"),9,A.good,true,{
+ Position=UDim2.fromOffset(20,405),Size=UDim2.fromOffset(175,21)})
+local siteLink=button(keyPanel,"WEBSITE",{
+ BackgroundTransparency=1,TextSize=9,TextColor3=A.cyan,
+ Position=UDim2.fromOffset(478,402),Size=UDim2.fromOffset(75,22)})
+local supportLink=button(keyPanel,"SUPPORT",{
+ BackgroundTransparency=1,TextSize=9,TextColor3=A.cyan,
+ Position=UDim2.fromOffset(558,402),Size=UDim2.fromOffset(75,22)})
+
+-- Do not open the main hub until access succeeds.
 local checking=false
 local function message(str,errorFlag)
- localStatus.Text=tostring(str)
- localStatus.TextColor3=errorFlag and Color3.fromRGB(244,110,135) or A.light
  log(str)
+ if errorFlag then entry.PlaceholderText=tostring(str)
+ else entry.PlaceholderText="VISION WARE · ENTER KEY"end
 end
 local function validate()
  if checking or closed then return end
  local key=(entry.Text or ""):match("^%s*(.-)%s*$"):upper()
- if key=="" then message("Enter a valid key",true);return end
+ if key=="" then message("Enter an access key",true);return end
  checking=true;enterButton.Text="VERIFYING..."
- message("Checking access key...",false)
+ log("Checking access key...")
  local ok,msg
  if key==TEST_KEY then
   ok,msg=true,"Development access granted"
@@ -1062,44 +1098,43 @@ local function validate()
  if closed then return end
  enterButton.Text="CONTINUE"
  if ok then
-  message(msg,false)
+  log(msg)
   unlocked=true
   gateShade:Destroy()
   openApp(true)
   status("Profile: "..selected.name.."  •  "..msg)
  else
   message(msg,true)
-  if not keepKeyInput then entry.Text="" end
+  if not keepKeyInput then entry.Text=""end
  end
 end
 bind(enterButton.Activated,validate)
-bind(entry.FocusLost,function(enterPressed)
- if enterPressed then validate()end
+bind(entry.FocusLost,function(pressedEnter)
+ if pressedEnter then validate()end
 end)
 bind(generateButton.Activated,function()
  if configured() then
   local url=KEY_API:gsub("/+$","").."/key"
-  if clipboard(url) then
-   message("Key page copied. Open your browser.",false)
-  else
-   message("Open your Cloudflare /key page.",true)
-  end
+  message(clipboard(url) and "Key generator URL copied" or "Open the Cloudflare /key URL",false)
  else
   entry.Text=TEST_KEY
-  message("Test key ready. Press CONTINUE.",false)
+  message("Development key filled: press CONTINUE",false)
  end
 end)
-bind(helpButton.Activated,function()
+local function supportAction()
  local url="https://github.com/Azerty56123/vision-pro"
- message(clipboard(url) and "Support GitHub link copied." or
-  "Support: Vision Ware GitHub repository.",false)
-end)
-bind(exitGate.Activated,kill)
-log("Vision Ware loader initialized")
-log("Profile: "..selected.name)
-log("Place: "..tostring(game.PlaceId))
-log("Modules: "..tostring(#allSections))
-log(configured() and "Cloudflare service configured" or "Development key mode")
+ message(clipboard(url) and "GitHub support link copied" or "Visit Vision Ware GitHub",false)
+end
+bind(helpButton.Activated,supportAction)
+bind(siteLink.Activated,supportAction)
+bind(supportLink.Activated,supportAction)
+bind(closeKey.Activated,kill)
+log("Vision Ware loader initializing...")
+log("Game: "..selected.name)
+log("Executor ready")
+log("Player: "..player.Name)
+log("Key service: "..(configured() and "online" or "development"))
+log("Ready.")
 
 -- Handle new screen sizes and camera replacements.
 local cameraConnection

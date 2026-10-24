@@ -190,7 +190,7 @@ local logoSymbol=text(top,"Ϝ",33,C.purple,true,{
 logoSymbol.Rotation=-10
 text(top,"Vision",20,C.purple,true,{
  Position=UDim2.fromOffset(65,14),Size=UDim2.fromOffset(76,34)})
-text(top,"Community",20,C.white,true,{
+local communityTitle=text(top,"Community",20,C.white,true,{
  Position=UDim2.fromOffset(143,14),Size=UDim2.fromOffset(162,34)})
 local minimize=button(top,"−",{Position=UDim2.new(1,-67,0,18),
  Size=UDim2.fromOffset(23,23),BackgroundColor3=C.rail,TextColor3=C.muted})
@@ -229,7 +229,7 @@ footer=text(footbar,"●  Hub pret",10,C.green,false,{
 text(footbar,"Vision V1 · Design n°12",9,C.muted,false,{
  Position=UDim2.new(1,-177,0,3),Size=UDim2.fromOffset(164,22),
  TextXAlignment=Enum.TextXAlignment.Right})
-mini=button(gui,"◆ Vision",{Position=UDim2.new(1,-140,.5,-16),
+mini=button(gui,"Ϝ Vision",{Position=UDim2.new(1,-140,.5,-16),
  Size=UDim2.fromOffset(130,34),BackgroundColor3=C.accent,Visible=false})
 stroke(mini,C.purple,1)
 listen(minimize.Activated,function()open(false)end)
@@ -277,8 +277,9 @@ local function resize()
   navLayout.FillDirection=Enum.FillDirection.Horizontal
   content.Position=UDim2.fromOffset(0,110)
   content.Size=UDim2.new(1,0,1,-137)
-  search.Position=UDim2.new(1,-218,0,18)
-  search.Size=UDim2.fromOffset(127,27)
+  communityTitle.Visible=false
+  search.Position=UDim2.new(1,-219,0,18)
+  search.Size=UDim2.fromOffset(131,27)
   scroll.Position=UDim2.fromOffset(10,12)
   scroll.Size=UDim2.new(1,-18,1,-14)
   for _,b in pairs(navButtons)do b.Size=UDim2.fromOffset(110,35)end
@@ -292,6 +293,7 @@ local function resize()
   navLayout.FillDirection=Enum.FillDirection.Vertical
   content.Position=UDim2.fromOffset(208,65)
   content.Size=UDim2.new(1,-208,1,-92)
+  communityTitle.Visible=true
   search.Position=UDim2.new(1,-259,0,18)
   search.Size=UDim2.fromOffset(174,27)
   scroll.Position=UDim2.fromOffset(16,15)
@@ -584,20 +586,49 @@ render=function()
  end
  filter()
 end
-local tabs={{"Accueil","⌂"},{"Automatisation","⚡"},{"Téléportation","◇"},
- {"Joueur","♙"},{"Visuels","◉"},{"Scripts","▤"},{"Paramètres","⚙"},{"Crédits","☆"}}
+-- La barre gauche conserve les fonctions Vision, mais reproduit la présentation
+-- Fyy : icônes blanches, noms anglais, sélection sombre et trait violet à gauche.
+local tabs={
+ {"Accueil","♙","Overview"},
+ {"Automatisation","ϟ","Automation"},
+ {"Téléportation","◇","Teleport"},
+ {"Joueur","○","Player"},
+ {"Visuels","◉","Visual"},
+ {"Scripts","⬡","Scripts"},
+ {"Paramètres","⚙","Settings"},
+ {"Crédits","☆","Community"}
+}
 go=function(name)
- shown=name;heading.Text=name;subheading.Text="Vision Hub · "..name;search.Text=""
+ shown=name
+ heading.Text=name
+ subheading.Text="Vision Hub · "..name
+ search.Text=""
  for title,b in pairs(navButtons) do
-  b.BackgroundColor3=title==name and C.accent or C.rail
+  local selected=title==name
+  b.BackgroundColor3=selected and C.panel or C.rail
+  local accentBar=b:FindFirstChild("SelectionBar")
+  if accentBar then accentBar.BackgroundTransparency=selected and 0 or 1 end
+  local caption=b:FindFirstChild("Caption")
+  if caption then caption.TextColor3=selected and C.white or C.muted end
  end
  render()
 end
-for i,pair in ipairs(tabs) do
- local tab=pair[1]
- local b=button(nav,pair[2].."   "..tab,{BackgroundColor3=C.rail,
-  Size=UDim2.new(1,0,0,35),LayoutOrder=i,TextXAlignment=Enum.TextXAlignment.Left})
- obj("UIPadding",{PaddingLeft=UDim.new(0,12)},b)
+for i,entry in ipairs(tabs) do
+ local tab,glyph,display=entry[1],entry[2],entry[3]
+ local b=button(nav,"",{BackgroundColor3=C.rail,
+  Size=UDim2.new(1,0,0,44),LayoutOrder=i})
+ local stripe=obj("Frame",{Name="SelectionBar",BackgroundColor3=C.purple,
+  BackgroundTransparency=1,BorderSizePixel=0,
+  Position=UDim2.fromOffset(0,5),Size=UDim2.fromOffset(4,34)},b)
+ round(stripe,2)
+ text(b,glyph,23,C.white,true,{
+  Position=UDim2.fromOffset(13,5),Size=UDim2.fromOffset(31,33),
+  TextXAlignment=Enum.TextXAlignment.Center
+ })
+ local caption=text(b,display,13,C.muted,true,{
+  Name="Caption",Position=UDim2.fromOffset(55,5),
+  Size=UDim2.new(1,-60,0,33)
+ })
  navButtons[tab]=b
  listen(b.Activated,function()go(tab)end)
 end

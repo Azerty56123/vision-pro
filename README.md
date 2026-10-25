@@ -18,6 +18,7 @@ loadstring(game:HttpGet("https://raw.githubusercontent.com/Azerty56123/vision-pr
 
 - Desktop layout follows the Sena reference's measured geometry: **865 × 548** logical pixels (normal-sized window), **195 px** left rail, **64 px** header, **38 px** footer, **210 × 37 px** search, and balanced two-column cards. These are approximate measurements from the available Sena screenshot, not the original source UI files.
 - Spacing and controls match the reference closely: charcoal-on-black cards, 44 px card headings, ~76 px toggle rows, ~78 px dropdown rows, ~88 px slider rows, cyan Vision Ware identity and separated footer status/FPS pills. Layout scales to smaller screens.
+- Bottom-right **Executor / FPS / v1.0** badges are now grouped tightly with their widths based on content, following the reference rather than using three oversized pills.
 - Vision Ware opens the main window **immediately** on execution, without an access gate or validation.
 - All game-specific profiles and the global **Misc** security tab are preserved.
 - The user-facing brand is **VISION WARE**. The GitHub filename `VisionHub_V1.lua` remains unchanged for backward compatibility with the existing loadstring.
@@ -41,9 +42,10 @@ The system gracefully falls back to the universal dashboard if the game is unkno
 
 ## Misc security and server anti-exploit
 
-The **Misc** sidebar tab contains optional client-only anti-fling and anti-void protections,
-suspicious-flight and speed alerts, counters, and a copyable diagnostic report. No punishments
-can be issued to other players from this client hub; warning counters are only heuristics.
+The **Misc** sidebar tab deliberately shows only four useful switches in two compact cards:
+Anti-Fling, Anti-Void, Anti-Fly Watch and Anti-Speed Watch. The extra report, counters,
+setup and explanatory cards were removed from its interface. These are local protections
+and observational alerts, not authoritative moderation of other players.
 
 For experiences you own, the repository also includes:
 

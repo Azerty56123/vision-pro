@@ -32,7 +32,7 @@ end
 
 -- Sena reference proportions (screen-measured approximation).
 local DESIGN={width=960,height=646,rail=195,header=64,footer=46}
-local A={}
+local A={
  bg=Color3.fromRGB(11,11,15),side=Color3.fromRGB(12,12,16),
  card=Color3.fromRGB(22,22,27),row=Color3.fromRGB(29,29,35),
  field=Color3.fromRGB(26,26,32),border=Color3.fromRGB(35,35,43),

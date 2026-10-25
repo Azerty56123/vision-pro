@@ -1165,14 +1165,22 @@ local function stopFling(ch,hum,hrp,vel,spin,dt,now)
  local maxNormal=math.max(100,hum.WalkSpeed*3.4)
  local spike=prev~=nil and dt<.18 and acceleration>85
   and horizontalSpeed>math.max(65,hum.WalkSpeed*2.2)
+ -- A violent downward impulse is different from ordinary gravity:
+ -- only flag a sudden vertical change, not sustained legitimate freefall.
+ local downwardSpike=prev~=nil and dt<.18
+  and prev.Y-vel.Y>100 and vel.Y< -105
  local rapidSpin=spin.Magnitude>58
  local extremeVelocity=horizontalSpeed>maxNormal or vel.Y>115
- if not (spike or rapidSpin or extremeVelocity) then return false end
+ if not (spike or downwardSpike or rapidSpin or extremeVelocity) then return false end
  protect.lastFlingAt=now
  local maxTravel=math.clamp(hum.WalkSpeed*1.6,24,55)
  local damp=horizontalSpeed>maxTravel
   and planar.Unit*maxTravel or planar
- local corrected=Vector3.new(damp.X,math.min(vel.Y,46),damp.Z)
+ local correctedY=math.min(vel.Y,46)
+ if downwardSpike or rapidSpin or (extremeVelocity and vel.Y< -90) then
+  correctedY=math.max(correctedY,-65)
+ end
+ local corrected=Vector3.new(damp.X,correctedY,damp.Z)
  local ok=pcall(function()
   hrp.AssemblyLinearVelocity=corrected
   hrp.AssemblyAngularVelocity=Vector3.zero

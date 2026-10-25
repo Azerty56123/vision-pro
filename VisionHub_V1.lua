@@ -123,30 +123,59 @@ local function artwork(host,name,x,y,w,h,color)
   Position=UDim2.fromOffset(x,y),Size=UDim2.fromOffset(w,h)
  })
 end
+-- Compact hub-style neon monogram: designed for a 35px sidebar icon.
+-- All elements are native Roblox UI; no uploaded image asset is required.
 local function monogram(host,x,y,size)
- local outer=create("Frame",host,{BackgroundColor3=Color3.fromRGB(7,40,55),
+ local icon=create("Frame",host,{
+  Name="VisionWareLogo",BackgroundColor3=Color3.fromRGB(9,15,27),
   BorderSizePixel=0,Position=UDim2.fromOffset(x,y),
-  Size=UDim2.fromOffset(size,size)})
- corner(outer,math.ceil(size*.5))
- outline(outer,A.cyan,1.8)
- create("UIGradient",outer,{Rotation=35,Color=ColorSequence.new({
-  ColorSequenceKeypoint.new(0,Color3.fromRGB(19,101,128)),
-  ColorSequenceKeypoint.new(1,Color3.fromRGB(7,27,41))
- })})
- local inner=create("Frame",outer,{
-  BackgroundColor3=Color3.fromRGB(6,20,30),BackgroundTransparency=.16,
-  BorderSizePixel=0,Position=UDim2.fromScale(.14,.14),
-  Size=UDim2.fromScale(.72,.72)})
- corner(inner,math.ceil(size*.36))
- label(outer,"V",math.floor(size*.52),A.cyan,true,{
-  Font=Enum.Font.GothamBlack,Size=UDim2.fromScale(1,1),
-  TextXAlignment=Enum.TextXAlignment.Center
+  Size=UDim2.fromOffset(size,size)
  })
- local dot=create("Frame",outer,{BackgroundColor3=Color3.fromRGB(177,252,255),
-  BorderSizePixel=0,Position=UDim2.new(1,-8,0,5),
-  Size=UDim2.fromOffset(4,4)})
- corner(dot,3)
- return outer
+ corner(icon,10)
+ local rim=create("UIStroke",icon,{
+  Color=Color3.fromRGB(22,191,242),Thickness=1,
+  Transparency=.22,ApplyStrokeMode=Enum.ApplyStrokeMode.Border
+ })
+ create("UIGradient",icon,{Rotation=95,Color=ColorSequence.new({
+  ColorSequenceKeypoint.new(0,Color3.fromRGB(20,35,52)),
+  ColorSequenceKeypoint.new(1,Color3.fromRGB(7,12,21))
+ })})
+ local surface=create("Frame",icon,{
+  Name="Inset",BackgroundColor3=Color3.fromRGB(8,16,28),
+  BorderSizePixel=0,BackgroundTransparency=.14,
+  Position=UDim2.fromOffset(3,3),Size=UDim2.new(1,-6,1,-6)
+ })
+ corner(surface,8)
+ -- Two clean diagonal segments form the V. Soft underlayers simulate neon
+ -- without an expensive blur or a bulky metallic wordmark.
+ local function beam(name,cx,cy,rotation,color)
+  local glow=create("Frame",surface,{
+   Name=name.."Glow",BackgroundColor3=Color3.fromRGB(0,183,255),
+   BackgroundTransparency=.82,BorderSizePixel=0,
+   AnchorPoint=Vector2.new(.5,.5),Rotation=rotation,
+   Position=UDim2.fromOffset(cx,cy),
+   Size=UDim2.fromOffset(7,21)
+  })
+  corner(glow,4)
+  local line=create("Frame",surface,{
+   Name=name,BackgroundColor3=color,BorderSizePixel=0,
+   AnchorPoint=Vector2.new(.5,.5),Rotation=rotation,
+   Position=UDim2.fromOffset(cx,cy),
+   Size=UDim2.fromOffset(3,19)
+  })
+  corner(line,2)
+ end
+ -- Inset is 29x29 at standard size; scale the geometry for other sizes.
+ local k=(size-6)/29
+ beam("Left",11*k,14.2*k,-25,Color3.fromRGB(235,249,255))
+ beam("Right",18*k,14.2*k,25,Color3.fromRGB(0,211,255))
+ local gleam=create("Frame",surface,{
+  Name="TopAccent",BackgroundColor3=Color3.fromRGB(55,207,250),
+  BackgroundTransparency=.58,BorderSizePixel=0,
+  Position=UDim2.fromOffset(math.floor(9*k),math.floor(3*k)),
+  Size=UDim2.fromOffset(math.max(7,math.floor(11*k)),1)
+ })
+ return icon
 end
 
 local function bind(signal,fn,page)
@@ -324,7 +353,7 @@ create("Frame",tabRail,{BackgroundColor3=A.border,BorderSizePixel=0,
  Position=UDim2.new(1,-1,0,0),Size=UDim2.new(0,1,1,0)})
 local sideBadge=monogram(tabRail,22,20,35)
 -- One rich-text label keeps the two-tone wordmark consistently spaced.
-local brandName=label(tabRail,'VISION <font color="#00BFFF">WARE</font>',14,A.white,true,{
+local brandName=label(tabRail,'VISION <font color="#00D3FF">WARE</font>',13,A.white,true,{
  Name="VisionWareWordmark",RichText=true,
  Position=UDim2.fromOffset(64,18),Size=UDim2.fromOffset(125,24)})
 local titleGame=label(tabRail,selected.name,10,A.muted,false,{

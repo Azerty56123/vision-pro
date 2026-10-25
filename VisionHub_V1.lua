@@ -43,9 +43,14 @@ local A={
 }
 local current,closed,unlocked="Overview",false,false
 local pconns,conns={},{}
-local stored={fps=false,ping=false,xyz=false,players=false,bright=false,animations=true}
+local stored={fps=false,ping=false,xyz=false,players=false,bright=false,animations=true,
+ antiFling=false,antiVoid=false,flightAlerts=false,speedAlerts=false}
 local nums={fov=70,speed=16,jump=50,zoom=100}
 local positions={}
+local miscCounts={flight=0,speed=0,fling=0,void=0}
+local lastSafeCFrame,lastRescueAt=nil,0
+local observerRecords={}
+local observerElapsed=0
 local fps,frames,fpsElapsed,updateElapsed=0,0,0,0
 local originalFOV
 local firstLight={
@@ -181,11 +186,15 @@ local function detect()
 end
 local profileId=detect()
 local universal=fetchProfile("universal")
+local miscProfile=fetchProfile("misc")
 local selected=profileId~="universal" and fetchProfile(profileId) or universal
 selected=selected or {id="universal",name="Universal",description="Basic dashboard",sections={}}
 universal=universal or {id="universal",name="Universal",sections={}}
 local allSections={}
 for _,group in ipairs(universal.sections) do table.insert(allSections,group)end
+if miscProfile and type(miscProfile.sections)=="table" then
+ for _,group in ipairs(miscProfile.sections) do table.insert(allSections,group)end
+end
 if selected~=universal then
  for _,group in ipairs(selected.sections) do table.insert(allSections,group)end
 end
@@ -267,6 +276,11 @@ local function readValue(key)
   local ok,p=pcall(function()return player:GetNetworkPing()end)
   return ok and tostring(math.floor(p*1000+.5)).." ms" or "—"
  end
+ if key=="@flyAlerts" then return tostring(miscCounts.flight) end
+ if key=="@speedAlerts" then return tostring(miscCounts.speed) end
+ if key=="@flingBlocks" then return tostring(miscCounts.fling) end
+ if key=="@voidRescues" then return tostring(miscCounts.void) end
+ if key=="@protectionMode" then return "Client local / non autoritaire" end
  if key=="@health" then
   local h=human()
   return h and tostring(math.floor(h.Health)) or "—"
@@ -551,6 +565,17 @@ local function action(id)
   if not tool then return status("Equip a Tool first")end
   local ok=pcall(function()tool:Activate()end)
   status(ok and "Tool activation requested" or "Cannot activate Tool")
+ elseif id=="copyMiscReport" then
+  local report=string.format("Vision Ware Misc (local only) | Fly alerts: %d | Speed alerts: %d | Anti-fling events: %d | Anti-void rescues: %d",
+   miscCounts.flight,miscCounts.speed,miscCounts.fling,miscCounts.void)
+  status(clipboard(report) and "Rapport Misc copié" or report)
+ elseif id=="resetMiscAlerts" then
+  miscCounts.flight=0;miscCounts.speed=0;miscCounts.fling=0;miscCounts.void=0
+  table.clear(observerRecords)
+  status("Compteurs Misc remis à zéro")
+ elseif id=="copyServerGuide" then
+  local url="https://github.com/Azerty56123/vision-pro/tree/main/server"
+  status(clipboard(url) and "Dossier serveur copié" or url)
  elseif id=="resetMovement" then
   speed(16);jump(50);status("Movement reset to 16 / 50")
   if render then render()end
@@ -805,13 +830,13 @@ end
 -- True icon artwork from the open LucideBlox Roblox asset map.
 local function navIcon(parent,name)
  local target={Overview="overview",Game="game",Player="player",
-  Visuals="visuals",Settings="settings",About="about"}
+  Visuals="visuals",Misc="shield",Settings="settings",About="about"}
  return artwork(parent,target[name] or "menu",15,10,19,19,A.light)
 end
 
-local tabs={"Overview","Game","Player","Visuals","Settings","About"}
+local tabs={"Overview","Game","Player","Visuals","Misc","Settings","About"}
 local tabLabels={Overview="Overview",Game="Game",Player="Player",
- Visuals="Visuals",Settings="Paramètres",About="About"}
+ Visuals="Visuals",Misc="Misc",Settings="Paramètres",About="About"}
 local function goPage(name)
  current=name
  pageTitle.Text=tabLabels[name] or name
@@ -819,7 +844,8 @@ local function goPage(name)
   (name=="Overview" and "Session overview & quick controls" or
   (name=="About" and "Community / project information" or
   (name=="Settings" and "Interface preferences" or
-  (name=="Visuals" and "Visual & display options" or "Player preferences"))))
+  (name=="Misc" and "Protections locales et alertes anti-exploit" or
+  (name=="Visuals" and "Visual & display options" or "Player preferences")))))
  search.Text=""
  for n,b in pairs(navButtons)do
   local chosen=n==name
@@ -881,6 +907,105 @@ bind(Run.Heartbeat,function(dt)
   overlay.Visible=#parts>0
   overlayText.Text=table.concat(parts,"  •  ")
  end
+end)
+
+-- MISC: client-only defensive measures and movement anomaly observations.
+-- Server-side anti-fly/aim validation is separate and only works in games you own.
+local function miscOwnProtection()
+ if not stored.antiFling and not stored.antiVoid then return end
+ local ch=player.Character
+ local hrp=ch and ch:FindFirstChild("HumanoidRootPart")
+ local hum=ch and ch:FindFirstChildOfClass("Humanoid")
+ if not hrp or not hum or hum.Health<=0 or hum.SeatPart then return end
+ local linear=hrp.AssemblyLinearVelocity
+ local angular=hrp.AssemblyAngularVelocity
+ if hum.FloorMaterial~=Enum.Material.Air
+  and hrp.Position.Y>workspace.FallenPartsDestroyHeight+45
+  and linear.Magnitude<55 and angular.Magnitude<18 then
+  lastSafeCFrame=hrp.CFrame
+ end
+ if stored.antiFling and (linear.Magnitude>140 or angular.Magnitude>65) then
+  local ok=pcall(function()
+   hrp.AssemblyLinearVelocity=Vector3.zero
+   hrp.AssemblyAngularVelocity=Vector3.zero
+  end)
+  if ok then
+   miscCounts.fling=miscCounts.fling+1
+   if miscCounts.fling==1 or miscCounts.fling%10==0 then
+    status("Anti-Fling: impulsion inhabituelle amortie (local)")
+   end
+  end
+ end
+ if stored.antiVoid and lastSafeCFrame
+  and hrp.Position.Y<workspace.FallenPartsDestroyHeight+18
+  and os.clock()-lastRescueAt>5 then
+  lastRescueAt=os.clock()
+  local ok=pcall(function()
+   ch:PivotTo(lastSafeCFrame)
+   hrp.AssemblyLinearVelocity=Vector3.zero
+   hrp.AssemblyAngularVelocity=Vector3.zero
+  end)
+  if ok then
+   miscCounts.void=miscCounts.void+1
+   status("Anti-Void: retour local au dernier sol stable")
+  end
+ end
+end
+local function miscObserveOthers(dt)
+ if not stored.flightAlerts and not stored.speedAlerts then return end
+ observerElapsed=observerElapsed+dt
+ if observerElapsed<.8 then return end
+ local elapsed=observerElapsed
+ observerElapsed=0
+ local now=os.clock()
+ for _,other in ipairs(Players:GetPlayers()) do
+  if other~=player then
+   local ch=other.Character
+   local hrp=ch and ch:FindFirstChild("HumanoidRootPart")
+   local hum=ch and ch:FindFirstChildOfClass("Humanoid")
+   local state=observerRecords[other]
+   if not state then state={fly=0,speed=0,lastFly=0,lastSpeed=0};observerRecords[other]=state end
+   if hrp and hum and hum.Health>0 and not hum.SeatPart and not hrp.Anchored then
+    local velocity=hrp.AssemblyLinearVelocity
+    local planar=Vector3.new(velocity.X,0,velocity.Z).Magnitude
+    if stored.flightAlerts then
+     local params=RaycastParams.new()
+     params.FilterType=Enum.RaycastFilterType.Exclude
+     params.FilterDescendantsInstances={ch}
+     local ground=workspace:Raycast(hrp.Position,Vector3.new(0,-20,0),params)
+     local hover=hum.FloorMaterial==Enum.Material.Air
+      and ground==nil and math.abs(velocity.Y)<3.5 and planar>2
+     state.fly=hover and (state.fly+elapsed) or 0
+     if state.fly>4.8 and now-state.lastFly>20 then
+      state.lastFly=now;state.fly=0
+      miscCounts.flight=miscCounts.flight+1
+      status("Misc: vol suspect ("..other.DisplayName..") · non confirmé")
+     end
+    else state.fly=0 end
+    if stored.speedAlerts then
+     local fast=planar>80 and hum.WalkSpeed<=32 and math.abs(velocity.Y)<50
+     state.speed=fast and (state.speed+elapsed) or 0
+     if state.speed>2.4 and now-state.lastSpeed>20 then
+      state.lastSpeed=now;state.speed=0
+      miscCounts.speed=miscCounts.speed+1
+      status("Misc: vitesse suspecte ("..other.DisplayName..") · non confirmé")
+     end
+    else state.speed=0 end
+   else state.fly=0;state.speed=0 end
+  end
+ end
+ for observed,_ in pairs(observerRecords) do
+  if not observed.Parent then observerRecords[observed]=nil end
+ end
+end
+bind(Run.Heartbeat,function(dt)
+ if closed then return end
+ miscOwnProtection()
+ miscObserveOthers(dt)
+end)
+bind(player.CharacterAdded,function()
+ lastSafeCFrame=nil
+ lastRescueAt=0
 end)
 
 -- VISION WARE V1 / REVERB-REFERENCE KEY WINDOW

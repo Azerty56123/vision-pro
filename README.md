@@ -16,7 +16,8 @@ loadstring(game:HttpGet("https://raw.githubusercontent.com/Azerty56123/vision-pr
 
 ### Interface V1 (October 2026)
 
-- Desktop layout follows the Sena reference more closely: **Vision Ware** logo and game subtitle in the left rail, active navigation, compact top toolbar, two-column cards and footer pills.
+- Desktop layout follows the Sena reference's measured geometry: **960 × 646** logical pixels, **195 px** left rail, **64 px** header, **46 px** footer, **210 × 37 px** search, and balanced two-column cards. These are approximate measurements from the available Sena screenshot, not the original source UI files.
+- Spacing and controls match the reference closely: charcoal-on-black cards, 44 px card headings, ~76 px toggle rows, ~78 px dropdown rows, ~88 px slider rows, cyan Vision Ware identity and separated footer status/FPS pills. Layout scales to smaller screens.
 - Vision Ware opens the main window **immediately** on execution, without an access gate or validation.
 - All game-specific profiles and the global **Misc** security tab are preserved.
 - The user-facing brand is **VISION WARE**. The GitHub filename `VisionHub_V1.lua` remains unchanged for backward compatibility with the existing loadstring.

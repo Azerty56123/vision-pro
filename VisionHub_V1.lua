@@ -163,17 +163,41 @@ local function monogram(host,x,y,size)
   Name="VisionWareLogo",BackgroundTransparency=1,BorderSizePixel=0,
   Position=UDim2.fromOffset(x,y),Size=UDim2.fromOffset(size,size)
  })
+ corner(holder,8)
+ -- Discreet cyan neon framing, drawn in native UI so the flat V stays sharp.
+ -- Separate strokes give a soft glow at icon size without a blurry image.
+ local function neonOutline(name,spread,thickness,transparency,z)
+  local frame=create("Frame",holder,{
+   Name=name,BackgroundTransparency=1,BorderSizePixel=0,
+   Position=UDim2.fromOffset(-spread,-spread),
+   Size=UDim2.new(1,spread*2,1,spread*2),
+   ZIndex=z
+  })
+  corner(frame,8+spread)
+  create("UIStroke",frame,{
+   Color=Color3.fromRGB(0,199,255),
+   Thickness=thickness,Transparency=transparency,
+   ApplyStrokeMode=Enum.ApplyStrokeMode.Border
+  })
+  return frame
+ end
+ neonOutline("OuterNeonGlow",3,5,.88,1)
+ neonOutline("InnerNeonGlow",1,3,.72,2)
+ create("UIStroke",holder,{
+  Color=Color3.fromRGB(45,212,247),Thickness=1.1,
+  Transparency=.09,ApplyStrokeMode=Enum.ApplyStrokeMode.Border
+ })
  if visionLogoAsset then
   create("ImageLabel",holder,{
    Name="BrandLogo",BackgroundTransparency=1,BorderSizePixel=0,
    Image=visionLogoAsset,ScaleType=Enum.ScaleType.Fit,
-   Size=UDim2.fromScale(1,1)
+   Size=UDim2.fromScale(1,1),ZIndex=3
   })
  else
   -- Native UI fallback in the same flat visual language as the PNG.
   local fallback=create("Frame",holder,{
    Name="VectorFallback",BackgroundColor3=Color3.fromRGB(20,27,37),
-   BorderSizePixel=0,Size=UDim2.fromScale(1,1)
+   BorderSizePixel=0,Size=UDim2.fromScale(1,1),ZIndex=3
   })
   corner(fallback,8)
   outline(fallback,Color3.fromRGB(51,69,83),1)

@@ -127,45 +127,60 @@ end
 -- All elements are native Roblox UI; no uploaded image asset is required.
 -- VISION WARE: compact, native Roblox UI monogram.
 -- Built specifically for the sidebar at 36px, not a scaled-down banner image.
-local function monogram(host,x,y,size)
- local logo=create("Frame",host,{
-  Name="VisionWareLogo",BackgroundColor3=Color3.fromRGB(11,20,31),
-  BorderSizePixel=0,Position=UDim2.fromOffset(x,y),
-  Size=UDim2.fromOffset(size,size)
- })
- corner(logo,9)
- outline(logo,Color3.fromRGB(30,129,165),1)
- create("UIGradient",logo,{
-  Rotation=90,Color=ColorSequence.new({
-   ColorSequenceKeypoint.new(0,Color3.fromRGB(18,33,47)),
-   ColorSequenceKeypoint.new(1,Color3.fromRGB(8,15,24))
-  })
- })
- -- A balanced geometric V: both strokes converge at the same lower point.
- -- Cyan is reserved for the right arm and a restrained neon underglow.
- local scale=size/36
- local function stroke(name,px,angle,color)
-  local y=18*scale
-  local h=24*scale
-  local glow=create("Frame",logo,{
-   Name=name.."Glow",BackgroundColor3=Color3.fromRGB(0,191,255),
-   BackgroundTransparency=.86,BorderSizePixel=0,
-   AnchorPoint=Vector2.new(.5,.5),
-   Position=UDim2.fromOffset(px*scale,y),Rotation=angle,
-   Size=UDim2.fromOffset(8*scale,h+2*scale)
-  })
-  corner(glow,4*scale)
-  local beam=create("Frame",logo,{
-   Name=name,BackgroundColor3=color,BorderSizePixel=0,
-   AnchorPoint=Vector2.new(.5,.5),
-   Position=UDim2.fromOffset(px*scale,y),Rotation=angle,
-   Size=UDim2.fromOffset(4*scale,h)
-  })
-  corner(beam,2*scale)
+-- Real Vision Ware image (published in this repository).
+-- Roblox cannot load a raw HTTP URL directly as ImageLabel.Image.
+-- Local asset bridge is used when available, with a clean native fallback.
+local function loadVisionLogo()
+ local getAsset=getcustomasset or getsynasset
+ if type(getAsset)~="function" or type(writefile)~="function" then
+  return nil
  end
- stroke("VLeft",13,-23,Color3.fromRGB(240,249,255))
- stroke("VRight",23,23,Color3.fromRGB(0,211,255))
- return logo
+ local file="visionware_neon_logo_96_v1.png"
+ local available=false
+ if type(isfile)=="function" then
+  local ok,exists=pcall(isfile,file)
+  available=ok and exists
+ end
+ if not available then
+  local ok,bytes=pcall(function()
+   return game:HttpGet(BASE.."assets/visionware_logo.png")
+  end)
+  if ok and type(bytes)=="string" and bytes:sub(1,4)=="\137PNG" then
+   available=pcall(writefile,file,bytes)
+  end
+ end
+ if available then
+  local ok,asset=pcall(getAsset,file)
+  if ok and type(asset)=="string" and asset~="" then return asset end
+ end
+ return nil
+end
+
+local visionLogoAsset=loadVisionLogo()
+local function monogram(host,x,y,size)
+ local holder=create("Frame",host,{
+  Name="VisionWareLogo",BackgroundTransparency=1,BorderSizePixel=0,
+  Position=UDim2.fromOffset(x,y),Size=UDim2.fromOffset(size,size)
+ })
+ if visionLogoAsset then
+  create("ImageLabel",holder,{
+   Name="NeonLogo",BackgroundTransparency=1,BorderSizePixel=0,
+   Image=visionLogoAsset,ScaleType=Enum.ScaleType.Fit,
+   Size=UDim2.fromScale(1,1)
+  })
+ else
+  local fallback=create("Frame",holder,{
+   BackgroundColor3=Color3.fromRGB(11,20,31),BorderSizePixel=0,
+   Size=UDim2.fromScale(1,1)
+  })
+  corner(fallback,9)
+  outline(fallback,Color3.fromRGB(0,191,255),1.1)
+  label(fallback,"V",22,A.cyan,true,{
+   Font=Enum.Font.GothamBlack,Size=UDim2.fromScale(1,1),
+   TextXAlignment=Enum.TextXAlignment.Center
+  })
+ end
+ return holder
 end
 
 local function bind(signal,fn,page)

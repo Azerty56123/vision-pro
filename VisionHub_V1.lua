@@ -33,13 +33,15 @@ end
 
 -- Sena reference proportions (screen-measured approximation).
 local DESIGN={width=865,height=548,rail=195,header=64,footer=38}
+-- Unified professional UI palette with one restrained cyan accent.
 local A={
- bg=Color3.fromRGB(11,11,15),side=Color3.fromRGB(12,12,16),
- card=Color3.fromRGB(22,22,27),row=Color3.fromRGB(29,29,35),
- field=Color3.fromRGB(26,26,32),border=Color3.fromRGB(35,35,43),
- white=Color3.fromRGB(248,249,252),muted=Color3.fromRGB(128,130,142),
- cyan=Color3.fromRGB(0,191,255),cyanDark=Color3.fromRGB(4,58,84),
- light=Color3.fromRGB(177,199,214),good=Color3.fromRGB(83,233,164)
+ bg=Color3.fromRGB(11,13,18),side=Color3.fromRGB(15,17,23),
+ card=Color3.fromRGB(22,25,32),row=Color3.fromRGB(28,32,40),
+ field=Color3.fromRGB(31,36,45),border=Color3.fromRGB(42,47,57),
+ white=Color3.fromRGB(242,245,250),muted=Color3.fromRGB(146,153,164),
+ cyan=Color3.fromRGB(36,203,240),cyanDark=Color3.fromRGB(14,67,83),
+ light=Color3.fromRGB(176,189,204),good=Color3.fromRGB(86,220,163),
+ hover=Color3.fromRGB(35,41,51),selected=Color3.fromRGB(28,47,58)
 }
 local current,closed="Overview",false
 local pconns,conns={},{}
@@ -101,6 +103,18 @@ local function button(parent,name,attrs)
   Size=UDim2.new(1,0,0,31)}
  for k,v in pairs(attrs or {}) do a[k]=v end
  local o=create("TextButton",parent,a);corner(o,9);return o
+end
+-- Consistent subtle easing; disabling Animations in settings is respected.
+local function uiTween(object,props,duration)
+ if not object or not object.Parent then return end
+ if stored.animations then
+  local ok=pcall(function()
+   Tween:Create(object,TweenInfo.new(duration or .16,
+    Enum.EasingStyle.Quad,Enum.EasingDirection.Out),props):Play()
+  end)
+  if ok then return end
+ end
+ for key,value in pairs(props) do pcall(function()object[key]=value end)end
 end
 -- Shared Lucide-style Roblox image assets: no homemade glyphs, no invented IDs.
 local ICON={
@@ -201,6 +215,14 @@ end
 local function clearPageLinks()
  for _,c in ipairs(pconns) do pcall(function()c:Disconnect()end)end
  table.clear(pconns)
+end
+local function interactiveHover(b,normalColor,hoverColor,page)
+ bind(b.MouseEnter,function()
+  if b.Parent then uiTween(b,{BackgroundColor3=hoverColor},.12)end
+ end,page)
+ bind(b.MouseLeave,function()
+  if b.Parent then uiTween(b,{BackgroundColor3=normalColor},.15)end
+ end,page)
 end
 local function fetchProfile(name)
  local ok,result=pcall(function()
@@ -332,7 +354,7 @@ end
 app=create("Frame",gui,{Name="MainWindow",BackgroundColor3=A.bg,BorderSizePixel=0,
  Size=UDim2.fromOffset(DESIGN.width,DESIGN.height),Position=UDim2.fromScale(.5,.5),
  AnchorPoint=Vector2.new(.5,.5),ClipsDescendants=true,Visible=true})
-corner(app,17);outline(app,A.border,.8)
+corner(app,15);outline(app,A.border,.9)
 appScale=create("UIScale",app,{Scale=1})
 -- VISION WARE / SENA desktop structure: the logo lives in the sidebar;
 -- the main toolbar contains the current category, description and search.
@@ -340,25 +362,42 @@ header=create("Frame",app,{BackgroundColor3=A.side,BorderSizePixel=0,
  Position=UDim2.fromOffset(DESIGN.rail,0),Size=UDim2.new(1,-DESIGN.rail,0,DESIGN.header),Active=true})
 create("Frame",header,{BackgroundColor3=A.border,BorderSizePixel=0,
  Position=UDim2.new(0,0,1,-1),Size=UDim2.new(1,0,0,1)})
+create("Frame",header,{BackgroundColor3=A.cyan,BorderSizePixel=0,
+ BackgroundTransparency=.55,Position=UDim2.fromOffset(22,0),
+ Size=UDim2.fromOffset(34,2)})
 local searchHolder=create("Frame",header,{BackgroundColor3=A.card,BorderSizePixel=0,
  Position=UDim2.new(1,-300,0,15),Size=UDim2.fromOffset(210,37)})
-corner(searchHolder,9)
-local searchEdge=outline(searchHolder,A.border,.6)
+corner(searchHolder,8)
+local searchEdge=outline(searchHolder,A.border,.8)
 artwork(searchHolder,"search",12,10,17,17,A.muted)
 search=create("TextBox",searchHolder,{BackgroundTransparency=1,BorderSizePixel=0,
  Position=UDim2.fromOffset(39,0),Size=UDim2.new(1,-45,1,0),
- Text="",ClearTextOnFocus=false,PlaceholderText="Search",
+ Text="",ClearTextOnFocus=false,PlaceholderText="Search controls...",
  Font=Enum.Font.Gotham,TextSize=11,TextColor3=A.white,
  PlaceholderColor3=A.muted,TextXAlignment=Enum.TextXAlignment.Left})
-bind(search.Focused,function()searchEdge.Color=A.cyan end)
-bind(search.FocusLost,function()searchEdge.Color=A.border end)
+local clearSearch=button(searchHolder,"×",{
+ Name="ClearSearch",BackgroundTransparency=1,AutoButtonColor=false,
+ Position=UDim2.new(1,-26,0,5),Size=UDim2.fromOffset(22,27),
+ TextSize=16,TextColor3=A.muted,Visible=false})
+bind(clearSearch.Activated,function()
+ search.Text=""
+ search:ReleaseFocus()
+end)
+bind(search.Focused,function()
+ uiTween(searchEdge,{Color=A.cyan,Thickness=1.2},.13)
+end)
+bind(search.FocusLost,function()
+ uiTween(searchEdge,{Color=A.border,Thickness=.8},.17)
+end)
 local hide=button(header,"−",{
  Position=UDim2.new(1,-77,0,17),Size=UDim2.fromOffset(26,27),
  BackgroundColor3=A.side})
 local close=button(header,"×",{
  Position=UDim2.new(1,-41,0,17),Size=UDim2.fromOffset(26,27),
  BackgroundColor3=A.side})
-corner(hide,6);corner(close,6)
+corner(hide,7);corner(close,7)
+interactiveHover(hide,A.side,A.hover)
+interactiveHover(close,A.side,Color3.fromRGB(86,38,45))
 tabRail=create("Frame",app,{BackgroundColor3=A.side,BorderSizePixel=0,
  Position=UDim2.fromOffset(0,0),Size=UDim2.new(0,DESIGN.rail,1,-DESIGN.footer)})
 create("Frame",tabRail,{BackgroundColor3=A.border,BorderSizePixel=0,
@@ -371,15 +410,19 @@ local brandName=label(tabRail,'VISION <font color="#20C9ED">WARE</font>',13,A.wh
 local titleGame=label(tabRail,selected.name,10,A.muted,false,{
  Position=UDim2.fromOffset(60,38),Size=UDim2.fromOffset(130,17)})
 local railTitle=label(tabRail,"WORKSPACE",9,A.muted,true,{
- Position=UDim2.fromOffset(15,73),Size=UDim2.fromOffset(155,15),
- Visible=false})
+ Position=UDim2.fromOffset(17,82),Size=UDim2.fromOffset(155,14),
+ Text="NAVIGATION",Visible=true})
+create("Frame",tabRail,{BackgroundColor3=A.border,BorderSizePixel=0,
+ Position=UDim2.fromOffset(16,72),Size=UDim2.fromOffset(163,1)})
+local sidebarHint=label(tabRail,"RIGHT SHIFT  •  TOGGLE",9,A.muted,false,{
+ Position=UDim2.new(0,17,1,-39),Size=UDim2.fromOffset(166,20)})
 nav=create("ScrollingFrame",tabRail,{BackgroundTransparency=1,BorderSizePixel=0,
- Position=UDim2.fromOffset(10,90),Size=UDim2.new(1,-21,1,-100),
+ Position=UDim2.fromOffset(10,105),Size=UDim2.new(1,-21,1,-165),
  ScrollingDirection=Enum.ScrollingDirection.Y,
  CanvasSize=UDim2.new(),AutomaticCanvasSize=Enum.AutomaticSize.Y,
  ScrollBarThickness=0})
 local navLayout=create("UIListLayout",nav,{
- SortOrder=Enum.SortOrder.LayoutOrder,Padding=UDim.new(0,6)})
+ SortOrder=Enum.SortOrder.LayoutOrder,Padding=UDim.new(0,4)})
 body=create("Frame",app,{BackgroundTransparency=1,BorderSizePixel=0,
  Position=UDim2.fromOffset(DESIGN.rail,DESIGN.header),Size=UDim2.new(1,-DESIGN.rail,1,-(DESIGN.header+DESIGN.footer))})
 local pageTitle=label(header,"Overview",15,A.white,true,{
@@ -387,23 +430,23 @@ local pageTitle=label(header,"Overview",15,A.white,true,{
 local pageDescription=label(header,selected.description,11,A.muted,false,{
  Position=UDim2.fromOffset(22,32),Size=UDim2.fromOffset(340,22)})
 canvas=create("ScrollingFrame",body,{BackgroundTransparency=1,BorderSizePixel=0,
- Position=UDim2.fromOffset(14,14),Size=UDim2.new(1,-28,1,-24),
- CanvasSize=UDim2.fromOffset(0,0),ScrollBarThickness=3,
+ Position=UDim2.fromOffset(15,14),Size=UDim2.new(1,-30,1,-26),
+ CanvasSize=UDim2.fromOffset(0,0),ScrollBarThickness=2,
  ScrollBarImageColor3=A.cyan,ScrollingDirection=Enum.ScrollingDirection.Y})
 columns=create("Frame",canvas,{BackgroundTransparency=1,BorderSizePixel=0,
  Size=UDim2.new(1,-6,0,0),AutomaticSize=Enum.AutomaticSize.Y})
 local colLayout=create("UIListLayout",columns,{
  FillDirection=Enum.FillDirection.Horizontal,
- SortOrder=Enum.SortOrder.LayoutOrder,Padding=UDim.new(0,10)})
+ SortOrder=Enum.SortOrder.LayoutOrder,Padding=UDim.new(0,12)})
 left=create("Frame",columns,{BackgroundTransparency=1,
- Size=UDim2.new(.5,-5,0,0),AutomaticSize=Enum.AutomaticSize.Y,LayoutOrder=1})
+ Size=UDim2.new(.5,-6,0,0),AutomaticSize=Enum.AutomaticSize.Y,LayoutOrder=1})
 right=create("Frame",columns,{BackgroundTransparency=1,
- Size=UDim2.new(.5,-5,0,0),AutomaticSize=Enum.AutomaticSize.Y,LayoutOrder=2})
-local lLay=create("UIListLayout",left,{SortOrder=Enum.SortOrder.LayoutOrder,Padding=UDim.new(0,9)})
-local rLay=create("UIListLayout",right,{SortOrder=Enum.SortOrder.LayoutOrder,Padding=UDim.new(0,9)})
+ Size=UDim2.new(.5,-6,0,0),AutomaticSize=Enum.AutomaticSize.Y,LayoutOrder=2})
+local lLay=create("UIListLayout",left,{SortOrder=Enum.SortOrder.LayoutOrder,Padding=UDim.new(0,11)})
+local rLay=create("UIListLayout",right,{SortOrder=Enum.SortOrder.LayoutOrder,Padding=UDim.new(0,11)})
 local footer=create("Frame",app,{BackgroundColor3=A.side,BorderSizePixel=0,
  Position=UDim2.new(0,0,1,-DESIGN.footer),Size=UDim2.new(1,0,0,DESIGN.footer)})
-corner(footer,17)
+corner(footer,15)
 -- Straight footer top edge, with rounded bottom corners.
 create("Frame",footer,{BackgroundColor3=A.side,BorderSizePixel=0,
  Position=UDim2.fromOffset(0,0),Size=UDim2.new(1,0,0,15)})
@@ -412,7 +455,8 @@ create("Frame",footer,{BackgroundColor3=A.border,BorderSizePixel=0,Size=UDim2.ne
 local function footerTag(pos,size)
  local pill=create("Frame",footer,{BackgroundColor3=A.field,BorderSizePixel=0,
   Position=pos,Size=size})
- corner(pill,5)
+ corner(pill,6)
+ create("UIStroke",pill,{Color=A.border,Thickness=.65,Transparency=.5})
  return pill
 end
 -- Like the real Sena footer: three short pills grouped tightly against
@@ -501,7 +545,7 @@ fitToScreen=function()
   header.Position=UDim2.fromOffset(0,0);header.Size=UDim2.new(1,0,0,64)
   tabRail.Position=UDim2.fromOffset(0,64);tabRail.Size=UDim2.new(1,0,0,42)
   sideBadge.Visible=false;brandName.Visible=false
-  titleGame.Visible=false;railTitle.Visible=false
+  titleGame.Visible=false;railTitle.Visible=false;sidebarHint.Visible=false
   footerExec.Visible=false;execTag.Visible=false
   fpsTag.Visible=true;versionTag.Visible=true
   statusTag.Size=UDim2.fromOffset(185,30)
@@ -525,23 +569,23 @@ fitToScreen=function()
   header.Position=UDim2.fromOffset(DESIGN.rail,0);header.Size=UDim2.new(1,-DESIGN.rail,0,DESIGN.header)
   tabRail.Position=UDim2.fromOffset(0,0);tabRail.Size=UDim2.new(0,DESIGN.rail,1,-DESIGN.footer)
   sideBadge.Visible=true;brandName.Visible=true
-  titleGame.Visible=true;railTitle.Visible=false
+  titleGame.Visible=true;railTitle.Visible=true;sidebarHint.Visible=true
   footerExec.Visible=true;execTag.Visible=true
   fpsTag.Visible=true;versionTag.Visible=true
   statusTag.Size=UDim2.fromOffset(206,30)
   footerMessage.Size=UDim2.new(1,-20,1,-6)
-  nav.Position=UDim2.fromOffset(10,90);nav.Size=UDim2.new(1,-21,1,-100)
+  nav.Position=UDim2.fromOffset(10,105);nav.Size=UDim2.new(1,-21,1,-165)
   nav.ScrollingDirection=Enum.ScrollingDirection.Y
   nav.AutomaticCanvasSize=Enum.AutomaticSize.Y
   navLayout.FillDirection=Enum.FillDirection.Vertical
   body.Position=UDim2.fromOffset(DESIGN.rail,DESIGN.header);body.Size=UDim2.new(1,-DESIGN.rail,1,-(DESIGN.header+DESIGN.footer))
   colLayout.FillDirection=Enum.FillDirection.Horizontal
-  left.Size=UDim2.new(.5,-5,0,0);right.Size=UDim2.new(.5,-5,0,0)
+  left.Size=UDim2.new(.5,-6,0,0);right.Size=UDim2.new(.5,-6,0,0)
   searchHolder.Position=UDim2.new(1,-300,0,15)
   searchHolder.Size=UDim2.fromOffset(210,37)
   pageTitle.Position=UDim2.fromOffset(22,9);pageDescription.Position=UDim2.fromOffset(22,32)
   pageTitle.Size=UDim2.fromOffset(340,25);pageDescription.Size=UDim2.fromOffset(340,22)
-  canvas.Position=UDim2.fromOffset(14,14);canvas.Size=UDim2.new(1,-28,1,-24)
+  canvas.Position=UDim2.fromOffset(15,14);canvas.Size=UDim2.new(1,-30,1,-26)
   for _,b in pairs(navButtons) do b.Size=UDim2.new(1,0,0,39)end
  end
 end

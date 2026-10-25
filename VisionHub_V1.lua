@@ -31,7 +31,7 @@ for _,name in ipairs({NAME,"VisionHubV1_Design12","VisionHubV11_Design12","Visio
 end
 
 -- Sena reference proportions (screen-measured approximation).
-local DESIGN={width=960,height=646,rail=195,header=64,footer=46}
+local DESIGN={width=865,height=548,rail=195,header=64,footer=38}
 local A={
  bg=Color3.fromRGB(11,11,15),side=Color3.fromRGB(12,12,16),
  card=Color3.fromRGB(22,22,27),row=Color3.fromRGB(29,29,35),
@@ -373,22 +373,22 @@ local function footerTag(pos,size)
  corner(pill,5)
  return pill
 end
-local statusTag=footerTag(UDim2.fromOffset(14,8),UDim2.fromOffset(276,30))
-local execTag=footerTag(UDim2.new(1,-348,0,8),UDim2.fromOffset(173,30))
-local fpsTag=footerTag(UDim2.new(1,-170,0,8),UDim2.fromOffset(103,30))
-local versionTag=footerTag(UDim2.new(1,-61,0,8),UDim2.fromOffset(49,30))
+local statusTag=footerTag(UDim2.fromOffset(14,4),UDim2.fromOffset(276,30))
+local execTag=footerTag(UDim2.new(1,-348,0,4),UDim2.fromOffset(173,30))
+local fpsTag=footerTag(UDim2.new(1,-170,0,4),UDim2.fromOffset(103,30))
+local versionTag=footerTag(UDim2.new(1,-61,0,4),UDim2.fromOffset(49,30))
 footerMessage=label(footer,"●  SYSTEM READY",10,A.good,true,{
- Position=UDim2.fromOffset(24,11),Size=UDim2.fromOffset(254,25)})
+ Position=UDim2.fromOffset(24,7),Size=UDim2.fromOffset(254,25)})
 local footerExec=label(footer,"Executor: "..(type(identifyexecutor)=="function"
   and tostring((function()local ok,n=pcall(identifyexecutor)return ok and n or "Unknown"end)())
   or "Unknown"),9,A.muted,false,{
- Position=UDim2.new(1,-339,0,10),Size=UDim2.fromOffset(158,26),
+ Position=UDim2.new(1,-339,0,6),Size=UDim2.fromOffset(158,26),
  TextXAlignment=Enum.TextXAlignment.Right})
 footerFps=label(footer,"-- FPS",10,A.muted,true,{
- Position=UDim2.new(1,-164,0,10),Size=UDim2.fromOffset(90,26),
+ Position=UDim2.new(1,-164,0,6),Size=UDim2.fromOffset(90,26),
  TextXAlignment=Enum.TextXAlignment.Right})
 label(footer,"v1.0",9,A.muted,true,{
- Position=UDim2.new(1,-59,0,10),Size=UDim2.fromOffset(43,26),
+ Position=UDim2.new(1,-59,0,6),Size=UDim2.fromOffset(43,26),
  TextXAlignment=Enum.TextXAlignment.Right})
 mini=button(gui,"VISION WARE",{Position=UDim2.new(1,-160,.5,-20),
  Size=UDim2.fromOffset(146,38),BackgroundColor3=A.cyanDark,Visible=false})

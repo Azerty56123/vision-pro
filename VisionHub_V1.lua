@@ -128,12 +128,15 @@ end
 -- Real Vision Ware image (published in this repository).
 -- Roblox cannot load a raw HTTP URL directly as ImageLabel.Image.
 -- Local asset bridge is used when available, with a clean native fallback.
+-- Hand-designed flat brand icon. PNG in assets/visionware_logo.png;
+-- the matching editable vector source is assets/visionware_logo.svg.
+-- New cache filename is intentional: it prevents using the previous neon icon.
 local function loadVisionLogo()
  local getAsset=getcustomasset or getsynasset
  if type(getAsset)~="function" or type(writefile)~="function" then
   return nil
  end
- local file="visionware_neon_logo_96_v1.png"
+ local file="visionware_flat_logo_v2.png"
  local available=false
  if type(isfile)=="function" then
   local ok,exists=pcall(isfile,file)
@@ -162,21 +165,29 @@ local function monogram(host,x,y,size)
  })
  if visionLogoAsset then
   create("ImageLabel",holder,{
-   Name="NeonLogo",BackgroundTransparency=1,BorderSizePixel=0,
+   Name="BrandLogo",BackgroundTransparency=1,BorderSizePixel=0,
    Image=visionLogoAsset,ScaleType=Enum.ScaleType.Fit,
    Size=UDim2.fromScale(1,1)
   })
  else
+  -- Native UI fallback in the same flat visual language as the PNG.
   local fallback=create("Frame",holder,{
-   BackgroundColor3=Color3.fromRGB(11,20,31),BorderSizePixel=0,
-   Size=UDim2.fromScale(1,1)
+   Name="VectorFallback",BackgroundColor3=Color3.fromRGB(20,27,37),
+   BorderSizePixel=0,Size=UDim2.fromScale(1,1)
   })
-  corner(fallback,9)
-  outline(fallback,Color3.fromRGB(0,191,255),1.1)
-  label(fallback,"V",22,A.cyan,true,{
-   Font=Enum.Font.GothamBlack,Size=UDim2.fromScale(1,1),
-   TextXAlignment=Enum.TextXAlignment.Center
-  })
+  corner(fallback,8)
+  outline(fallback,Color3.fromRGB(51,69,83),1)
+  local function vArm(name,x,rotation,color)
+   local arm=create("Frame",fallback,{
+    Name=name,BackgroundColor3=color,BorderSizePixel=0,
+    AnchorPoint=Vector2.new(.5,.5),
+    Position=UDim2.fromScale(x,.50),Rotation=rotation,
+    Size=UDim2.new(.18,0,.67,0)
+   })
+   corner(arm,1)
+  end
+  vArm("VWhite",.36,-24,Color3.fromRGB(244,248,251))
+  vArm("VCyan",.64,24,Color3.fromRGB(32,201,237))
  end
  return holder
 end
@@ -353,7 +364,7 @@ create("Frame",tabRail,{BackgroundColor3=A.border,BorderSizePixel=0,
  Position=UDim2.new(1,-1,0,0),Size=UDim2.new(0,1,1,0)})
 local sideBadge=monogram(tabRail,15,16,36)
 -- One rich-text label keeps the two-tone wordmark consistently spaced.
-local brandName=label(tabRail,'VISION <font color="#00D3FF">WARE</font>',13,A.white,true,{
+local brandName=label(tabRail,'VISION <font color="#20C9ED">WARE</font>',13,A.white,true,{
  Name="VisionWareWordmark",RichText=true,
  Position=UDim2.fromOffset(60,16),Size=UDim2.fromOffset(130,24)})
 local titleGame=label(tabRail,selected.name,10,A.muted,false,{

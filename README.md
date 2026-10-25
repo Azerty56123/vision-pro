@@ -19,6 +19,10 @@ loadstring(game:HttpGet("https://raw.githubusercontent.com/Azerty56123/vision-pr
 - Desktop layout follows the Sena reference's measured geometry: **865 × 548** logical pixels (normal-sized window), **195 px** left rail, **64 px** header, **38 px** footer, **210 × 37 px** search, and balanced two-column cards. These are approximate measurements from the available Sena screenshot, not the original source UI files.
 - Spacing and controls match the reference closely: charcoal-on-black cards, 44 px card headings, ~76 px toggle rows, ~78 px dropdown rows, ~88 px slider rows, cyan Vision Ware identity and separated footer status/FPS pills. Layout scales to smaller screens.
 - Bottom-right **Executor / FPS / v1.0** badges are now grouped tightly with their widths based on content, following the reference rather than using three oversized pills.
+- **UI refinement pass:** balanced charcoal palette, clearer typography, sidebar group label and RightShift hint, cyan active icon/indicator, smoother hover transitions, improved card and control alignment, more readable sliders and action buttons.
+- **Search improvements:** dedicated clear control and "Nothing found" feedback when no matching options exist.
+- **Status feedback:** important longer messages appear briefly as an unobtrusive toast rather than being cut off in the compact footer.
+- Existing window size (**865 × 548**), selected VW neon logo, game modules, and minimal Misc tab remain unchanged.
 - Vision Ware opens the main window **immediately** on execution, without an access gate or validation.
 - All game-specific profiles and the global **Misc** security tab are preserved.
 - The user-facing brand is **VISION WARE**. The GitHub filename `VisionHub_V1.lua` remains unchanged for backward compatibility with the existing loadstring.
@@ -83,4 +87,4 @@ The current logo uses the exact selected original neon artwork, cropped and redu
 
 ## Verification notes
 
-The GitHub files have been inspected structurally. Real rendering in Roblox executors, GUI sizing on specific devices, and feature permissions have **not** been runtime-tested. Some local changes to character/camera can be overridden by server/game settings.
+The main Lua loader and its eight game/misc modules have passed a source-level structural check (balanced delimiters and expected references). This is **not** a Roblox runtime or full Luau compiler test. To validate the interface, test it in a controlled Roblox experience at both desktop and mobile-sized resolutions. Check the active sidebar, search/clear/no-results, switch and slider state, collapsing cards, RightShift, FPS footer, and image asset support. Some local changes to character/camera can be overridden by server/game settings.

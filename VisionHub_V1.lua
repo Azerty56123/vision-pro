@@ -55,7 +55,7 @@ local protect={
  character=nil,bornAt=0,lastVelocity=nil,lastPosition=nil,
  elapsed=0,stableFor=0,airborneFor=0,safeCFrame=nil,
  safePlatform=nil,safeAt=0,lastSafeGroundY=nil,
- lastFlingAt=0,lastRescueAt=0
+ lastFlingAt=0,lastFlingNoticeAt=0,lastRescueAt=0
 }
 local fps,frames,fpsElapsed,updateElapsed=0,0,0,0
 local originalFOV
@@ -1093,6 +1093,7 @@ local function resetProtection(ch)
  protect.safeAt=0
  protect.lastSafeGroundY=nil
  protect.lastFlingAt=0
+ protect.lastFlingNoticeAt=0
  protect.lastRescueAt=0
 end
 
@@ -1114,7 +1115,8 @@ local function stillSafe(ch)
  if not protect.safeCFrame or not protect.safePlatform then return false end
  local part=protect.safePlatform
  if not part.Parent or (part~=workspace.Terrain and not part.CanCollide) then return false end
- local hit=groundHit(ch,protect.safeCFrame.Position+Vector3.new(0,3,0),12)
+ local depth=math.max(12,protect.safeCFrame.Position.Y-protect.lastSafeGroundY+7)
+ local hit=groundHit(ch,protect.safeCFrame.Position+Vector3.new(0,3,0),depth)
  return validGround(hit) and hit.Instance==part
   and math.abs(hit.Position.Y-protect.lastSafeGroundY)<4
 end
@@ -1184,8 +1186,8 @@ local function stopFling(ch,hum,hrp,vel,spin,dt,now)
  end)
  if ok then
   miscCounts.fling=miscCounts.fling+1
-  if miscCounts.fling==1 or now-protect.lastRescueAt>4
-   and miscCounts.fling%5==0 then
+  if now-protect.lastFlingNoticeAt>4 then
+   protect.lastFlingNoticeAt=now
    status("Anti-Fling : impulsion anormale amortie")
   end
  end
@@ -1195,17 +1197,19 @@ end
 local function rescueVoid(ch,hum,hrp,vel,now)
  if not stored.antiVoid or not protect.safeCFrame
   or now-protect.lastRescueAt<2.5 then return end
- if not stillSafe(ch) then
-  protect.safeCFrame=nil
-  protect.safePlatform=nil
-  return
- end
  local heightLost=protect.safeCFrame.Position.Y-hrp.Position.Y
  local fallLimit=workspace.FallenPartsDestroyHeight
  local critical=hrp.Position.Y<fallLimit+32 and vel.Y<0
  local fallingFar=heightLost>80 and vel.Y< -34
   and protect.airborneFor>.85
  if not critical and not fallingFar then return end
+ -- Only verify the remembered platform when rescue is actually necessary,
+ -- rather than firing this extra raycast every frame.
+ if not stillSafe(ch) then
+  protect.safeCFrame=nil
+  protect.safePlatform=nil
+  return
+ end
  if not critical then
   -- Falling a long distance can be legitimate; only rescue if no surface
   -- is detectable within the next ~100 studs beneath the character.

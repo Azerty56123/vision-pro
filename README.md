@@ -11,7 +11,7 @@ loadstring(game:HttpGet("https://raw.githubusercontent.com/Azerty56123/vision-pr
 ## Design
 
 - Main window inspired by the visual structure of Sena Hub: dark theme, compact settings in **two columns**, search, category sidebar, footer with executor/FPS and responsive layout.
-- Original **Vision Ware** branding. No external images or proprietary logos are copied.
+- Original **Vision Ware** branding with its own neon icon at [`assets/visionware_logo.png`](assets/visionware_logo.png), optimized for the small sidebar. The UI uses that image when local custom assets are supported; otherwise it displays a simple built-in fallback.
 
 
 ### Interface V1 (October 2026)
@@ -42,10 +42,7 @@ The system gracefully falls back to the universal dashboard if the game is unkno
 
 ## Misc security and server anti-exploit
 
-The **Misc** sidebar tab deliberately shows only four useful switches in two compact cards:
-Anti-Fling, Anti-Void, Anti-Fly Watch and Anti-Speed Watch. The extra report, counters,
-setup and explanatory cards were removed from its interface. These are local protections
-and observational alerts, not authoritative moderation of other players.
+The **Misc** tab contains **one card with only two switches**: Anti-Fling and Anti-Void, both operating on the local player. The Surveillance card, other-player observation loop, reports, and unused background counters have been removed from the hub. These are optional local assistance features, not server-side moderation.
 
 For experiences you own, the repository also includes:
 
@@ -79,6 +76,10 @@ return {
 ```
 
 Supported controls use handlers in the main hub. New `id` values require a corresponding handler in the core; adding a display-only control cannot silently implement new game behavior.
+
+## Logo integration
+
+The image is a real PNG stored in this repository, cropped from the Vision Ware neon logo artwork. Since Roblox `ImageLabel.Image` cannot load GitHub raw image URLs directly, the loader uses supported local image functions (`writefile` and `getcustomasset` or `getsynasset`) to download and display the PNG, caching the asset on disk. When these functions are unavailable, a minimal geometric V is displayed instead. Roblox Studio support for the GitHub image URL is not implied.
 
 ## Verification notes
 

@@ -438,18 +438,31 @@ local function tryFinish()
  local data=scanObby(true)
  if not data.finish then return "Aucune zone Finish detectee"end
  local part=data.finish
+ if checkpointBusy then
+  return "Un checkpoint est encore en cours"
+ end
+ if not part.CanTouch then
+  return "Finish trouve, mais son contact est desactive"
+ end
  task.spawn(function()
-  if checkpointBusy then status("Activation deja en cours");return end
-  for _=1,3 do
-   if disposed or not part.Parent then break end
-   -- Ordinary physics needs actual movement to fire Touched.
-   telePart(part,true)
-   task.wait(.8)
+  if disposed or not part.Parent then return end
+  checkpointLanding=true
+  stopFly()
+  restoreCollisions()
+  local ok,reason=landOnCheckpoint({part=part,number="Finish"})
+  if not ok then
+   status("Finish : "..tostring(reason))
+  else
+   status("Contact Finish en cours ; victoire a verifier")
   end
-  status("Contact Finish tente - victoire a verifier en jeu")
+  -- Let the player actually land rather than teleport repeatedly.
+  task.wait(.6)
+  checkpointLanding=false
+  if not disposed and settings.fly then startFly()end
  end)
- return "Tentative Finish en cours (sans garantie)"
+ return "Auto Win : contact Finish immediat tente (validation serveur)"
 end
+
 local function clearHighlight(which)
  local h=highlights[which]
  if h then pcall(function()h:Destroy()end)end

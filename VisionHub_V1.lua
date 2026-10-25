@@ -433,6 +433,10 @@ canvas=create("ScrollingFrame",body,{BackgroundTransparency=1,BorderSizePixel=0,
  Position=UDim2.fromOffset(15,14),Size=UDim2.new(1,-30,1,-26),
  CanvasSize=UDim2.fromOffset(0,0),ScrollBarThickness=2,
  ScrollBarImageColor3=A.cyan,ScrollingDirection=Enum.ScrollingDirection.Y})
+local noResults=label(canvas,"Nothing found\nTry another search term",11,A.muted,false,{
+ Name="EmptySearch",Position=UDim2.new(0,15,0,44),
+ Size=UDim2.new(1,-30,0,70),Visible=false,TextWrapped=true,
+ TextXAlignment=Enum.TextXAlignment.Center})
 columns=create("Frame",canvas,{BackgroundTransparency=1,BorderSizePixel=0,
  Size=UDim2.new(1,-6,0,0),AutomaticSize=Enum.AutomaticSize.Y})
 local colLayout=create("UIListLayout",columns,{
@@ -620,7 +624,7 @@ end
 local function row(parent,h)
  local f=create("Frame",parent,{BackgroundColor3=A.row,BorderSizePixel=0,
   Size=UDim2.new(1,0,0,h or 54)})
- corner(f,9)
+ corner(f,7)
  return f
 end
 local function register(section,f,title)
@@ -681,15 +685,20 @@ local function controlInfo(parent,section,item)
 end
 local function controlToggle(parent,section,item)
  local f=row(parent,76)
- label(f,item.label,11,A.white,true,{Position=UDim2.fromOffset(13,13),
+ label(f,item.label,12,A.white,true,{Position=UDim2.fromOffset(13,13),
   Size=UDim2.new(1,-79,0,21)})
  label(f,item.desc or "",10,A.muted,false,{Position=UDim2.fromOffset(13,37),
   Size=UDim2.new(1,-79,0,26),TextWrapped=true,
   TextYAlignment=Enum.TextYAlignment.Top})
  local b=button(f,"",{Position=UDim2.new(1,-53,0,25),
-  Size=UDim2.fromOffset(41,23),
+  Size=UDim2.fromOffset(41,23),AutoButtonColor=false,
   BackgroundColor3=isTrue(item.id) and A.cyanDark or A.border})
  corner(b,12)
+ local toggleStroke=outline(b,isTrue(item.id) and A.cyan or A.border,.8)
+ bind(b.MouseEnter,function()uiTween(toggleStroke,{Color=A.cyan},.14)end,true)
+ bind(b.MouseLeave,function()
+  uiTween(toggleStroke,{Color=isTrue(item.id) and A.cyan or A.border},.14)
+ end,true)
  local dot=create("Frame",b,{BackgroundColor3=isTrue(item.id) and A.cyan or A.light,
   BorderSizePixel=0,Position=UDim2.fromOffset(isTrue(item.id) and 21 or 4,4),
   Size=UDim2.fromOffset(15,15)})
@@ -697,11 +706,10 @@ local function controlToggle(parent,section,item)
  bind(b.Activated,function()
   stored[item.id]=not isTrue(item.id)
   local state=isTrue(item.id)
-  b.BackgroundColor3=state and A.cyanDark or A.border
-  dot.BackgroundColor3=state and A.cyan or A.light
-  local goal=UDim2.fromOffset(state and 21 or 4,4)
-  if stored.animations then Tween:Create(dot,TweenInfo.new(.14),{Position=goal}):Play()
-  else dot.Position=goal end
+  uiTween(b,{BackgroundColor3=state and A.cyanDark or A.border},.15)
+  uiTween(toggleStroke,{Color=state and A.cyan or A.border},.15)
+  uiTween(dot,{BackgroundColor3=state and A.cyan or A.light,
+   Position=UDim2.fromOffset(state and 21 or 4,4)},.15)
   if item.id=="bright" then applyBright(state)end
   status(item.label.." : "..(state and "ON" or "OFF"))
  end,true)
@@ -712,21 +720,24 @@ local function controlSlider(parent,section,item)
  if hi<=lo then return end
  local id=item.id
  local f=row(parent,88)
- label(f,item.label,11,A.white,true,{Position=UDim2.fromOffset(13,11),
+ label(f,item.label,12,A.white,true,{Position=UDim2.fromOffset(13,9),
   Size=UDim2.new(1,-80,0,21)})
- local val=label(f,tostring(nums[id] or lo),10,A.muted,true,{
+ label(f,item.desc or "",9,A.muted,false,{
+  Position=UDim2.fromOffset(13,33),Size=UDim2.new(1,-24,0,15)})
+ local val=label(f,tostring(nums[id] or lo),11,A.cyan,true,{
   Position=UDim2.new(1,-75,0,11),Size=UDim2.fromOffset(60,21),
   TextXAlignment=Enum.TextXAlignment.Right})
  local track=create("Frame",f,{BackgroundColor3=A.border,BorderSizePixel=0,
   Position=UDim2.new(0,13,0,61),Size=UDim2.new(1,-26,0,6)})
  corner(track,4)
- local fill=create("Frame",track,{BackgroundColor3=A.light,BorderSizePixel=0,
+ local fill=create("Frame",track,{BackgroundColor3=A.cyan,BorderSizePixel=0,
   Size=UDim2.fromScale(math.clamp(((nums[id] or lo)-lo)/(hi-lo),0,1),1)})
  corner(fill,4)
  local dot=create("Frame",track,{BackgroundColor3=A.white,BorderSizePixel=0,
   AnchorPoint=Vector2.new(.5,.5),Position=UDim2.fromScale(fill.Size.X.Scale,.5),
-  Size=UDim2.fromOffset(11,11)})
+  Size=UDim2.fromOffset(12,12)})
  corner(dot,6)
+ outline(dot,A.cyan,1)
  local zone=button(f,"",{BackgroundTransparency=1,
   Position=UDim2.new(0,12,0,46),Size=UDim2.new(1,-24,0,34)})
  local dragging=false
@@ -767,9 +778,16 @@ local function controlSlider(parent,section,item)
  register(section,f,item.label)
 end
 local function controlButton(parent,section,item)
- local b=button(parent,item.label,{Size=UDim2.new(1,0,0,35),
-  BackgroundColor3=A.field})
- outline(b,A.border,.6)
+ local b=button(parent,"",{Size=UDim2.new(1,0,0,36),
+  BackgroundColor3=A.field,AutoButtonColor=false})
+ corner(b,7)
+ outline(b,A.border,.65)
+ label(b,item.label,11,A.white,true,{
+  Position=UDim2.fromOffset(12,3),Size=UDim2.new(1,-42,1,-6)})
+ local actionIcon=artwork(b,item.id and item.id:sub(1,4)=="copy" and "copy" or "chevron",
+  0,0,14,14,A.muted)
+ if actionIcon then actionIcon.Position=UDim2.new(1,-26,.5,-7)end
+ interactiveHover(b,A.field,A.hover,true)
  bind(b.Activated,function()
   local ok,err=pcall(action,item.id)
   if not ok then status("Action error: "..tostring(err))end
@@ -786,20 +804,24 @@ local function controlDrop(parent,section,item)
   Position=UDim2.fromOffset(13,34),Size=UDim2.new(.5,-22,0,31),
   TextWrapped=true,TextYAlignment=Enum.TextYAlignment.Top})
  local chosen=1
- local drop=button(f,values[chosen].."  v",{
+ local drop=button(f,values[chosen].."  ▾",{
   Position=UDim2.new(.54,0,0,12),
-  Size=UDim2.new(.46,-13,0,32),BackgroundColor3=A.field,TextSize=10
+  Size=UDim2.new(.46,-13,0,32),BackgroundColor3=A.field,
+  TextSize=10,AutoButtonColor=false
  })
+ corner(drop,7)
  outline(drop,A.border,.8)
+ interactiveHover(drop,A.field,A.hover,true)
  local optFrame=create("Frame",f,{BackgroundTransparency=1,
   Size=UDim2.new(1,-20,0,0),Position=UDim2.fromOffset(10,80),Visible=false})
  local stack=create("UIListLayout",optFrame,{SortOrder=Enum.SortOrder.LayoutOrder,
   Padding=UDim.new(0,3)})
  for i,v in ipairs(values) do
   local option=button(optFrame,v,{Size=UDim2.new(1,0,0,26),LayoutOrder=i,
-   BackgroundColor3=A.field,TextSize=10})
+   BackgroundColor3=A.field,TextSize=10,AutoButtonColor=false})
+  interactiveHover(option,A.field,A.hover,true)
   bind(option.Activated,function()
-   chosen=i;drop.Text=v.."  v"
+   chosen=i;drop.Text=v.."  ▾"
    optFrame.Visible=false;f.Size=UDim2.new(1,0,0,78)
    if item.id=="fovPreset" then
     local preset=i==1 and 70 or i==2 and 90 or 60
@@ -819,11 +841,16 @@ local function card(which,definition)
  local host=which=="right" and right or left
  local c=create("Frame",host,{BackgroundColor3=A.card,BorderSizePixel=0,
   Size=UDim2.new(1,0,0,0),AutomaticSize=Enum.AutomaticSize.Y})
- corner(c,9);outline(c,A.border,.65)
+ corner(c,10);outline(c,A.border,.9)
  local lay=create("UIListLayout",c,{SortOrder=Enum.SortOrder.LayoutOrder,
   Padding=UDim.new(0,0)})
- local title=button(c,"",{BackgroundColor3=A.card,Size=UDim2.new(1,0,0,44)})
- corner(title,9)
+ local title=button(c,"",{BackgroundColor3=A.card,Size=UDim2.new(1,0,0,44),
+  AutoButtonColor=false})
+ corner(title,10)
+ interactiveHover(title,A.card,A.hover,true)
+ create("Frame",title,{BackgroundColor3=A.border,BorderSizePixel=0,
+  BackgroundTransparency=.25,Position=UDim2.new(0,12,1,-1),
+  Size=UDim2.new(1,-24,0,1)})
  -- Compact, uniform card title: proper white outline icon, no big cyan tiles.
  local headingKey=string.lower(definition.title or "")
  local headerGlyph=(headingKey:find("runtime",1,true) or
@@ -831,8 +858,10 @@ local function card(which,definition)
   or (headingKey:find("visual",1,true) and "visuals")
   or (headingKey:find("movement",1,true) and "player")
   or (headingKey:find("control",1,true) and "settings")
+  or (headingKey:find("protection",1,true) and "shield")
+  or (headingKey:find("security",1,true) and "shield")
   or "module"
- artwork(title,headerGlyph,16,13,18,18,A.muted)
+ artwork(title,headerGlyph,16,13,18,18,A.light)
  label(title,definition.title,12,A.white,true,{
   Position=UDim2.fromOffset(44,7),Size=UDim2.new(1,-84,0,29)})
  local arrow=artwork(title,"chevron",0,0,16,16,A.muted)
@@ -840,16 +869,16 @@ local function card(which,definition)
 local inside=create("Frame",c,{BackgroundTransparency=1,Size=UDim2.new(1,0,0,0),
   AutomaticSize=Enum.AutomaticSize.Y,Visible=true})
  create("UIPadding",inside,{PaddingLeft=UDim.new(0,8),
-  PaddingRight=UDim.new(0,8),PaddingBottom=UDim.new(0,9),
-  PaddingTop=UDim.new(0,2)})
+  PaddingRight=UDim.new(0,8),PaddingBottom=UDim.new(0,10),
+  PaddingTop=UDim.new(0,5)})
  create("UIListLayout",inside,{SortOrder=Enum.SortOrder.LayoutOrder,
   Padding=UDim.new(0,6)})
  local record={card=c,title=string.lower(definition.title.." "..(definition.subtitle or "")),
-  items={},body=inside}
+  items={},body=inside,arrow=arrow}
  table.insert(filterRecords,record)
  bind(title.Activated,function()
   inside.Visible=not inside.Visible
-  arrow.Rotation=inside.Visible and 0 or 180
+  uiTween(arrow,{Rotation=inside.Visible and 0 or 180},.15)
  end,true)
  for _,item in ipairs(definition.items or {}) do
   if item.type=="info" then controlInfo(inside,record,item)

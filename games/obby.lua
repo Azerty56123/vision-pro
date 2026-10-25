@@ -18,6 +18,7 @@ local collisions=setmetatable({}, {__mode="k"})
 local connections={}
 local flight={velocity=nil,gyro=nil,humanoid=nil,oldStand=false,oldRotate=true}
 local disposed=false
+local checkpointLanding=false
 
 local function listen(signal,fn)
  local connection=signal:Connect(fn)
@@ -161,83 +162,102 @@ end)
 
 
 -- Dynamic Obby discovery: no hardcoded place IDs, hidden remotes or false win claims.
+-- Checkpoint discovery and confirmation
+-- Roblox Touched requires physical movement, not merely CFrame overlap.
 local discovery={at=-1000,stages={},finish=nil}
 local highlights={finish=nil,next=nil}
-local function partFor(obj)
- if obj:IsA("BasePart") then return obj end
- if obj:IsA("Model") then
-  if obj.PrimaryPart then return obj.PrimaryPart end
-  for _,child in ipairs(obj:GetChildren()) do
-   if child:IsA("SpawnLocation") then return child end
-  end
-  for _,child in ipairs(obj:GetChildren()) do
-   if child:IsA("BasePart") then return child end
-  end
-  return obj:FindFirstChildWhichIsA("BasePart",true)
- end
- return nil
+local checkpointBusy=false
+local checkpointStatus="Scan requis"
+local function status(text)
+ checkpointStatus=tostring(text)
 end
-local function inCheckpointFolder(obj)
+local function tagged(obj,tag)
+ local ok,result=pcall(Collection.HasTag,Collection,obj,tag)
+ return ok and result
+end
+local function isCheckpointContainer(obj)
  local node=obj.Parent
- for _=1,3 do
+ for _=1,5 do
   if not node or node==workspace then break end
-  local lower=node.Name:lower()
-  if lower=="stages" or lower=="checkpoints" or lower=="stage"
-   or lower=="levels" or lower=="spawns" or lower=="stageparts" then
-   return true
-  end
+  local name=node.Name:lower()
+  if name=="checkpoints" or name=="checkpoint" or name=="stages"
+   or name=="spawns" or name=="levels" or name=="stageparts"
+   or name=="stagepoints" then return true end
   node=node.Parent
  end
  return false
 end
 local function stageNumber(obj)
- local num=tonumber(obj:GetAttribute("Stage"))
-  or tonumber(obj:GetAttribute("Checkpoint"))
-  or tonumber(obj:GetAttribute("Level"))
- if num and num>=0 and num<=100000 and num%1==0 then return num end
+ for _,key in ipairs({"Stage","Checkpoint","CheckpointId","StageId","Level"}) do
+  local n=tonumber(obj:GetAttribute(key))
+  if n and n>=0 and n<=100000 and n%1==0 then return n end
+ end
  local name=obj.Name:lower()
- local suffix=name:match("^stage[%s_%-%#]*(%d+)$")
+ local n=name:match("^stage[%s_%-%#]*(%d+)$")
   or name:match("^checkpoint[%s_%-%#]*(%d+)$")
+  or name:match("^check[%s_%-%#]*(%d+)$")
   or name:match("^level[%s_%-%#]*(%d+)$")
   or name:match("^cp[%s_%-%#]*(%d+)$")
- if not suffix and inCheckpointFolder(obj) then
-  suffix=name:match("^(%d+)$")
+ if not n and (isCheckpointContainer(obj) or tagged(obj,"Checkpoint")) then
+  n=name:match("^(%d+)$")
  end
- if suffix then return tonumber(suffix)end
- return nil
+ return n and tonumber(n) or nil
 end
 local function isFinish(obj)
+ if tagged(obj,"Finish") or tagged(obj,"Goal") then return true end
  local name=obj.Name:lower():gsub("[%s_%-%d]","")
  return name=="finish" or name=="finishline" or name=="finishpart"
   or name=="win" or name=="winner" or name=="goal"
   or name=="end" or name=="endpart" or name=="victory"
   or name=="touchfinish"
 end
+local function partFor(obj)
+ if obj:IsA("BasePart") then return obj end
+ if not obj:IsA("Model") then return nil end
+ local preferred,bestScore=nil,-math.huge
+ for _,part in ipairs(obj:GetDescendants()) do
+  if part:IsA("BasePart") then
+   local name=part.Name:lower()
+   local score=(part.CanTouch and 5 or -10)
+   if part:IsA("SpawnLocation") then score=score+12 end
+   if name:find("checkpoint",1,true) or name:find("spawn",1,true)
+     or name:find("touch",1,true) or name:find("trigger",1,true)
+     or name:find("pad",1,true) then score=score+8 end
+   if part==obj.PrimaryPart then score=score+3 end
+   if part.Size.X>=2 and part.Size.Z>=2 then score=score+2 end
+   if score>bestScore then preferred=part;bestScore=score end
+  end
+ end
+ return preferred
+end
 local function scanObby(force)
  if not force and os.clock()-discovery.at<5 then return discovery end
- local indexed,finish,finishScore={},nil,-1
+ local indexed,finish,finishScore={},nil,-math.huge
+ local ch=player.Character
  local seen=0
  for _,obj in ipairs(workspace:GetDescendants()) do
   seen=seen+1
   if seen>120000 then break end
-  if obj:IsA("BasePart") or obj:IsA("Model") then
-   local ch=player.Character
-   if not (ch and obj:IsDescendantOf(ch)) then
+  if (obj:IsA("BasePart") or obj:IsA("Model"))
+   and not (ch and obj:IsDescendantOf(ch)) then
+   local stage=stageNumber(obj)
+   local finishMatch=isFinish(obj)
+   if stage or finishMatch then
     local part=partFor(obj)
     if part and part:IsDescendantOf(workspace) then
-     local stage=stageNumber(obj)
      if stage then
-      local score=(obj:IsA("BasePart") and 3 or 1)
-      if obj:IsA("SpawnLocation") then score=score+2 end
-      if part.Name:lower():find("checkpoint",1,true) then score=score+1 end
-      local prev=indexed[stage]
-      if not prev or score>prev.score then
+      local score=(part.CanTouch and 6 or -15)
+      if part:IsA("SpawnLocation") then score=score+12 end
+      if isCheckpointContainer(obj) then score=score+8 end
+      if tagged(obj,"Checkpoint") or tagged(part,"Checkpoint") then score=score+10 end
+      if obj.Name:lower():find("checkpoint",1,true) then score=score+5 end
+      if obj:IsA("BasePart") then score=score+2 end
+      if not indexed[stage] or score>indexed[stage].score then
        indexed[stage]={number=stage,part=part,score=score}
       end
      end
-     if isFinish(obj) then
-      local score=(obj:IsA("BasePart") and 3 or 1)
-       +(part.CanTouch and 1 or 0)
+     if finishMatch then
+      local score=(part.CanTouch and 8 or 0)+(obj:IsA("BasePart") and 2 or 0)
       if score>finishScore then finish=part;finishScore=score end
      end
     end
@@ -250,86 +270,183 @@ local function scanObby(force)
  discovery={at=os.clock(),stages=stages,finish=finish}
  return discovery
 end
+local progressNames={
+ stage=true,stages=true,checkpoint=true,checkpoints=true,
+ level=true,currentstage=true,currentcheckpoint=true,
+ stagenumber=true,checkpointnumber=true
+}
 local function progressValue()
- local stats=player:FindFirstChild("leaderstats")
- for _,source in ipairs({stats or player,player}) do
-  for _,name in ipairs({"Stage","Stages","Checkpoint","CheckPoint","Level","CurrentStage","CurrentCheckpoint"}) do
-   local obj=source:FindFirstChild(name)
-   if obj and (obj:IsA("IntValue") or obj:IsA("NumberValue")) then
-    local val=tonumber(obj.Value)
-    if val and val>=0 then return math.floor(val)end
+ local folders={player}
+ for _,folderName in ipairs({"leaderstats","Data","Stats","Progress","Values"}) do
+  local folder=player:FindFirstChild(folderName)
+  if folder then table.insert(folders,folder)end
+ end
+ -- Check leaderstats first because it commonly holds replicated stage progress.
+ local leader=player:FindFirstChild("leaderstats")
+ if leader then
+  table.remove(folders,table.find(folders,leader))
+  table.insert(folders,1,leader)
+ end
+ for _,folder in ipairs(folders) do
+  for _,obj in ipairs(folder:GetChildren()) do
+   local key=obj.Name:lower():gsub("[_%s%-]","")
+   if progressNames[key] and (obj:IsA("IntValue") or obj:IsA("NumberValue")) then
+    local value=tonumber(obj.Value)
+    if value and value>=0 then return math.floor(value),obj:GetFullName()end
    end
   end
  end
- for _,key in ipairs({"Stage","Checkpoint","Level"}) do
-  local val=tonumber(player:GetAttribute(key))
-  if val and val>=0 then return math.floor(val)end
+ for _,key in ipairs({"Stage","Checkpoint","Level","CurrentStage","CurrentCheckpoint"}) do
+  local value=tonumber(player:GetAttribute(key))
+  if value and value>=0 then return math.floor(value),"Player attribute"end
  end
- return nil
+ return nil,nil
 end
 local function nearestStage(stages)
  local _,root=parts()
  if not root then return nil end
  local best,distance=nil,math.huge
  for idx,entry in ipairs(stages) do
-  local magnitude=(entry.part.Position-root.Position).Magnitude
-  if magnitude<distance then best=idx;distance=magnitude end
+  local distanceNow=(entry.part.Position-root.Position).Magnitude
+  if distanceNow<distance then best=idx;distance=distanceNow end
  end
- if distance>350 then return nil end
- return best
+ return distance<=350 and best or nil
 end
 local function stageDestination(step)
  local data=scanObby(false)
  local list=data.stages
- if #list==0 then return nil,"No stage parts found"end
+ if #list==0 then return nil,"Aucun checkpoint reconnu"end
  local progress=progressValue()
+ if progress~=nil and step>0 then
+  local wanted=progress+1
+  for _,entry in ipairs(list) do
+   if entry.number==wanted then return entry end
+  end
+  -- Never silently leap over intermediate checkpoints.
+  if list[#list].number<=progress then return nil,"Dernier stage detecte atteint"end
+  return nil,"Checkpoint "..wanted.." introuvable (Scan Stages)"
+ end
  local index
- if progress then
+ if progress~=nil then
   for i,entry in ipairs(list) do
    if entry.number<=progress then index=i end
   end
-  if not index then index=0 end
+  if not index then index=1 end
  else
   index=nearestStage(list)
-  if not index then return nil,"Cannot locate your current stage"end
+  if not index then return nil,"Stage actuel introuvable"end
  end
  local target=list[index+step]
- if not target then return nil,step>0 and "Last known stage reached" or "First known stage reached"end
+ if not target then return nil,"Checkpoint hors de la liste"end
  return target
 end
-local function telePart(part,landOnTop)
+local function telePart(part,above)
  if not part or not part:IsDescendantOf(workspace) then return false end
- local extra=landOnTop and 3.2 or 1.8
+ local extra=above and 3.2 or 1.8
  local height=part.Size.Y*.5+extra
  return teleportTo(CFrame.new(part.Position+Vector3.new(0,height,0))-Vector3.new(0,2,0))
+end
+local function landOnCheckpoint(entry)
+ local part=entry and entry.part
+ if not part or not part.Parent then return false,"Checkpoint disparu"end
+ if not part.CanTouch then return false,"Checkpoint non touchable"end
+ local ch,root,hum=parts()
+ if not ch or not root or not hum or hum.Health<=0 then
+  return false,"Personnage indisponible"
+ end
+ local clearance=math.max(2.5,hum.HipHeight+root.Size.Y*.5)
+ local y=part.Position.Y+part.Size.Y*.5+clearance+3
+ local offset=Vector3.new(0,y,0)
+ local target=CFrame.new(part.Position.X,y,part.Position.Z)
+ local ok=pcall(function()
+  ch:PivotTo(target)
+  hum.Sit=false
+  hum:ChangeState(Enum.HumanoidStateType.Freefall)
+  root.AssemblyAngularVelocity=Vector3.zero
+  root.AssemblyLinearVelocity=Vector3.new(0,-17,0)
+ end)
+ return ok,ok and "Contact en cours" or "Teleport impossible"
+end
+-- Make an actual physical landing and wait for replicated Stage to change.
+local function activateCheckpoint(entry)
+ if checkpointBusy then return false,"Checkpoint deja en cours"end
+ if not entry or not entry.part then return false,"Checkpoint introuvable"end
+ checkpointBusy=true
+ checkpointLanding=true
+ stopFly()
+ restoreCollisions()
+ local initial=progressValue()
+ local confirmed=false
+ local result="Checkpoint "..entry.number.." non confirme"
+ status("Activation checkpoint "..entry.number.."...")
+ for attempt=1,3 do
+  if disposed then result="Module ferme";break end
+  if attempt>1 then scanObby(true)end
+  local current=progressValue()
+  if current and current>=entry.number and initial and current>initial then
+   confirmed=true;break
+  end
+  local ok,reason=landOnCheckpoint(entry)
+  if not ok then result=reason;break end
+  local deadline=os.clock()+2.5
+  repeat
+   task.wait(.12)
+   if disposed then break end
+   local now=progressValue()
+   if initial~=nil and now~=nil and now>initial and now>=entry.number then
+    confirmed=true;break
+   end
+  until os.clock()>=deadline
+  if confirmed then break end
+  if initial==nil then
+   result="Contact tente, mais aucun compteur Stage verifiable"
+   break
+  end
+ end
+ if confirmed then
+  result="Checkpoint "..entry.number.." VALIDE (Stage confirme)"
+ else
+  result=result=="Module ferme" and result or
+   (initial~=nil and "Checkpoint "..entry.number.." non valide par le jeu" or result)
+ end
+ checkpointLanding=false
+ if not disposed and settings.fly then startFly()end
+ checkpointBusy=false
+ status(result)
+ return confirmed,result
 end
 local function stepStage(step)
  local entry,why=stageDestination(step)
  if not entry then return why end
- if telePart(entry.part,true) then
-  return "Teleport attempted: stage "..entry.number.." (server decides progression)"
+ if step<0 then
+  return telePart(entry.part,true) and
+   "Retour vers stage "..entry.number.." (non officiel)" or "Teleport impossible"
  end
- return "Stage teleport unavailable"
+ if checkpointBusy then return "Activation deja en cours"end
+ task.spawn(function()activateCheckpoint(entry)end)
+ return "Checkpoint "..entry.number.." : tentative, voir Statut"
 end
 local function gotoFinish()
  local data=scanObby(false)
- if not data.finish then return "No Finish / Goal part found"end
+ if not data.finish then return "Aucune zone Finish detectee"end
  return telePart(data.finish,true) and
-  "Finish teleport attempted; win is not guaranteed" or "Finish teleport unavailable"
+  "Arrivee atteinte localement; victoire non garantie" or "Finish inaccessible"
 end
 local function tryFinish()
  local data=scanObby(true)
+ if not data.finish then return "Aucune zone Finish detectee"end
  local part=data.finish
- if not part then return "No Finish / Goal part found"end
  task.spawn(function()
-  for i=1,3 do
+  if checkpointBusy then status("Activation deja en cours");return end
+  for _=1,3 do
    if disposed or not part.Parent then break end
-   -- Approach the finish pad and allow ordinary game touch detection.
-   telePart(part,i==1)
-   task.wait(.5)
+   -- Ordinary physics needs actual movement to fire Touched.
+   telePart(part,true)
+   task.wait(.8)
   end
+  status("Contact Finish tente - victoire a verifier en jeu")
  end)
- return "Finish contact attempt started (server validates wins)"
+ return "Tentative Finish en cours (sans garantie)"
 end
 local function clearHighlight(which)
  local h=highlights[which]
@@ -378,16 +495,21 @@ local function startAutoSkip()
  autoSkipGeneration=autoSkipGeneration+1
  local generation=autoSkipGeneration
  task.spawn(function()
-  local lastStage,attempts=nil,0
+  local progress=progressValue()
+  if progress==nil then
+   status("Auto Skip refuse : compteur Stage introuvable")
+   return
+  end
   while not disposed and settings.autoSkip and autoSkipGeneration==generation do
-   local progress=progressValue()
-   if progress~=lastStage then lastStage=progress;attempts=0 end
-   if not progress or attempts<3 then
-    local entry=stageDestination(1)
-    if entry then
-     telePart(entry.part,true)
-     attempts=attempts+1
-    end
+   local entry,why=stageDestination(1)
+   if not entry then
+    status("Auto Skip arrete : "..(why or "stage introuvable"))
+    return
+   end
+   local confirmed,reason=activateCheckpoint(entry)
+   if not confirmed then
+    status("Auto Skip arrete : "..(reason or "stage non confirme"))
+    return
    end
    task.wait(settings.skipDelay)
   end
@@ -422,6 +544,17 @@ actions.obbyTeleportStart=function()
  local entry=data.stages[1]
  if not entry then return "No starting stage found"end
  return telePart(entry.part,true) and "Start teleport attempted" or "Start teleport unavailable"
+end
+local function readValue(key)
+ if key=="@obbyStage" then
+  local n=progressValue()
+  return n~=nil and tostring(n) or "Indisponible"
+ elseif key=="@obbyCount" then
+  return tostring(#scanObby(false).stages)
+ elseif key=="@obbyStatus" then
+  return checkpointStatus
+ end
+ return nil
 end
 local function onAction(id)
  local handler=actions[id]
@@ -482,6 +615,7 @@ return {
  id="obby",name="Obby",
  description="Parkour, movement and local checkpoints",
  onAction=onAction,onToggle=onToggle,onSlider=onSlider,shutdown=shutdown,
+ readValue=readValue,
  sections={
   {tab="Game",column="left",title="Obby Cheats",subtitle="Movement helpers",items={
    {type="toggle",id="obbyFly",label="Fly",desc="WASD / Space or E up / Q or Ctrl down"},
@@ -489,7 +623,10 @@ return {
    {type="toggle",id="obbyInfiniteJump",label="Infinite Jump",desc="Jump again while airborne"},
    {type="toggle",id="obbyLowGravity",label="Low Gravity",desc="Lighter client-side gravity"}
   }},
-  {tab="Game",column="right",title="Stage Tools",subtitle="Automatic stage discovery",items={
+  {tab="Game",column="right",title="Stage Tools",subtitle="Checkpoint activation + verification",items={
+   {type="info",label="Stage actuel (jeu)",value="@obbyStage"},
+   {type="info",label="Checkpoints detectes",value="@obbyCount"},
+   {type="info",label="Statut",value="@obbyStatus"},
    {type="button",id="obbyScan",label="Scan Stages / Finish"},
    {type="button",id="obbySkipStage",label="Skip Stage (attempt)"},
    {type="button",id="obbyPreviousStage",label="Previous Stage"},
@@ -498,7 +635,7 @@ return {
    {type="button",id="obbyAutoWin",label="Auto Win (attempt)"}
   }},
   {tab="Game",column="left",title="Automation",subtitle="Progression attempts; server may reject",items={
-   {type="toggle",id="obbyAutoSkip",label="Auto Skip",desc="Try next detected checkpoint at a set interval"},
+   {type="toggle",id="obbyAutoSkip",label="Auto Skip (verified)",desc="Only advance when Stage changes; stops if unconfirmed"},
    {type="slider",id="obbySkipDelay",label="Auto Skip Delay (s)",min=3,max=15},
    {type="toggle",id="obbyAutoReturn",label="Auto Return",desc="Try last saved position after respawn"}
   }},

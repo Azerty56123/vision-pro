@@ -343,6 +343,10 @@ local function pos()
  return string.format("%.1f, %.1f, %.1f",p.X,p.Y,p.Z)
 end
 local function readValue(key)
+ if selected and type(selected.readValue)=="function" then
+  local ok,result=pcall(selected.readValue,key)
+  if ok and result~=nil then return tostring(result) end
+ end
  if key=="@game" then return GAME_TITLE end
  if key=="@profile" then return selected.name end
  if key=="@players" then return tostring(#Players:GetPlayers())end

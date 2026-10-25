@@ -938,6 +938,12 @@ local keyBadge=create("Frame",keyPanel,{
 corner(keyBadge,24)
 outline(keyBadge,K.bright,2.4)
 artwork(keyBadge,"module",12,11,23,23,K.bright)
+-- Bright top mark gives the badge the asymmetrical ring detail of the reference.
+local logoHighlight=create("Frame",keyBadge,{
+ Name="BadgeHighlight",BackgroundColor3=Color3.fromRGB(58,231,255),
+ BorderSizePixel=0,Position=UDim2.fromOffset(10,-1),
+ Size=UDim2.fromOffset(12,5),Rotation=-17})
+corner(logoHighlight,2)
 local badgeAura=create("Frame",keyPanel,{
  BackgroundTransparency=1,BorderSizePixel=0,
  Position=UDim2.fromOffset(47,13),Size=UDim2.fromOffset(53,53)})
@@ -1039,7 +1045,7 @@ label(saveSwitch,"ON",9,Color3.fromRGB(6,65,49),true,{
 bind(saveSwitch.Activated,function()
  keepKeyInput=not keepKeyInput
  saveSwitch.BackgroundColor3=keepKeyInput and
-  Color3.fromRGB(17,187,137) or Color3.fromRGB(59,64,73)
+  K.green or Color3.fromRGB(59,64,73)
  saveDot.Position=UDim2.fromOffset(keepKeyInput and 37 or 5,3)
  local cap=saveSwitch:FindFirstChild("KeySwitchState")
  if cap then

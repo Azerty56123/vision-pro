@@ -588,12 +588,13 @@ local function controlInfo(parent,section,item)
  register(section,f,item.label.." "..tostring(item.value))
 end
 local function controlToggle(parent,section,item)
- local f=row(parent,59)
- label(f,item.label,11,A.white,true,{Position=UDim2.fromOffset(11,9),
-  Size=UDim2.new(1,-77,0,20)})
- label(f,item.desc or "",9,A.muted,false,{Position=UDim2.fromOffset(11,31),
-  Size=UDim2.new(1,-77,0,17)})
- local b=button(f,"",{Position=UDim2.new(1,-53,0,17),
+ local f=row(parent,76)
+ label(f,item.label,11,A.white,true,{Position=UDim2.fromOffset(13,13),
+  Size=UDim2.new(1,-79,0,21)})
+ label(f,item.desc or "",10,A.muted,false,{Position=UDim2.fromOffset(13,37),
+  Size=UDim2.new(1,-79,0,26),TextWrapped=true,
+  TextYAlignment=Enum.TextYAlignment.Top})
+ local b=button(f,"",{Position=UDim2.new(1,-53,0,25),
   Size=UDim2.fromOffset(41,23),
   BackgroundColor3=isTrue(item.id) and A.cyanDark or A.border})
  corner(b,12)
@@ -618,14 +619,14 @@ local function controlSlider(parent,section,item)
  local lo,hi=item.min or 0,item.max or 100
  if hi<=lo then return end
  local id=item.id
- local f=row(parent,81)
- label(f,item.label,11,A.white,true,{Position=UDim2.fromOffset(12,7),
+ local f=row(parent,88)
+ label(f,item.label,11,A.white,true,{Position=UDim2.fromOffset(13,11),
   Size=UDim2.new(1,-80,0,21)})
  local val=label(f,tostring(nums[id] or lo),10,A.muted,true,{
-  Position=UDim2.new(1,-75,0,7),Size=UDim2.fromOffset(60,21),
+  Position=UDim2.new(1,-75,0,11),Size=UDim2.fromOffset(60,21),
   TextXAlignment=Enum.TextXAlignment.Right})
  local track=create("Frame",f,{BackgroundColor3=A.border,BorderSizePixel=0,
-  Position=UDim2.new(0,13,0,55),Size=UDim2.new(1,-26,0,6)})
+  Position=UDim2.new(0,13,0,61),Size=UDim2.new(1,-26,0,6)})
  corner(track,4)
  local fill=create("Frame",track,{BackgroundColor3=A.light,BorderSizePixel=0,
   Size=UDim2.fromScale(math.clamp(((nums[id] or lo)-lo)/(hi-lo),0,1),1)})
@@ -635,7 +636,7 @@ local function controlSlider(parent,section,item)
   Size=UDim2.fromOffset(11,11)})
  corner(dot,6)
  local zone=button(f,"",{BackgroundTransparency=1,
-  Position=UDim2.new(0,12,0,40),Size=UDim2.new(1,-24,0,34)})
+  Position=UDim2.new(0,12,0,46),Size=UDim2.new(1,-24,0,34)})
  local dragging=false
  local touchInput
  local function set(x)
@@ -686,17 +687,20 @@ end
 local function controlDrop(parent,section,item)
  local values=item.values or {}
  if #values==0 then return end
- local f=row(parent,59)
- label(f,item.label,11,A.white,true,{Position=UDim2.fromOffset(12,6),
-  Size=UDim2.new(.5,-12,0,21)})
+ local f=row(parent,78)
+ label(f,item.label,11,A.white,true,{Position=UDim2.fromOffset(13,10),
+  Size=UDim2.new(.49,-12,0,21)})
+ label(f,item.desc or "",10,A.muted,false,{
+  Position=UDim2.fromOffset(13,34),Size=UDim2.new(.5,-22,0,31),
+  TextWrapped=true,TextYAlignment=Enum.TextYAlignment.Top})
  local chosen=1
  local drop=button(f,values[chosen].."  v",{
-  Position=UDim2.new(.47,0,0,10),
-  Size=UDim2.new(.53,-11,0,30),BackgroundColor3=A.field,TextSize=10
+  Position=UDim2.new(.54,0,0,12),
+  Size=UDim2.new(.46,-13,0,32),BackgroundColor3=A.field,TextSize=10
  })
  outline(drop,A.border,.8)
  local optFrame=create("Frame",f,{BackgroundTransparency=1,
-  Size=UDim2.new(1,-20,0,0),Position=UDim2.fromOffset(10,54),Visible=false})
+  Size=UDim2.new(1,-20,0,0),Position=UDim2.fromOffset(10,80),Visible=false})
  local stack=create("UIListLayout",optFrame,{SortOrder=Enum.SortOrder.LayoutOrder,
   Padding=UDim.new(0,3)})
  for i,v in ipairs(values) do
@@ -704,7 +708,7 @@ local function controlDrop(parent,section,item)
    BackgroundColor3=A.field,TextSize=10})
   bind(option.Activated,function()
    chosen=i;drop.Text=v.."  v"
-   optFrame.Visible=false;f.Size=UDim2.new(1,0,0,59)
+   optFrame.Visible=false;f.Size=UDim2.new(1,0,0,78)
    if item.id=="fovPreset" then
     local preset=i==1 and 70 or i==2 and 90 or 60
     fov(preset)
@@ -714,7 +718,7 @@ local function controlDrop(parent,section,item)
  end
  bind(drop.Activated,function()
   optFrame.Visible=not optFrame.Visible
-  f.Size=UDim2.new(1,0,0,optFrame.Visible and (61+#values*29) or 59)
+  f.Size=UDim2.new(1,0,0,optFrame.Visible and (84+#values*29) or 78)
   if optFrame.Visible then optFrame.Size=UDim2.new(1,-20,0,#values*29)end
  end,true)
  register(section,f,item.label)

@@ -50,7 +50,13 @@ local stored={fps=false,ping=false,xyz=false,players=false,bright=false,animatio
 local nums={fov=70,speed=16,jump=50,zoom=100}
 local positions={}
 local miscCounts={fling=0,void=0}
-local lastSafeCFrame,lastRescueAt=nil,0
+-- Local protection state. Reset on every new character (never reuse a stale checkpoint).
+local protect={
+ character=nil,bornAt=0,lastVelocity=nil,lastPosition=nil,
+ elapsed=0,stableFor=0,airborneFor=0,safeCFrame=nil,
+ safePlatform=nil,safeAt=0,lastSafeGroundY=nil,
+ lastFlingAt=0,lastRescueAt=0
+}
 local fps,frames,fpsElapsed,updateElapsed=0,0,0,0
 local originalFOV
 local firstLight={
@@ -1071,54 +1077,205 @@ bind(Run.Heartbeat,function(dt)
  end
 end)
 
--- MISC: lightweight client-only protection for the local player.
-local function miscOwnProtection()
- if not stored.antiFling and not stored.antiVoid then return end
- local ch=player.Character
- local hrp=ch and ch:FindFirstChild("HumanoidRootPart")
- local hum=ch and ch:FindFirstChildOfClass("Humanoid")
- if not hrp or not hum or hum.Health<=0 or hum.SeatPart then return end
- local linear=hrp.AssemblyLinearVelocity
- local angular=hrp.AssemblyAngularVelocity
- if hum.FloorMaterial~=Enum.Material.Air
-  and hrp.Position.Y>workspace.FallenPartsDestroyHeight+45
-  and linear.Magnitude<55 and angular.Magnitude<18 then
-  lastSafeCFrame=hrp.CFrame
- end
- if stored.antiFling and (linear.Magnitude>140 or angular.Magnitude>65) then
-  local ok=pcall(function()
-   hrp.AssemblyLinearVelocity=Vector3.zero
-   hrp.AssemblyAngularVelocity=Vector3.zero
-  end)
-  if ok then
-   miscCounts.fling=miscCounts.fling+1
-   if miscCounts.fling==1 or miscCounts.fling%10==0 then
-    status("Anti-Fling: impulsion inhabituelle amortie (local)")
-   end
+-- MISC / advanced client-side protection.
+-- These defensive features are local heuristics. Servers can override local physics,
+-- and no client-only script can guarantee immunity across every Roblox game.
+local function resetProtection(ch)
+ protect.character=ch
+ protect.bornAt=os.clock()
+ protect.lastVelocity=nil
+ protect.lastPosition=nil
+ protect.elapsed=0
+ protect.stableFor=0
+ protect.airborneFor=0
+ protect.safeCFrame=nil
+ protect.safePlatform=nil
+ protect.safeAt=0
+ protect.lastSafeGroundY=nil
+ protect.lastFlingAt=0
+ protect.lastRescueAt=0
+end
+
+local groundParams=RaycastParams.new()
+groundParams.FilterType=Enum.RaycastFilterType.Exclude
+groundParams.IgnoreWater=true
+local function groundHit(ch,origin,depth)
+ groundParams.FilterDescendantsInstances={ch}
+ return workspace:Raycast(origin,Vector3.new(0,-depth,0),groundParams)
+end
+local function validGround(hit)
+ if not hit or hit.Normal.Y<.65 then return false end
+ local part=hit.Instance
+ if not part or not part.Parent then return false end
+ if part==workspace.Terrain then return true end
+ return part:IsA("BasePart") and part.CanCollide
+end
+local function stillSafe(ch)
+ if not protect.safeCFrame or not protect.safePlatform then return false end
+ local part=protect.safePlatform
+ if not part.Parent or (part~=workspace.Terrain and not part.CanCollide) then return false end
+ local hit=groundHit(ch,protect.safeCFrame.Position+Vector3.new(0,3,0),12)
+ return validGround(hit) and hit.Instance==part
+  and math.abs(hit.Position.Y-protect.lastSafeGroundY)<4
+end
+
+local function saveStableGround(dt,ch,hum,hrp,velocity,angular,now)
+ local hit=groundHit(ch,hrp.Position,math.max(7,hum.HipHeight+hrp.Size.Y+5))
+ local grounded=hum.FloorMaterial~=Enum.Material.Air
+  and validGround(hit)
+  and hit.Position.Y>workspace.FallenPartsDestroyHeight+35
+  and math.abs(velocity.Y)<14
+  and Vector3.new(velocity.X,0,velocity.Z).Magnitude<math.max(50,hum.WalkSpeed*2.4)
+  and angular.Magnitude<22
+ local groundPart=hit and hit.Instance
+ -- Moving platforms cannot safely be restored from an old static coordinate.
+ local fixed=grounded and
+  (groundPart==workspace.Terrain or
+   (groundPart:IsA("BasePart") and
+    (groundPart.Anchored or groundPart.AssemblyLinearVelocity.Magnitude<3)))
+ if fixed then
+  protect.stableFor=math.min(2,protect.stableFor+dt)
+  protect.airborneFor=0
+  if protect.stableFor>.32 and (now-protect.safeAt>.28) then
+   local lift=math.max(3.2,hum.HipHeight+hrp.Size.Y*.5+1.1)
+   local target=Vector3.new(hrp.Position.X,hit.Position.Y+lift,hrp.Position.Z)
+   local yaw=hrp.CFrame.Rotation
+   protect.safeCFrame=CFrame.new(target)*yaw
+   protect.safePlatform=groundPart
+   protect.lastSafeGroundY=hit.Position.Y
+   protect.safeAt=now
   end
- end
- if stored.antiVoid and lastSafeCFrame
-  and hrp.Position.Y<workspace.FallenPartsDestroyHeight+18
-  and os.clock()-lastRescueAt>5 then
-  lastRescueAt=os.clock()
-  local ok=pcall(function()
-   ch:PivotTo(lastSafeCFrame)
-   hrp.AssemblyLinearVelocity=Vector3.zero
-   hrp.AssemblyAngularVelocity=Vector3.zero
-  end)
-  if ok then
-   miscCounts.void=miscCounts.void+1
-   status("Anti-Void: retour local au dernier sol stable")
-  end
+ else
+  protect.stableFor=0
+  if not grounded then protect.airborneFor=protect.airborneFor+dt
+  else protect.airborneFor=0 end
  end
 end
-bind(Run.Heartbeat,function()
+
+local function stopFling(ch,hum,hrp,vel,spin,dt,now)
+ if not stored.antiFling or now-protect.bornAt<1
+  or now-protect.lastFlingAt<.18 then return false end
+ local planar=Vector3.new(vel.X,0,vel.Z)
+ local horizontalSpeed=planar.Magnitude
+ local prev=protect.lastVelocity
+ local acceleration=prev and
+  Vector3.new(vel.X-prev.X,0,vel.Z-prev.Z).Magnitude or 0
+ local maxNormal=math.max(100,hum.WalkSpeed*3.4)
+ local spike=prev~=nil and dt<.18 and acceleration>85
+  and horizontalSpeed>math.max(65,hum.WalkSpeed*2.2)
+ local rapidSpin=spin.Magnitude>58
+ local extremeVelocity=horizontalSpeed>maxNormal or vel.Y>115
+ if not (spike or rapidSpin or extremeVelocity) then return false end
+ protect.lastFlingAt=now
+ local maxTravel=math.clamp(hum.WalkSpeed*1.6,24,55)
+ local damp=horizontalSpeed>maxTravel
+  and planar.Unit*maxTravel or planar
+ local corrected=Vector3.new(damp.X,math.min(vel.Y,46),damp.Z)
+ local ok=pcall(function()
+  hrp.AssemblyLinearVelocity=corrected
+  hrp.AssemblyAngularVelocity=Vector3.zero
+  if rapidSpin then
+   local facing=hrp.CFrame.LookVector
+   local upright=Vector3.new(facing.X,0,facing.Z)
+   if upright.Magnitude>.12 then
+    hrp.CFrame=CFrame.lookAt(hrp.Position,hrp.Position+upright.Unit)
+   end
+  end
+ end)
+ if ok then
+  miscCounts.fling=miscCounts.fling+1
+  if miscCounts.fling==1 or now-protect.lastRescueAt>4
+   and miscCounts.fling%5==0 then
+   status("Anti-Fling : impulsion anormale amortie")
+  end
+ end
+ return ok
+end
+
+local function rescueVoid(ch,hum,hrp,vel,now)
+ if not stored.antiVoid or not protect.safeCFrame
+  or now-protect.lastRescueAt<2.5 then return end
+ if not stillSafe(ch) then
+  protect.safeCFrame=nil
+  protect.safePlatform=nil
+  return
+ end
+ local heightLost=protect.safeCFrame.Position.Y-hrp.Position.Y
+ local fallLimit=workspace.FallenPartsDestroyHeight
+ local critical=hrp.Position.Y<fallLimit+32 and vel.Y<0
+ local fallingFar=heightLost>80 and vel.Y< -34
+  and protect.airborneFor>.85
+ if not critical and not fallingFar then return end
+ if not critical then
+  -- Falling a long distance can be legitimate; only rescue if no surface
+  -- is detectable within the next ~100 studs beneath the character.
+  if validGround(groundHit(ch,hrp.Position,105)) then return end
+ end
+ protect.lastRescueAt=now
+ local target=protect.safeCFrame
+ local ok=pcall(function()
+  ch:PivotTo(target)
+  hrp.AssemblyLinearVelocity=Vector3.zero
+  hrp.AssemblyAngularVelocity=Vector3.zero
+ end)
+ if ok then
+  miscCounts.void=miscCounts.void+1
+  protect.airborneFor=0
+  protect.stableFor=0
+  protect.lastVelocity=Vector3.zero
+  status("Anti-Void : retour sur une surface stable")
+ end
+end
+
+local function miscOwnProtection(dt)
+ if not stored.antiFling and not stored.antiVoid then
+  protect.elapsed=0
+  protect.lastVelocity=nil
+  return
+ end
+ local ch=player.Character
+ if ch~=protect.character then resetProtection(ch) end
+ local hrp=ch and ch:FindFirstChild("HumanoidRootPart")
+ local hum=ch and ch:FindFirstChildOfClass("Humanoid")
+ if not hrp or not hum or hum.Health<=0 or hum.SeatPart then
+  protect.lastVelocity=nil
+  return
+ end
+ local state=hum:GetState()
+ if state==Enum.HumanoidStateType.Dead
+  or state==Enum.HumanoidStateType.Swimming
+  or state==Enum.HumanoidStateType.Climbing then
+  protect.lastVelocity=nil
+  return
+ end
+ local now=os.clock()
+ local velocity=hrp.AssemblyLinearVelocity
+ local spin=hrp.AssemblyAngularVelocity
+ local suppressed=stopFling(ch,hum,hrp,velocity,spin,dt,now)
+ if suppressed then velocity=hrp.AssemblyLinearVelocity end
+ -- Throttle ground-raycasts to 10Hz; critical void detection still runs
+ -- on every Heartbeat to catch fast falls before the destroy height.
+ protect.elapsed=protect.elapsed+math.min(dt,.1)
+ if protect.elapsed>=.1 then
+  local sample=protect.elapsed
+  protect.elapsed=0
+  if stored.antiVoid then
+   saveStableGround(sample,ch,hum,hrp,velocity,spin,now)
+  else
+   protect.safeCFrame=nil
+   protect.safePlatform=nil
+  end
+ end
+ if stored.antiVoid then rescueVoid(ch,hum,hrp,velocity,now) end
+ protect.lastVelocity=hrp.AssemblyLinearVelocity
+ protect.lastPosition=hrp.Position
+end
+bind(Run.Heartbeat,function(dt)
  if closed then return end
- miscOwnProtection()
+ miscOwnProtection(dt)
 end)
-bind(player.CharacterAdded,function()
- lastSafeCFrame=nil
- lastRescueAt=0
+bind(player.CharacterAdded,function(ch)
+ resetProtection(ch)
 end)
 
 -- Screen-size handling for the main window only (no key overlay).

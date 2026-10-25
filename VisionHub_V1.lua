@@ -225,7 +225,8 @@ local function fov(n)
  end
 end
 local gui=create("ScreenGui",pg,{Name=NAME,ResetOnSpawn=false,
- ZIndexBehavior=Enum.ZIndexBehavior.Sibling,DisplayOrder=920})
+ ZIndexBehavior=Enum.ZIndexBehavior.Sibling,DisplayOrder=920,
+ AutoLocalize=false})
 local app,appScale,mini,header,tabRail,nav,body,columns,left,right,canvas
 local navButtons={}
 local footerMessage,footerFps,overlay,overlayText,search
@@ -328,7 +329,7 @@ local sideBadge=monogram(tabRail,16,13,34)
 local brandFirst=label(tabRail,"VISION",14,A.white,true,{
  Position=UDim2.fromOffset(58,13),Size=UDim2.fromOffset(67,24)})
 local brandSecond=label(tabRail,"WARE",14,A.cyan,true,{
- Position=UDim2.fromOffset(130,13),Size=UDim2.fromOffset(60,24)})
+ Position=UDim2.fromOffset(113,13),Size=UDim2.fromOffset(60,24)})
 local titleGame=label(tabRail,selected.name,10,A.muted,false,{
  Position=UDim2.fromOffset(59,36),Size=UDim2.fromOffset(128,16)})
 local railTitle=label(tabRail,"WORKSPACE",9,A.muted,true,{
@@ -915,12 +916,19 @@ create("UIStroke",innerHalo,{
 local outerHaloScale=create("UIScale",outerHalo,{Scale=1})
 local innerHaloScale=create("UIScale",innerHalo,{Scale=1})
 local keyPanel=create("Frame",gateShade,{
- Name="KeySystem",BackgroundColor3=K.black,
- BorderSizePixel=0,AnchorPoint=Vector2.new(.5,.5),
+ Name="KeySystem",BackgroundColor3=Color3.fromRGB(1,2,6),
+ BackgroundTransparency=0,BorderSizePixel=0,AnchorPoint=Vector2.new(.5,.5),
  Position=UDim2.fromScale(.5,.5),Size=UDim2.fromOffset(662,438)})
 corner(keyPanel,10)
 outline(keyPanel,K.bright,1)
 local gateScale=create("UIScale",keyPanel,{Scale=1})
+-- A dedicated opaque black backing behind every foreground item.
+-- Prevents gray-surface artifacts seen in the Roblox screenshots.
+local keySurface=create("Frame",keyPanel,{
+ Name="OpaqueBlackBackplate",BackgroundColor3=Color3.fromRGB(1,2,6),
+ BackgroundTransparency=0,BorderSizePixel=0,ZIndex=1,
+ Position=UDim2.fromOffset(1,1),Size=UDim2.new(1,-2,1,-2)})
+corner(keySurface,9)
 -- No panel UIGradient; uniform near-black like Reverb.
 -- Precisely restrained neon stroke on the full frame. No opaque cyan border.
 local keyGlow=create("Frame",keyPanel,{
@@ -970,7 +978,7 @@ label(keyPanel,"// LOG",9,Color3.fromRGB(20,181,246),true,{
 local logPanel=create("Frame",keyPanel,{
  Name="AccessLog",BackgroundColor3=K.log,
  BorderSizePixel=0,Position=UDim2.fromOffset(17,149),
- Size=UDim2.fromOffset(163,244)})
+ Size=UDim2.fromOffset(163,270)})
 corner(logPanel,4)
 outline(logPanel,Color3.fromRGB(19,47,62),.55)
 local logs=create("Frame",logPanel,{
@@ -1032,7 +1040,7 @@ local saveHelp=label(rightGate,"Current session only · clears when closed",9,A.
 local keepKeyInput=true
 local saveSwitch=button(rightGate,"",{
  Position=UDim2.fromOffset(390,106),Size=UDim2.fromOffset(61,23),
- BackgroundColor3=K.green})
+ BackgroundColor3=K.green,AutoLocalize=false})
 corner(saveSwitch,12)
 local saveDot=create("Frame",saveSwitch,{
  BackgroundColor3=Color3.fromRGB(242,255,254),
@@ -1041,7 +1049,8 @@ local saveDot=create("Frame",saveSwitch,{
 corner(saveDot,9)
 label(saveSwitch,"ON",9,Color3.fromRGB(6,65,49),true,{
  Name="KeySwitchState",Position=UDim2.fromOffset(7,2),
- Size=UDim2.fromOffset(25,18),TextXAlignment=Enum.TextXAlignment.Center})
+ Size=UDim2.fromOffset(25,18),TextXAlignment=Enum.TextXAlignment.Center,
+ AutoLocalize=false})
 bind(saveSwitch.Activated,function()
  keepKeyInput=not keepKeyInput
  saveSwitch.BackgroundColor3=keepKeyInput and

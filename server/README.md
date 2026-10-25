@@ -86,14 +86,12 @@ La direction demandée vient du client, mais le serveur décide **si le tir est 
 
 ## L'onglet Misc du hub
 
-`games/misc.lua` s'ouvre dans le hub Vision Ware pour chaque jeu :
+`games/misc.lua` affiche uniquement Anti-Fling et Anti-Void dans le hub Vision Ware :
 
 | Fonction | Portée | Limites |
 | --- | --- | --- |
 | Anti-Fling | Client local | Amortit certaines impulsions, peut perturber des mécaniques légitimes |
 | Anti-Void | Client local | Tentative de restauration vers le dernier sol stable |
-| Anti-Fly Watch | Observateur client | Alertes heuristiques, faux positifs possibles |
-| Anti-Speed Watch | Observateur client | Alertes heuristiques, faux positifs possibles |
 | Anti-Fly / Speed / Teleport serveur | Jeu propriétaire | Installer le Script côté serveur |
 | Anti-Aim / tirs | Jeu propriétaire | Intégrer CombatGuard à chaque arme |
 

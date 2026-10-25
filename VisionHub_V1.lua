@@ -327,6 +327,10 @@ local function kill()
    h.WalkSpeed=default.walk;h.UseJumpPower=default.use;h.JumpPower=default.jump
   end)end
  end
+ if selected and type(selected.shutdown)=="function" then
+  local ok,err=pcall(selected.shutdown)
+  if not ok then warn("[VISION WARE] Module cleanup: "..tostring(err))end
+ end
  clearPageLinks()
  for _,c in ipairs(conns) do pcall(function()c:Disconnect()end)end
  if gui.Parent then gui:Destroy()end
@@ -669,6 +673,16 @@ local function isTrue(id)
  return stored[id]==true
 end
 local function action(id)
+ if selected and type(selected.onAction)=="function" then
+  local ok,handled,message=pcall(selected.onAction,id)
+  if not ok then
+   status("Module action error: "..tostring(handled));return
+  end
+  if handled then
+   if message then status(message)end
+   return
+  end
+ end
  if id=="copyPlace" then
   status(clipboard(game.PlaceId) and "Place ID copied" or "Place ID: "..game.PlaceId)
  elseif id=="copyCoords" then
@@ -746,6 +760,12 @@ local function controlToggle(parent,section,item)
   uiTween(dot,{BackgroundColor3=state and A.cyan or A.light,
    Position=UDim2.fromOffset(state and 21 or 4,4)},.15)
   if item.id=="bright" then applyBright(state)end
+  if selected and type(selected.onToggle)=="function" then
+   local ok,err=pcall(selected.onToggle,item.id,state)
+   if not ok then
+    status("Module toggle error: "..tostring(err));return
+   end
+  end
   status(item.label.." : "..(state and "ON" or "OFF"))
  end,true)
  register(section,f,item.label.." "..(item.desc or ""))
@@ -794,6 +814,10 @@ local function controlSlider(parent,section,item)
    elseif id=="jump" then jump(nextVal)
    elseif id=="fov" then fov(nextVal)
    elseif id=="zoom" then fitToScreen()
+   end
+   if selected and type(selected.onSlider)=="function" then
+    local ok,err=pcall(selected.onSlider,id,nextVal)
+    if not ok then status("Module slider error: "..tostring(err))end
    end
   end
  end

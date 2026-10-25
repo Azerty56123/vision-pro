@@ -28,6 +28,7 @@ loadstring(game:HttpGet("https://raw.githubusercontent.com/Azerty56123/vision-pr
 | File | Auto-selection |
 | --- | --- |
 | `games/universal.lua` | Loaded for common options in every game |
+| `games/misc.lua` | Misc security UI, included in all game profiles |
 | `games/tycoon.lua` | Game title contains `tycoon` |
 | `games/obby.lua` | Game title contains `obby` or `parkour` |
 | `games/mm2.lua` | Murder Mystery 2, PlaceId 142823291 |
@@ -45,7 +46,7 @@ The system gracefully falls back to the universal dashboard if the game is unkno
 
 1. Run the loader. The cyan key window appears.
 2. Click **GET FREE KEY**. Until Cloudflare is configured, this fills the development key.
-3. Click **CONTINUE** to open Vision Hub.
+3. Click **CONTINUE** to open Vision Ware.
 
 There is also a Cloudflare Worker source in `beta-generator/worker.js` supporting `GET /key` (public key generation) and `POST /api/verify`. Before it works in production, deploy the Worker with a configured D1 database and a secure admin secret. Set the exact HTTPS Worker origin inside `VisionHub_V1.lua`:
 
@@ -56,6 +57,22 @@ local KEY_API="https://vision-pro-beta-v4.YOUR-SUBDOMAIN.workers.dev"
 If a deployed origin is set, **GET FREE KEY** copies its `/key` URL and **CONTINUE** posts the entered key to `/api/verify`.
 
 The development test key is included in the public script and is **not an access-control security measure**. Remove it for a production release; even client-side key checks cannot provide inviolable protection.
+
+## Misc security and server anti-exploit
+
+The **Misc** sidebar tab contains optional client-only anti-fling and anti-void protections,
+suspicious-flight and speed alerts, counters, and a copyable diagnostic report. No punishments
+can be issued to other players from this client hub; warning counters are only heuristics.
+
+For experiences you own, the repository also includes:
+
+- [`server/AntiExploit.server.lua`](server/AntiExploit.server.lua) — server-side fly, speed and teleport anomaly checks.
+- [`server/CombatGuard.lua`](server/CombatGuard.lua) — server raycast, shot-origin and fire-rate validation with suspicious aim-snap logging.
+- [Server installation instructions](server/README.md) — Studio setup, exceptions and example weapon integration.
+
+These **server scripts must be installed in your own Roblox Studio experience**.
+They are not installed by the client loadstring. Automatic enforcement is disabled by
+default to avoid false positives; aim-assist detection cannot be fully reliable.
 
 ## Game module schema
 

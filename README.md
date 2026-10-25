@@ -11,7 +11,7 @@ loadstring(game:HttpGet("https://raw.githubusercontent.com/Azerty56123/vision-pr
 ## Design
 
 - Main window inspired by the visual structure of Sena Hub: dark theme, compact settings in **two columns**, search, category sidebar, footer with executor/FPS and responsive layout.
-- Original **Vision Ware** branding with a **manually drawn, flat vector V** (white and cyan; no generated imagery): [`assets/visionware_logo.svg`](assets/visionware_logo.svg) is the editable source and [`assets/visionware_logo.png`](assets/visionware_logo.png) is the compact sidebar asset. The UI uses the PNG when local custom assets are supported; otherwise it displays a matching native fallback.
+- The sidebar now uses **the user's selected neon VW artwork**, resized for the 38 px icon: [`assets/visionware_logo_exact.png`](assets/visionware_logo_exact.png). The earlier flat logo files remain archived in `assets/` but are no longer used by the loader.
 
 
 ### Interface V1 (October 2026)
@@ -79,7 +79,7 @@ Supported controls use handlers in the main hub. New `id` values require a corre
 
 ## Logo integration
 
-The icon is manually constructed as an SVG path and rasterized to a clean, flat PNG (no AI-generated artwork, chrome, or bloom). Because Roblox `ImageLabel.Image` cannot load a GitHub raw image URL directly, the loader uses available local image functions (`writefile` and `getcustomasset` or `getsynasset`), with a new cache filename (`visionware_flat_logo_v2.png`) so the earlier neon image isn't retained. If those functions are unavailable, a matching V is drawn with native UI elements. Roblox Studio does not automatically load raw GitHub image URLs.
+The current logo uses the exact selected original neon artwork, cropped and reduced to a 96 × 96 PNG for the small Roblox sidebar icon. Roblox `ImageLabel.Image` cannot load a raw GitHub URL directly: the loader downloads the PNG with `game:HttpGet`, saves it using `writefile`, and displays it through `getcustomasset` (or `getsynasset`) where these optional functions exist. Its new `visionware_exact_logo_v3.png` cache name avoids showing earlier versions. If those functions are unavailable, a simple native fallback appears instead. The original UI dimensions and Misc options are unchanged.
 
 ## Verification notes
 

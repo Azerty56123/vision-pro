@@ -505,8 +505,37 @@ overlay=create("Frame",gui,{BackgroundColor3=A.side,BorderSizePixel=0,
 corner(overlay,10);outline(overlay,A.cyan,.8)
 overlayText=label(overlay,"",10,A.white,true,{
  Size=UDim2.fromScale(1,1),TextXAlignment=Enum.TextXAlignment.Center})
+-- Long action feedback is also shown in a discreet temporary toast:
+-- the compact 206px footer stays identical to the reference.
+local toast=create("Frame",app,{
+ Name="StatusToast",BackgroundColor3=A.card,BorderSizePixel=0,
+ Position=UDim2.new(1,-330,1,-86),Size=UDim2.fromOffset(316,42),
+ Visible=false,ZIndex=9
+})
+corner(toast,8);outline(toast,A.border,.9)
+create("Frame",toast,{BackgroundColor3=A.cyan,BorderSizePixel=0,
+ Position=UDim2.fromOffset(0,7),Size=UDim2.fromOffset(2,28),ZIndex=10})
+local toastText=label(toast,"",10,A.white,false,{
+ Position=UDim2.fromOffset(13,4),Size=UDim2.new(1,-24,1,-8),
+ TextWrapped=true,TextXAlignment=Enum.TextXAlignment.Left,ZIndex=10
+})
+local toastSequence=0
 status=function(message)
- if footerMessage and footerMessage.Parent then footerMessage.Text="●  "..tostring(message) end
+ local msg=tostring(message)
+ if footerMessage and footerMessage.Parent then footerMessage.Text="●  "..msg end
+ toastSequence=toastSequence+1
+ if #msg>26 and toast.Parent then
+  local seq=toastSequence
+  toastText.Text=msg
+  toast.Visible=true
+  toast.Position=UDim2.new(1,-330,1,-76)
+  uiTween(toast,{Position=UDim2.new(1,-330,1,-86)},.19)
+  task.delay(3,function()
+   if seq==toastSequence and toast.Parent and not closed then toast.Visible=false end
+  end)
+ else
+  toast.Visible=false
+ end
 end
 openApp=function(on)
  if closed then return end
@@ -722,7 +751,11 @@ local function controlSlider(parent,section,item)
  local f=row(parent,88)
  label(f,item.label,12,A.white,true,{Position=UDim2.fromOffset(13,9),
   Size=UDim2.new(1,-80,0,21)})
- label(f,item.desc or "",9,A.muted,false,{
+ local sliderHints={
+  speed="Vitesse de déplacement",jump="Puissance du saut",
+  fov="Champ de vision",zoom="Taille de l'interface"
+ }
+ label(f,item.desc or sliderHints[id] or "",9,A.muted,false,{
   Position=UDim2.fromOffset(13,33),Size=UDim2.new(1,-24,0,15)})
  local val=label(f,tostring(nums[id] or lo),11,A.cyan,true,{
   Position=UDim2.new(1,-75,0,11),Size=UDim2.fromOffset(60,21),

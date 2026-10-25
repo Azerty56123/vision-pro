@@ -1,7 +1,7 @@
 --[[ VISION WARE V1 • SENA-INSPIRED MULTI-GAME LOADER
-  Original Vision design; Sena-like layout and Reverb-like access flow.
+  Original Vision Ware design with Sena-style navigation and direct launch.
   Each supported game profile is defined in a separate games/*.lua file.
-  Functional: key demo, optional HTTPS key verification, two-column cards,
+  Functional: immediate access, two-column cards,
   navigation, search, toggles, sliders, drop-downs, FPS/ping, local lighting,
   FOV, movement values, copy utilities and user position bookmarks.
   Game modules only declare UI: no undisclosed external execution.
@@ -10,7 +10,6 @@ local Players=game:GetService("Players")
 local UIS=game:GetService("UserInputService")
 local Run=game:GetService("RunService")
 local Lighting=game:GetService("Lighting")
-local Http=game:GetService("HttpService")
 local Tween=game:GetService("TweenService")
 local Marketplace=game:GetService("MarketplaceService")
 local player=Players.LocalPlayer
@@ -19,7 +18,6 @@ local pg=player:FindFirstChildOfClass("PlayerGui") or player:WaitForChild("Playe
 if not pg then return end
 local NAME="VisionHubV1_Sena"
 local BASE="https://raw.githubusercontent.com/Azerty56123/vision-pro/main/"
-local TEST_KEY="VISION-TEST-ILLIMITE-2026"
 local GAME_TITLE=game.Name
 local okName,placeInfo=pcall(function()
  return Marketplace:GetProductInfo(game.PlaceId,Enum.InfoType.Asset)
@@ -27,7 +25,6 @@ end)
 if okName and type(placeInfo)=="table" and type(placeInfo.Name)=="string" and placeInfo.Name~="" then
  GAME_TITLE=placeInfo.Name
 end
-local KEY_API="https://vision-pro-beta-v4.YOUR-SUBDOMAIN.workers.dev"
 for _,name in ipairs({NAME,"VisionHubV1_Design12","VisionHubV11_Design12","VisionHubV10"}) do
  local old=pg:FindFirstChild(name)
  if old then old:Destroy() end
@@ -41,7 +38,7 @@ local A={
  cyan=Color3.fromRGB(0,191,255),cyanDark=Color3.fromRGB(4,58,84),
  light=Color3.fromRGB(177,199,214),good=Color3.fromRGB(83,233,164)
 }
-local current,closed,unlocked="Overview",false,false
+local current,closed="Overview",false
 local pconns,conns={},{}
 local stored={fps=false,ping=false,xyz=false,players=false,bright=false,animations=true,
  antiFling=false,antiVoid=false,flightAlerts=false,speedAlerts=false}
@@ -287,27 +284,10 @@ local function readValue(key)
  end
  return tostring(key or "")
 end
-local function configured()
- return KEY_API:match("^https://") and not KEY_API:find("YOUR-SUBDOMAIN",1,true)
-end
-local function verifyKeyRemote(value)
- if not configured() then return false,"Cloudflare non configuré" end
- local req=request or http_request or (type(syn)=="table" and syn.request)
-   or (type(http)=="table" and http.request)
- if type(req)~="function" then return false,"HTTPS POST non disponible" end
- local ok,result=pcall(req,{Url=KEY_API:gsub("/+$","").."/api/verify",
-  Method="POST",Headers={["Content-Type"]="application/json"},
-  Body=Http:JSONEncode({key=value})})
- if not ok or type(result)~="table" then return false,"Serveur injoignable" end
- local parsed,data=pcall(function()return Http:JSONDecode(result.Body or result.body or "")end)
- if not parsed or type(data)~="table" then return false,"Réponse invalide" end
- return data.ok==true,tostring(data.message or (data.ok and "Clé valide" or "Clé refusée"))
-end
-
 -- DESIGN SENA: topbar, vertical navigation, two compact columns and bottom status.
 app=create("Frame",gui,{Name="MainWindow",BackgroundColor3=A.bg,BorderSizePixel=0,
  Size=UDim2.fromOffset(865,548),Position=UDim2.fromScale(.5,.5),
- AnchorPoint=Vector2.new(.5,.5),ClipsDescendants=true,Visible=false})
+ AnchorPoint=Vector2.new(.5,.5),ClipsDescendants=true,Visible=true})
 corner(app,15);outline(app,A.border,.9)
 appScale=create("UIScale",app,{Scale=1})
 -- VISION WARE / SENA desktop structure: the logo lives in the sidebar;
@@ -419,7 +399,7 @@ status=function(message)
  if footerMessage and footerMessage.Parent then footerMessage.Text="●  "..tostring(message) end
 end
 openApp=function(on)
- if closed or not unlocked then return end
+ if closed then return end
  app.Visible=on;mini.Visible=not on
 end
 bind(hide.Activated,function()openApp(false)end)
@@ -806,8 +786,7 @@ render=function()
   card("left",{title="VISION WARE V1",subtitle="Modules et design",items={
    {type="info",label="Version",value="1.0"},
    {type="info",label="UI Theme",value="Sena-inspired"},
-   {type="info",label="Key Screen",value="Reverb-inspired"},
-   {type="info",label="Game Profile",value="@profile"},
+      {type="info",label="Game Profile",value="@profile"},
    {type="button",id="copyPlace",label="Copy Game ID"}
   }})
   card("right",{title="Modules",subtitle="Dossiers séparés",items={
@@ -1008,307 +987,13 @@ bind(player.CharacterAdded,function()
  lastRescueAt=0
 end)
 
--- VISION WARE V1 / REVERB-REFERENCE KEY WINDOW
--- Visual layout reconstructed from the provided 667x438 reference:
--- small identity + // LOG left; game, key field, switch and 3 actions right.
--- Keep original branding and real handlers: don't invent a premium shop URL.
-local K={
- black=Color3.fromRGB(2,5,9),log=Color3.fromRGB(3,9,15),
- field=Color3.fromRGB(5,18,27),button=Color3.fromRGB(4,23,33),
- border=Color3.fromRGB(26,87,116),bright=Color3.fromRGB(12,190,250),
- azure=Color3.fromRGB(3,174,244),pale=Color3.fromRGB(161,224,239),
- muted=Color3.fromRGB(89,146,163),green=Color3.fromRGB(15,207,151)
-}
-local gateShade=create("Frame",gui,{
- Name="GateShade",BackgroundColor3=Color3.new(0,0,0),
- BackgroundTransparency=.37,BorderSizePixel=0,Size=UDim2.fromScale(1,1)})
-local outerHalo=create("Frame",gateShade,{
- Name="KeyOuterGlow",BackgroundTransparency=1,BorderSizePixel=0,
- AnchorPoint=Vector2.new(.5,.5),Position=UDim2.fromScale(.5,.5),
- Size=UDim2.fromOffset(668,444)})
-corner(outerHalo,12)
-create("UIStroke",outerHalo,{
- ApplyStrokeMode=Enum.ApplyStrokeMode.Border,Color=K.azure,
- Thickness=8,Transparency=.94})
-local innerHalo=create("Frame",gateShade,{
- Name="KeyNearGlow",BackgroundTransparency=1,BorderSizePixel=0,
- AnchorPoint=Vector2.new(.5,.5),Position=UDim2.fromScale(.5,.5),
- Size=UDim2.fromOffset(665,441)})
-corner(innerHalo,11)
-create("UIStroke",innerHalo,{
- ApplyStrokeMode=Enum.ApplyStrokeMode.Border,Color=K.bright,
- Thickness=3,Transparency=.80})
-local outerHaloScale=create("UIScale",outerHalo,{Scale=1})
-local innerHaloScale=create("UIScale",innerHalo,{Scale=1})
-local keyPanel=create("Frame",gateShade,{
- Name="KeySystem",BackgroundColor3=Color3.fromRGB(1,2,6),
- BackgroundTransparency=0,BorderSizePixel=0,AnchorPoint=Vector2.new(.5,.5),
- Position=UDim2.fromScale(.5,.5),Size=UDim2.fromOffset(662,438)})
-corner(keyPanel,10)
-outline(keyPanel,K.bright,1)
-local gateScale=create("UIScale",keyPanel,{Scale=1})
--- A dedicated opaque black backing behind every foreground item.
--- Prevents gray-surface artifacts seen in the Roblox screenshots.
-local keySurface=create("Frame",keyPanel,{
- Name="OpaqueBlackBackplate",BackgroundColor3=Color3.fromRGB(1,2,6),
- BackgroundTransparency=0,BorderSizePixel=0,ZIndex=1,
- Position=UDim2.fromOffset(1,1),Size=UDim2.new(1,-2,1,-2)})
-corner(keySurface,9)
--- No panel UIGradient; uniform near-black like Reverb.
--- Precisely restrained neon stroke on the full frame. No opaque cyan border.
-local keyGlow=create("Frame",keyPanel,{
- BackgroundTransparency=1,BorderSizePixel=0,
- Position=UDim2.fromOffset(2,2),Size=UDim2.new(1,-4,1,-4)})
-corner(keyGlow,9)
-local haloStroke=outline(keyGlow,Color3.fromRGB(10,150,214),1.5)
-haloStroke.Transparency=.72
-
--- LEFT COLUMN / emblem and compact brand stack.
-local keyBadge=create("Frame",keyPanel,{
- Name="VisionWareBadge",BackgroundColor3=Color3.fromRGB(1,15,24),
- BorderSizePixel=0,Position=UDim2.fromOffset(50,16),
- Size=UDim2.fromOffset(47,47)})
-corner(keyBadge,24)
-outline(keyBadge,K.bright,2.4)
-artwork(keyBadge,"module",12,11,23,23,K.bright)
--- Bright top mark gives the badge the asymmetrical ring detail of the reference.
-local logoHighlight=create("Frame",keyBadge,{
- Name="BadgeHighlight",BackgroundColor3=Color3.fromRGB(58,231,255),
- BorderSizePixel=0,Position=UDim2.fromOffset(10,-1),
- Size=UDim2.fromOffset(12,5),Rotation=-17})
-corner(logoHighlight,2)
-local badgeAura=create("Frame",keyPanel,{
- BackgroundTransparency=1,BorderSizePixel=0,
- Position=UDim2.fromOffset(47,13),Size=UDim2.fromOffset(53,53)})
-corner(badgeAura,27)
-local badgeEdge=outline(badgeAura,K.bright,4)
-badgeEdge.Transparency=.86
-label(keyPanel,"VISION WARE",14,A.white,true,{
- Position=UDim2.fromOffset(49,82),Size=UDim2.fromOffset(149,20)})
-label(keyPanel,"KEY SYSTEM",9,K.bright,true,{
- Position=UDim2.fromOffset(49,102),Size=UDim2.fromOffset(140,18)})
-local leftRule=create("Frame",keyPanel,{
- BackgroundColor3=K.bright,BorderSizePixel=0,
- BackgroundTransparency=.40,Position=UDim2.fromOffset(15,120),
- Size=UDim2.fromOffset(163,1)})
-local closeKey=button(keyPanel,"×",{
- Position=UDim2.new(1,-29,0,13),Size=UDim2.fromOffset(20,20),
- BackgroundColor3=Color3.fromRGB(6,17,25),
- TextColor3=A.muted,TextSize=14})
-corner(closeKey,3)
-
--- LOG title is OUTSIDE the log box, as on the Reverb panel.
-label(keyPanel,"// LOG",9,Color3.fromRGB(20,181,246),true,{
- Position=UDim2.fromOffset(16,130),Size=UDim2.fromOffset(150,19)})
-local logPanel=create("Frame",keyPanel,{
- Name="AccessLog",BackgroundColor3=K.log,
- BorderSizePixel=0,Position=UDim2.fromOffset(17,149),
- Size=UDim2.fromOffset(163,270)})
-corner(logPanel,4)
-outline(logPanel,Color3.fromRGB(19,47,62),.55)
-local logs=create("Frame",logPanel,{
- BackgroundTransparency=1,BorderSizePixel=0,
- Position=UDim2.fromOffset(8,10),Size=UDim2.new(1,-16,1,-19)})
-create("UIListLayout",logs,{
- SortOrder=Enum.SortOrder.LayoutOrder,Padding=UDim.new(0,6)})
-local logEntries={}
-local function log(message)
- if closed or not logs.Parent then return end
- table.insert(logEntries,"> "..tostring(message))
- if #logEntries>11 then table.remove(logEntries,1)end
- for _,child in ipairs(logs:GetChildren()) do
-  if child:IsA("TextLabel") then child:Destroy()end
- end
- for idx,msg in ipairs(logEntries) do
-  label(logs,msg,9,idx==#logEntries and Color3.fromRGB(93,216,247)
-   or K.muted,false,{
-   Size=UDim2.new(1,0,0,13),LayoutOrder=idx})
- end
-end
-
--- RIGHT COLUMN / exact visual hierarchy: game row, framed key input,
--- SAVE KEY with a compact green switch, then 3 nearly flat action bars.
-local rightGate=create("Frame",keyPanel,{
- BackgroundTransparency=1,BorderSizePixel=0,
- Position=UDim2.fromOffset(187,55),Size=UDim2.fromOffset(454,335)})
-label(rightGate,"GAME  //",9,A.cyan,true,{
- Position=UDim2.fromOffset(0,9),Size=UDim2.fromOffset(65,20)})
-label(rightGate,string.upper(selected.name),9,A.cyan,true,{
- Position=UDim2.fromOffset(70,9),Size=UDim2.fromOffset(372,20)})
-local inputBack=create("Frame",rightGate,{
- BackgroundColor3=K.field,
- BorderSizePixel=0,Position=UDim2.fromOffset(0,36),
- Size=UDim2.fromOffset(452,54)})
-corner(inputBack,4)
-outline(inputBack,K.border,.55)
-label(inputBack,">",13,A.cyan,true,{
- Position=UDim2.fromOffset(12,12),Size=UDim2.fromOffset(15,23)})
-local entry=create("TextBox",inputBack,{
- Name="AccessKeyInput",BackgroundTransparency=1,BorderSizePixel=0,
- Position=UDim2.fromOffset(30,0),Size=UDim2.new(1,-41,1,0),
- Font=Enum.Font.Code,TextSize=12,Text="",
- ClearTextOnFocus=false,TextColor3=K.pale,
- PlaceholderColor3=K.muted,
- PlaceholderText="VISION WARE · ENTER KEY",TextXAlignment=Enum.TextXAlignment.Left})
-bind(entry.Focused,function()
- local stroke=inputBack:FindFirstChildOfClass("UIStroke")
- if stroke then stroke.Color=Color3.fromRGB(70,216,255)end
-end)
-bind(entry.FocusLost,function()
- local stroke=inputBack:FindFirstChildOfClass("UIStroke")
- if stroke then stroke.Color=K.border end
-end)
-local saveCaption=label(rightGate,"SAVE KEY  //  SESSION ONLY",10,A.white,false,{
- Position=UDim2.fromOffset(0,99),Size=UDim2.fromOffset(353,23)})
-local saveHelp=label(rightGate,"Current session only · clears when closed",9,A.muted,false,{
- Position=UDim2.fromOffset(0,118),Size=UDim2.fromOffset(342,16)})
-local keepKeyInput=true
-local saveSwitch=button(rightGate,"",{
- Position=UDim2.fromOffset(390,106),Size=UDim2.fromOffset(61,23),
- BackgroundColor3=K.green,AutoLocalize=false})
-corner(saveSwitch,12)
-local saveDot=create("Frame",saveSwitch,{
- BackgroundColor3=Color3.fromRGB(242,255,254),
- BorderSizePixel=0,Position=UDim2.fromOffset(37,3),
- Size=UDim2.fromOffset(17,17)})
-corner(saveDot,9)
-label(saveSwitch,"ON",9,Color3.fromRGB(6,65,49),true,{
- Name="KeySwitchState",Position=UDim2.fromOffset(7,2),
- Size=UDim2.fromOffset(25,18),TextXAlignment=Enum.TextXAlignment.Center,
- AutoLocalize=false})
-bind(saveSwitch.Activated,function()
- keepKeyInput=not keepKeyInput
- saveSwitch.BackgroundColor3=keepKeyInput and
-  K.green or Color3.fromRGB(59,64,73)
- saveDot.Position=UDim2.fromOffset(keepKeyInput and 37 or 5,3)
- local cap=saveSwitch:FindFirstChild("KeySwitchState")
- if cap then
-  cap.Text=keepKeyInput and "ON" or "OFF"
-  cap.Position=UDim2.fromOffset(keepKeyInput and 7 or 28,2)
- end
-end)
-
-local enterButton=button(rightGate,"CONTINUE",{
- Position=UDim2.fromOffset(0,144),Size=UDim2.fromOffset(452,47),
- BackgroundColor3=K.button,
- Font=Enum.Font.GothamMedium,TextSize=12,
- TextColor3=K.pale})
-corner(enterButton,4)
-outline(enterButton,Color3.fromRGB(5,39,65),.45)
-local generateButton=button(rightGate,"GET FREE KEY",{
- Position=UDim2.fromOffset(0,204),Size=UDim2.fromOffset(452,47),
- BackgroundColor3=K.button,
- Font=Enum.Font.GothamMedium,TextSize=12,
- TextColor3=K.pale})
-corner(generateButton,4)
-outline(generateButton,Color3.fromRGB(5,39,65),.45)
--- Reverb's bright bottom CTA shape; keep the action truthful (GitHub support).
-local helpButton=button(rightGate,"GET PREMIUM / LIFETIME KEY",{
- Position=UDim2.fromOffset(0,264),Size=UDim2.fromOffset(452,47),
- BackgroundColor3=K.azure,
- Font=Enum.Font.GothamBold,TextSize=12,
- TextColor3=Color3.fromRGB(3,27,43)})
-corner(helpButton,4)
-outline(helpButton,Color3.fromRGB(65,199,249),.6)
-local premiumDot=create("Frame",helpButton,{
- BackgroundColor3=Color3.fromRGB(245,77,86),BorderSizePixel=0,
- Position=UDim2.new(1,-20,.5,-3),Size=UDim2.fromOffset(6,6)})
-corner(premiumDot,3)
-
--- Thin footer, just as in the Reverb screenshot.
-label(keyPanel,"●  "..(configured() and "ONLINE" or "TEST MODE"),9,A.good,true,{
- Position=UDim2.fromOffset(20,405),Size=UDim2.fromOffset(175,21)})
-local siteLink=button(keyPanel,"WEBSITE",{
- BackgroundTransparency=1,TextSize=9,TextColor3=A.cyan,
- Position=UDim2.fromOffset(478,402),Size=UDim2.fromOffset(75,22)})
-local supportLink=button(keyPanel,"SUPPORT",{
- BackgroundTransparency=1,TextSize=9,TextColor3=A.cyan,
- Position=UDim2.fromOffset(558,402),Size=UDim2.fromOffset(75,22)})
-
--- Do not open the main hub until access succeeds.
-local checking=false
-local function message(str,errorFlag)
- log(str)
- if errorFlag then entry.PlaceholderText=tostring(str)
- else entry.PlaceholderText="VISION WARE · ENTER KEY"end
-end
-local function validate()
- if checking or closed then return end
- local key=(entry.Text or ""):match("^%s*(.-)%s*$"):upper()
- if key=="" then message("Enter an access key",true);return end
- checking=true;enterButton.Text="VERIFYING..."
- log("Checking access key...")
- local ok,msg
- if key==TEST_KEY then
-  ok,msg=true,"Development access granted"
- else
-  ok,msg=verifyKeyRemote(key)
- end
- checking=false
- if closed then return end
- enterButton.Text="CONTINUE"
- if ok then
-  log(msg)
-  unlocked=true
-  gateShade:Destroy()
-  openApp(true)
-  status("Profile: "..selected.name.."  •  "..msg)
- else
-  message(msg,true)
-  if not keepKeyInput then entry.Text=""end
- end
-end
-bind(enterButton.Activated,validate)
-bind(entry.FocusLost,function(pressedEnter)
- if pressedEnter then validate()end
-end)
-bind(generateButton.Activated,function()
- if configured() then
-  local url=KEY_API:gsub("/+$","").."/key"
-  message(clipboard(url) and "Key generator URL copied" or "Open the Cloudflare /key URL",false)
- else
-  entry.Text=TEST_KEY
-  message("Development key filled: press CONTINUE",false)
- end
-end)
-local function supportAction()
- local url="https://github.com/Azerty56123/vision-pro"
- message(clipboard(url) and "GitHub support link copied" or "Visit Vision Ware GitHub",false)
-end
-bind(helpButton.Activated,function()
- log("Premium keys are not available yet.")
-end)
-bind(siteLink.Activated,supportAction)
-bind(supportLink.Activated,supportAction)
-bind(closeKey.Activated,kill)
-log("Vision Ware loader initializing...")
-log("Game: "..selected.name)
-log("Executor ready")
-log("Player: "..player.Name)
-log("Key service: "..(configured() and "online" or "development"))
-log("Ready.")
-
--- Handle new screen sizes and camera replacements.
+-- Screen-size handling for the main window only (no key overlay).
 local cameraConnection
 local function updateCamera()
- if cameraConnection then cameraConnection:Disconnect()end
+ if cameraConnection then cameraConnection:Disconnect() end
  local cam=workspace.CurrentCamera
  if cam then
-  cameraConnection=bind(cam:GetPropertyChangedSignal("ViewportSize"),function()
-   fitToScreen()
-   if gateShade.Parent then
-    local v=cam.ViewportSize
-    local glowZoom=math.clamp(math.min(1,(v.X-24)/670,(v.Y-24)/446),.28,1)
-    gateScale.Scale=glowZoom
-    outerHaloScale.Scale=glowZoom
-    innerHaloScale.Scale=glowZoom
-   end
-  end)
-  local v=cam.ViewportSize
-  local glowZoom=math.clamp(math.min(1,(v.X-24)/670,(v.Y-24)/446),.28,1)
-    gateScale.Scale=glowZoom
-    outerHaloScale.Scale=glowZoom
-    innerHaloScale.Scale=glowZoom
+  cameraConnection=bind(cam:GetPropertyChangedSignal("ViewportSize"),fitToScreen)
  end
  fitToScreen()
 end

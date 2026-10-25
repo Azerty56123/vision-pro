@@ -8,7 +8,7 @@ local player=Players.LocalPlayer
 local settings={
  fly=false,noclip=false,infiniteJump=false,autoReturn=false,
  autoSkip=false,finishESP=false,nextESP=false,lowGravity=false,
- flySpeed=30,skipDelay=5
+ flySpeed=30,skipDelay=0
 }
 local originalGravity=workspace.Gravity
 local autoSkipGeneration=0
@@ -368,7 +368,8 @@ local function landOnCheckpoint(entry)
  return ok,ok and "Contact en cours" or "Teleport impossible"
 end
 -- Make an actual physical landing and wait for replicated Stage to change.
-local function activateCheckpoint(entry)
+local function activateCheckpoint(entry, options)
+ options=options or {}
  if checkpointBusy then return false,"Checkpoint deja en cours"end
  if not entry or not entry.part then return false,"Checkpoint introuvable"end
  checkpointBusy=true
@@ -379,7 +380,7 @@ local function activateCheckpoint(entry)
  local confirmed=false
  local result="Checkpoint "..entry.number.." non confirme"
  status("Activation checkpoint "..entry.number.."...")
- for attempt=1,3 do
+ for attempt=1,(options.attempts or 2) do
   if disposed then result="Module ferme";break end
   if attempt>1 then scanObby(true)end
   local current=progressValue()
@@ -388,9 +389,10 @@ local function activateCheckpoint(entry)
   end
   local ok,reason=landOnCheckpoint(entry)
   if not ok then result=reason;break end
-  local deadline=os.clock()+2.5
+  -- At 0 seconds, still yield for physics and Stage replication.
+  local deadline=os.clock()+(options.timeout or 1.4)
   repeat
-   task.wait(.12)
+   task.wait()
    if disposed then break end
    local now=progressValue()
    if initial~=nil and now~=nil and now>initial and now>=entry.number then
@@ -491,25 +493,52 @@ listen(Run.Heartbeat,function(dt)
   refreshESP()
  end
 end)
+-- No artificial pause between stages at 0s.
+-- Turbo: try the last checkpoint once, then validate each required stage.
 local function startAutoSkip(autoWin)
  autoSkipGeneration=autoSkipGeneration+1
  local generation=autoSkipGeneration
  task.spawn(function()
-  if progressValue()==nil then
-   status("Auto Skip refuse : aucun compteur Stage lisible")
+  local initial=progressValue()
+  if initial==nil then
+   status("Stage introuvable : progression non verifiable")
    return
   end
+  local data=scanObby(true)
+  if #data.stages==0 then status("Aucun checkpoint detecte");return end
+
+  while checkpointBusy and not disposed and autoSkipGeneration==generation do
+   task.wait()
+  end
+  if disposed or autoSkipGeneration~=generation then return end
+
+  if autoWin then
+   local final=data.stages[#data.stages]
+   if final and initial<final.number then
+    status("Auto Win Turbo : dernier checkpoint "..final.number)
+    local confirmed=activateCheckpoint(final,{attempts=1,timeout=1})
+    if confirmed then
+     status("Dernier checkpoint valide ; direction Finish")
+    else
+     status("Saut direct refuse ; passage des stages sans delai")
+    end
+   end
+  end
+
   while not disposed and autoSkipGeneration==generation
    and (settings.autoSkip or autoWin) do
    local entry,why=stageDestination(1)
    if not entry then
-    local data=scanObby(true)
+    local refreshed=scanObby(true)
     local current=progressValue()
-    local last=data.stages[#data.stages]
-    if autoWin and last and current and current>=last.number
-     and data.finish then
-     status("Checkpoints verifies; tentative Finish...")
-     tryFinish()
+    local last=refreshed.stages[#refreshed.stages]
+    if autoWin and last and current and current>=last.number then
+     if refreshed.finish then
+      status("Dernier stage confirme ; tentative Finish...")
+      tryFinish()
+     else
+      status("Stages confirmes ; Finish introuvable")
+     end
     else
      status("Progression arretee : "..(why or "checkpoint introuvable"))
     end
@@ -520,6 +549,7 @@ local function startAutoSkip(autoWin)
     status("Progression arretee : "..(reason or "checkpoint non valide"))
     return
    end
+   -- A 0-second task.wait yields one engine frame, not an intentional delay.
    task.wait(settings.skipDelay)
   end
  end)
@@ -555,7 +585,7 @@ actions.obbyAutoWin=function()
   return "Auto Win indisponible : aucun checkpoint detecte"
  end
  startAutoSkip(true)
- return "Auto Win : validation de chaque checkpoint avant Finish"
+ return "Auto Win Turbo : dernier stage direct, sinon progression rapide verifiee"
 end
 actions.obbyTeleportStart=function()
  local data=scanObby(false)
@@ -609,7 +639,7 @@ local function onSlider(id,value)
  if id=="obbyFlySpeed" then
   settings.flySpeed=math.clamp(tonumber(value) or 30,30,160)
  elseif id=="obbySkipDelay" then
-  settings.skipDelay=math.clamp(tonumber(value) or 5,3,15)
+  settings.skipDelay=math.clamp(tonumber(value) or 0,0,15)
  end
 end
 local function shutdown()
@@ -650,11 +680,11 @@ return {
    {type="button",id="obbyPreviousStage",label="Previous Stage"},
    {type="button",id="obbyTeleportStart",label="Teleport to Start"},
    {type="button",id="obbyTeleportFinish",label="Teleport to Finish"},
-   {type="button",id="obbyAutoWin",label="Auto Win (attempt)"}
+   {type="button",id="obbyAutoWin",label="Auto Win Turbo (attempt)"}
   }},
   {tab="Game",column="left",title="Automation",subtitle="Progression attempts; server may reject",items={
-   {type="toggle",id="obbyAutoSkip",label="Auto Skip (verified)",desc="Only advance when Stage changes; stops if unconfirmed"},
-   {type="slider",id="obbySkipDelay",label="Auto Skip Delay (s)",min=3,max=15},
+   {type="toggle",id="obbyAutoSkip",label="Auto Skip (verified)",desc="0s delay possible; validates each checkpoint before continuing"},
+   {type="slider",id="obbySkipDelay",label="Auto Skip Delay (s)",min=0,max=15},
    {type="toggle",id="obbyAutoReturn",label="Auto Return",desc="Try last saved position after respawn"}
   }},
   {tab="Game",column="right",title="Visual Helpers",subtitle="Highlight important Obby parts",items={

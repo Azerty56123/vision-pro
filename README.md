@@ -11,7 +11,7 @@ loadstring(game:HttpGet("https://raw.githubusercontent.com/Azerty56123/vision-pr
 ## Design
 
 - Main window inspired by the visual structure of Sena Hub: dark theme, compact settings in **two columns**, search, category sidebar, footer with executor/FPS and responsive layout.
-- Original **Vision Ware** branding with its own neon icon at [`assets/visionware_logo.png`](assets/visionware_logo.png), optimized for the small sidebar. The UI uses that image when local custom assets are supported; otherwise it displays a simple built-in fallback.
+- Original **Vision Ware** branding with a **manually drawn, flat vector V** (white and cyan; no generated imagery): [`assets/visionware_logo.svg`](assets/visionware_logo.svg) is the editable source and [`assets/visionware_logo.png`](assets/visionware_logo.png) is the compact sidebar asset. The UI uses the PNG when local custom assets are supported; otherwise it displays a matching native fallback.
 
 
 ### Interface V1 (October 2026)
@@ -79,7 +79,7 @@ Supported controls use handlers in the main hub. New `id` values require a corre
 
 ## Logo integration
 
-The image is a real PNG stored in this repository, cropped from the Vision Ware neon logo artwork. Since Roblox `ImageLabel.Image` cannot load GitHub raw image URLs directly, the loader uses supported local image functions (`writefile` and `getcustomasset` or `getsynasset`) to download and display the PNG, caching the asset on disk. When these functions are unavailable, a minimal geometric V is displayed instead. Roblox Studio support for the GitHub image URL is not implied.
+The icon is manually constructed as an SVG path and rasterized to a clean, flat PNG (no AI-generated artwork, chrome, or bloom). Because Roblox `ImageLabel.Image` cannot load a GitHub raw image URL directly, the loader uses available local image functions (`writefile` and `getcustomasset` or `getsynasset`), with a new cache filename (`visionware_flat_logo_v2.png`) so the earlier neon image isn't retained. If those functions are unavailable, a matching V is drawn with native UI elements. Roblox Studio does not automatically load raw GitHub image URLs.
 
 ## Verification notes
 

@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 96 96">
+  <!-- Original flat vector V monogram, manually drawn for the Vision Ware sidebar. -->
+  <rect x="2" y="2" width="92" height="92" rx="19" fill="#141B25" stroke="#334553" stroke-width="2"/>
+  <path d="M21 27 H34 L48 60 L62 27 H75 L53 75 H43 Z" fill="#F4F8FB"/>
+  <path d="M62 27 H75 L53 75 H43 L48 60 Z" fill="#20C9ED"/>
+</svg>

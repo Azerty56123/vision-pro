@@ -1,6 +1,6 @@
-# Vision Ware V1 — Sena-inspired Interface + Reverb-inspired Key
+# Vision Ware V1 — Interface directe
 
-One loadstring, one core UI, one Lua file per game profile.
+One loadstring, one main interface (no access gate), one Lua file per game profile.
 
 ## Script
 
@@ -11,16 +11,14 @@ loadstring(game:HttpGet("https://raw.githubusercontent.com/Azerty56123/vision-pr
 ## Design
 
 - Main window inspired by the visual structure of Sena Hub: dark theme, compact settings in **two columns**, search, category sidebar, footer with executor/FPS and responsive layout.
-- Access screen inspired by Reverb's **cyan/blue key layout**, with log entries on the left and key entry/actions on the right.
 - Original **Vision Ware** branding. No external images or proprietary logos are copied.
 
 
-### V1 interface update (October 2026)
+### Interface V1 (October 2026)
 
 - Desktop layout follows the Sena reference more closely: **Vision Ware** logo and game subtitle in the left rail, active navigation, compact top toolbar, two-column cards and footer pills.
-- The key window uses a separate left identity and loader log, and a right area for the game label, access entry, session-only **SAVE KEY** toggle, CONTINUE, GET FREE KEY and HELP / SUPPORT.
-- The cyan key outline remains luminous but thinner and cleaner than the previous large halo.
-- The test key still works in development mode. The production Cloudflare backend must be deployed and configured separately.
+- Vision Ware opens the main window **immediately** on execution, without an access gate or validation.
+- All game-specific profiles and the global **Misc** security tab are preserved.
 - The user-facing brand is **VISION WARE**. The GitHub filename `VisionHub_V1.lua` remains unchanged for backward compatibility with the existing loadstring.
 
 ## Separate game modules
@@ -39,24 +37,6 @@ loadstring(game:HttpGet("https://raw.githubusercontent.com/Azerty56123/vision-pr
 The loader uses one canonical main window and fetches `games/universal.lua` plus the detected game file. Each profile **returns a table** of sections and controls. The game-specific profiles currently provide local utilities and game-tailored layouts. Game-specific automation is not included.
 
 The system gracefully falls back to the universal dashboard if the game is unknown or a module fails to load.
-
-## Key system
-
-**Development test key:** `VISION-TEST-ILLIMITE-2026`.
-
-1. Run the loader. The cyan key window appears.
-2. Click **GET FREE KEY**. Until Cloudflare is configured, this fills the development key.
-3. Click **CONTINUE** to open Vision Ware.
-
-There is also a Cloudflare Worker source in `beta-generator/worker.js` supporting `GET /key` (public key generation) and `POST /api/verify`. Before it works in production, deploy the Worker with a configured D1 database and a secure admin secret. Set the exact HTTPS Worker origin inside `VisionHub_V1.lua`:
-
-```lua
-local KEY_API="https://vision-pro-beta-v4.YOUR-SUBDOMAIN.workers.dev"
-```
-
-If a deployed origin is set, **GET FREE KEY** copies its `/key` URL and **CONTINUE** posts the entered key to `/api/verify`.
-
-The development test key is included in the public script and is **not an access-control security measure**. Remove it for a production release; even client-side key checks cannot provide inviolable protection.
 
 ## Misc security and server anti-exploit
 
@@ -99,4 +79,4 @@ Supported controls use handlers in the main hub. New `id` values require a corre
 
 ## Verification notes
 
-The GitHub files have been inspected structurally. Real rendering in Roblox executors, executor-dependent HTTPS POST, GUI sizing on specific devices, and feature permissions have **not** been runtime-tested. Some local changes to character/camera can be overridden by server/game settings.
+The GitHub files have been inspected structurally. Real rendering in Roblox executors, GUI sizing on specific devices, and feature permissions have **not** been runtime-tested. Some local changes to character/camera can be overridden by server/game settings.

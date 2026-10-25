@@ -30,11 +30,13 @@ for _,name in ipairs({NAME,"VisionHubV1_Design12","VisionHubV11_Design12","Visio
  if old then old:Destroy() end
 end
 
-local A={
- bg=Color3.fromRGB(11,11,14),side=Color3.fromRGB(13,13,16),
- card=Color3.fromRGB(24,24,28),row=Color3.fromRGB(30,30,35),
- field=Color3.fromRGB(27,27,32),border=Color3.fromRGB(41,41,47),
- white=Color3.fromRGB(248,249,252),muted=Color3.fromRGB(140,148,161),
+-- Sena reference proportions (screen-measured approximation).
+local DESIGN={width=960,height=646,rail=195,header=64,footer=46}
+local A={}
+ bg=Color3.fromRGB(11,11,15),side=Color3.fromRGB(12,12,16),
+ card=Color3.fromRGB(22,22,27),row=Color3.fromRGB(29,29,35),
+ field=Color3.fromRGB(26,26,32),border=Color3.fromRGB(35,35,43),
+ white=Color3.fromRGB(248,249,252),muted=Color3.fromRGB(128,130,142),
  cyan=Color3.fromRGB(0,191,255),cyanDark=Color3.fromRGB(4,58,84),
  light=Color3.fromRGB(177,199,214),good=Color3.fromRGB(83,233,164)
 }
@@ -286,23 +288,23 @@ local function readValue(key)
 end
 -- DESIGN SENA: topbar, vertical navigation, two compact columns and bottom status.
 app=create("Frame",gui,{Name="MainWindow",BackgroundColor3=A.bg,BorderSizePixel=0,
- Size=UDim2.fromOffset(865,548),Position=UDim2.fromScale(.5,.5),
+ Size=UDim2.fromOffset(DESIGN.width,DESIGN.height),Position=UDim2.fromScale(.5,.5),
  AnchorPoint=Vector2.new(.5,.5),ClipsDescendants=true,Visible=true})
-corner(app,15);outline(app,A.border,.9)
+corner(app,17);outline(app,A.border,.8)
 appScale=create("UIScale",app,{Scale=1})
 -- VISION WARE / SENA desktop structure: the logo lives in the sidebar;
 -- the main toolbar contains the current category, description and search.
 header=create("Frame",app,{BackgroundColor3=A.side,BorderSizePixel=0,
- Position=UDim2.fromOffset(210,0),Size=UDim2.new(1,-210,0,64),Active=true})
+ Position=UDim2.fromOffset(DESIGN.rail,0),Size=UDim2.new(1,-DESIGN.rail,0,DESIGN.header),Active=true})
 create("Frame",header,{BackgroundColor3=A.border,BorderSizePixel=0,
  Position=UDim2.new(0,0,1,-1),Size=UDim2.new(1,0,0,1)})
 local searchHolder=create("Frame",header,{BackgroundColor3=A.card,BorderSizePixel=0,
- Position=UDim2.new(1,-248,0,16),Size=UDim2.fromOffset(153,31)})
-corner(searchHolder,7)
+ Position=UDim2.new(1,-300,0,15),Size=UDim2.fromOffset(210,37)})
+corner(searchHolder,9)
 local searchEdge=outline(searchHolder,A.border,.6)
-artwork(searchHolder,"search",10,8,15,15,A.muted)
+artwork(searchHolder,"search",12,10,17,17,A.muted)
 search=create("TextBox",searchHolder,{BackgroundTransparency=1,BorderSizePixel=0,
- Position=UDim2.fromOffset(34,0),Size=UDim2.new(1,-39,1,0),
+ Position=UDim2.fromOffset(39,0),Size=UDim2.new(1,-45,1,0),
  Text="",ClearTextOnFocus=false,PlaceholderText="Search",
  Font=Enum.Font.Gotham,TextSize=11,TextColor3=A.white,
  PlaceholderColor3=A.muted,TextXAlignment=Enum.TextXAlignment.Left})
@@ -316,38 +318,38 @@ local close=button(header,"×",{
  BackgroundColor3=A.side})
 corner(hide,6);corner(close,6)
 tabRail=create("Frame",app,{BackgroundColor3=A.side,BorderSizePixel=0,
- Position=UDim2.fromOffset(0,0),Size=UDim2.new(0,210,1,-30)})
+ Position=UDim2.fromOffset(0,0),Size=UDim2.new(0,DESIGN.rail,1,-DESIGN.footer)})
 create("Frame",tabRail,{BackgroundColor3=A.border,BorderSizePixel=0,
  Position=UDim2.new(1,-1,0,0),Size=UDim2.new(0,1,1,0)})
-local sideBadge=monogram(tabRail,16,13,34)
+local sideBadge=monogram(tabRail,22,20,35)
 -- One rich-text label keeps the two-tone wordmark consistently spaced.
 local brandName=label(tabRail,'VISION <font color="#00BFFF">WARE</font>',14,A.white,true,{
  Name="VisionWareWordmark",RichText=true,
- Position=UDim2.fromOffset(58,13),Size=UDim2.fromOffset(146,24)})
+ Position=UDim2.fromOffset(64,18),Size=UDim2.fromOffset(125,24)})
 local titleGame=label(tabRail,selected.name,10,A.muted,false,{
- Position=UDim2.fromOffset(59,36),Size=UDim2.fromOffset(128,16)})
+ Position=UDim2.fromOffset(64,40),Size=UDim2.fromOffset(122,17)})
 local railTitle=label(tabRail,"WORKSPACE",9,A.muted,true,{
  Position=UDim2.fromOffset(15,73),Size=UDim2.fromOffset(155,15),
  Visible=false})
 nav=create("ScrollingFrame",tabRail,{BackgroundTransparency=1,BorderSizePixel=0,
- Position=UDim2.fromOffset(9,92),Size=UDim2.new(1,-18,1,-107),
+ Position=UDim2.fromOffset(10,90),Size=UDim2.new(1,-21,1,-100),
  ScrollingDirection=Enum.ScrollingDirection.Y,
  CanvasSize=UDim2.new(),AutomaticCanvasSize=Enum.AutomaticSize.Y,
  ScrollBarThickness=0})
 local navLayout=create("UIListLayout",nav,{
- SortOrder=Enum.SortOrder.LayoutOrder,Padding=UDim.new(0,4)})
+ SortOrder=Enum.SortOrder.LayoutOrder,Padding=UDim.new(0,6)})
 body=create("Frame",app,{BackgroundTransparency=1,BorderSizePixel=0,
- Position=UDim2.fromOffset(210,64),Size=UDim2.new(1,-210,1,-94)})
-local pageTitle=label(header,"Overview",14,A.white,true,{
- Position=UDim2.fromOffset(19,5),Size=UDim2.fromOffset(340,25)})
-local pageDescription=label(header,selected.description,10,A.muted,false,{
- Position=UDim2.fromOffset(19,29),Size=UDim2.fromOffset(340,22)})
+ Position=UDim2.fromOffset(DESIGN.rail,DESIGN.header),Size=UDim2.new(1,-DESIGN.rail,1,-(DESIGN.header+DESIGN.footer))})
+local pageTitle=label(header,"Overview",15,A.white,true,{
+ Position=UDim2.fromOffset(22,9),Size=UDim2.fromOffset(340,25)})
+local pageDescription=label(header,selected.description,11,A.muted,false,{
+ Position=UDim2.fromOffset(22,32),Size=UDim2.fromOffset(340,22)})
 canvas=create("ScrollingFrame",body,{BackgroundTransparency=1,BorderSizePixel=0,
- Position=UDim2.fromOffset(12,13),Size=UDim2.new(1,-23,1,-19),
+ Position=UDim2.fromOffset(14,14),Size=UDim2.new(1,-28,1,-24),
  CanvasSize=UDim2.fromOffset(0,0),ScrollBarThickness=3,
  ScrollBarImageColor3=A.cyan,ScrollingDirection=Enum.ScrollingDirection.Y})
 columns=create("Frame",canvas,{BackgroundTransparency=1,BorderSizePixel=0,
- Size=UDim2.new(1,-7,0,0),AutomaticSize=Enum.AutomaticSize.Y})
+ Size=UDim2.new(1,-6,0,0),AutomaticSize=Enum.AutomaticSize.Y})
 local colLayout=create("UIListLayout",columns,{
  FillDirection=Enum.FillDirection.Horizontal,
  SortOrder=Enum.SortOrder.LayoutOrder,Padding=UDim.new(0,10)})
@@ -358,8 +360,8 @@ right=create("Frame",columns,{BackgroundTransparency=1,
 local lLay=create("UIListLayout",left,{SortOrder=Enum.SortOrder.LayoutOrder,Padding=UDim.new(0,9)})
 local rLay=create("UIListLayout",right,{SortOrder=Enum.SortOrder.LayoutOrder,Padding=UDim.new(0,9)})
 local footer=create("Frame",app,{BackgroundColor3=A.side,BorderSizePixel=0,
- Position=UDim2.new(0,0,1,-30),Size=UDim2.new(1,0,0,30)})
-corner(footer,15)
+ Position=UDim2.new(0,0,1,-DESIGN.footer),Size=UDim2.new(1,0,0,DESIGN.footer)})
+corner(footer,17)
 -- Straight footer top edge, with rounded bottom corners.
 create("Frame",footer,{BackgroundColor3=A.side,BorderSizePixel=0,
  Position=UDim2.fromOffset(0,0),Size=UDim2.new(1,0,0,15)})
@@ -371,21 +373,22 @@ local function footerTag(pos,size)
  corner(pill,5)
  return pill
 end
-local execTag=footerTag(UDim2.new(1,-280,0,4),UDim2.fromOffset(165,22))
-local fpsTag=footerTag(UDim2.new(1,-111,0,4),UDim2.fromOffset(57,22))
-local versionTag=footerTag(UDim2.new(1,-51,0,4),UDim2.fromOffset(44,22))
+local statusTag=footerTag(UDim2.fromOffset(14,8),UDim2.fromOffset(276,30))
+local execTag=footerTag(UDim2.new(1,-348,0,8),UDim2.fromOffset(173,30))
+local fpsTag=footerTag(UDim2.new(1,-170,0,8),UDim2.fromOffset(103,30))
+local versionTag=footerTag(UDim2.new(1,-61,0,8),UDim2.fromOffset(49,30))
 footerMessage=label(footer,"●  SYSTEM READY",10,A.good,true,{
- Position=UDim2.fromOffset(13,4),Size=UDim2.fromOffset(320,24)})
+ Position=UDim2.fromOffset(24,11),Size=UDim2.fromOffset(254,25)})
 local footerExec=label(footer,"Executor: "..(type(identifyexecutor)=="function"
   and tostring((function()local ok,n=pcall(identifyexecutor)return ok and n or "Unknown"end)())
   or "Unknown"),9,A.muted,false,{
- Position=UDim2.new(1,-270,0,4),Size=UDim2.fromOffset(150,23),
+ Position=UDim2.new(1,-339,0,10),Size=UDim2.fromOffset(158,26),
  TextXAlignment=Enum.TextXAlignment.Right})
 footerFps=label(footer,"-- FPS",10,A.muted,true,{
- Position=UDim2.new(1,-108,0,4),Size=UDim2.fromOffset(51,23),
+ Position=UDim2.new(1,-164,0,10),Size=UDim2.fromOffset(90,26),
  TextXAlignment=Enum.TextXAlignment.Right})
 label(footer,"v1.0",9,A.muted,true,{
- Position=UDim2.new(1,-54,0,4),Size=UDim2.fromOffset(39,23),
+ Position=UDim2.new(1,-59,0,10),Size=UDim2.fromOffset(43,26),
  TextXAlignment=Enum.TextXAlignment.Right})
 mini=button(gui,"VISION WARE",{Position=UDim2.new(1,-160,.5,-20),
  Size=UDim2.fromOffset(146,38),BackgroundColor3=A.cyanDark,Visible=false})
@@ -432,7 +435,7 @@ local small=false
 fitToScreen=function()
  if closed or not app.Parent then return end
  local v=workspace.CurrentCamera and workspace.CurrentCamera.ViewportSize or Vector2.new(1280,720)
- small=v.X<740
+ small=v.X<780
  if small then
   app.Size=UDim2.fromOffset(450,650)
   appScale.Scale=math.clamp(math.min(nums.zoom/100,(v.X-12)/450,(v.Y-12)/650),.3,1)
@@ -442,12 +445,13 @@ fitToScreen=function()
   titleGame.Visible=false;railTitle.Visible=false
   footerExec.Visible=false;execTag.Visible=false
   fpsTag.Visible=true;versionTag.Visible=true
-  footerMessage.Size=UDim2.fromOffset(308,24)
+  statusTag.Size=UDim2.fromOffset(240,30)
+  footerMessage.Size=UDim2.fromOffset(218,25)
   nav.Position=UDim2.fromOffset(7,4);nav.Size=UDim2.new(1,-14,0,36)
   nav.ScrollingDirection=Enum.ScrollingDirection.X
   nav.AutomaticCanvasSize=Enum.AutomaticSize.X
   navLayout.FillDirection=Enum.FillDirection.Horizontal
-  body.Position=UDim2.fromOffset(0,106);body.Size=UDim2.new(1,0,1,-136)
+  body.Position=UDim2.fromOffset(0,106);body.Size=UDim2.new(1,0,1,-(106+DESIGN.footer))
   colLayout.FillDirection=Enum.FillDirection.Vertical
   left.Size=UDim2.new(1,-6,0,0);right.Size=UDim2.new(1,-6,0,0)
   searchHolder.Position=UDim2.new(1,-204,0,16)
@@ -457,27 +461,28 @@ fitToScreen=function()
   canvas.Position=UDim2.fromOffset(10,11);canvas.Size=UDim2.new(1,-19,1,-16)
   for _,b in pairs(navButtons) do b.Size=UDim2.fromOffset(118,36)end
  else
-  app.Size=UDim2.fromOffset(865,548)
-  appScale.Scale=math.clamp(math.min(nums.zoom/100,(v.X-14)/865,(v.Y-14)/548),.45,1.15)
-  header.Position=UDim2.fromOffset(210,0);header.Size=UDim2.new(1,-210,0,64)
-  tabRail.Position=UDim2.fromOffset(0,0);tabRail.Size=UDim2.new(0,210,1,-30)
+  app.Size=UDim2.fromOffset(DESIGN.width,DESIGN.height)
+  appScale.Scale=math.clamp(math.min(nums.zoom/100,(v.X-14)/DESIGN.width,(v.Y-14)/DESIGN.height),.45,1.15)
+  header.Position=UDim2.fromOffset(DESIGN.rail,0);header.Size=UDim2.new(1,-DESIGN.rail,0,DESIGN.header)
+  tabRail.Position=UDim2.fromOffset(0,0);tabRail.Size=UDim2.new(0,DESIGN.rail,1,-DESIGN.footer)
   sideBadge.Visible=true;brandName.Visible=true
   titleGame.Visible=true;railTitle.Visible=false
   footerExec.Visible=true;execTag.Visible=true
   fpsTag.Visible=true;versionTag.Visible=true
-  footerMessage.Size=UDim2.fromOffset(320,24)
-  nav.Position=UDim2.fromOffset(9,92);nav.Size=UDim2.new(1,-18,1,-107)
+  statusTag.Size=UDim2.fromOffset(276,30)
+  footerMessage.Size=UDim2.fromOffset(254,25)
+  nav.Position=UDim2.fromOffset(10,90);nav.Size=UDim2.new(1,-21,1,-100)
   nav.ScrollingDirection=Enum.ScrollingDirection.Y
   nav.AutomaticCanvasSize=Enum.AutomaticSize.Y
   navLayout.FillDirection=Enum.FillDirection.Vertical
-  body.Position=UDim2.fromOffset(210,64);body.Size=UDim2.new(1,-210,1,-94)
+  body.Position=UDim2.fromOffset(DESIGN.rail,DESIGN.header);body.Size=UDim2.new(1,-DESIGN.rail,1,-(DESIGN.header+DESIGN.footer))
   colLayout.FillDirection=Enum.FillDirection.Horizontal
   left.Size=UDim2.new(.5,-5,0,0);right.Size=UDim2.new(.5,-5,0,0)
-  searchHolder.Position=UDim2.new(1,-248,0,16)
-  searchHolder.Size=UDim2.fromOffset(153,31)
-  pageTitle.Position=UDim2.fromOffset(19,5);pageDescription.Position=UDim2.fromOffset(19,29)
+  searchHolder.Position=UDim2.new(1,-300,0,15)
+  searchHolder.Size=UDim2.fromOffset(210,37)
+  pageTitle.Position=UDim2.fromOffset(22,9);pageDescription.Position=UDim2.fromOffset(22,32)
   pageTitle.Size=UDim2.fromOffset(340,25);pageDescription.Size=UDim2.fromOffset(340,22)
-  canvas.Position=UDim2.fromOffset(12,13);canvas.Size=UDim2.new(1,-23,1,-19)
+  canvas.Position=UDim2.fromOffset(14,14);canvas.Size=UDim2.new(1,-28,1,-24)
   for _,b in pairs(navButtons) do b.Size=UDim2.new(1,0,0,39)end
  end
 end
@@ -721,7 +726,7 @@ local function card(which,definition)
  corner(c,9);outline(c,A.border,.65)
  local lay=create("UIListLayout",c,{SortOrder=Enum.SortOrder.LayoutOrder,
   Padding=UDim.new(0,0)})
- local title=button(c,"",{BackgroundColor3=A.card,Size=UDim2.new(1,0,0,49)})
+ local title=button(c,"",{BackgroundColor3=A.card,Size=UDim2.new(1,0,0,44)})
  corner(title,9)
  -- Compact, uniform card title: proper white outline icon, no big cyan tiles.
  local headingKey=string.lower(definition.title or "")
@@ -731,11 +736,11 @@ local function card(which,definition)
   or (headingKey:find("movement",1,true) and "player")
   or (headingKey:find("control",1,true) and "settings")
   or "module"
- artwork(title,headerGlyph,16,15,18,18,A.muted)
+ artwork(title,headerGlyph,16,13,18,18,A.muted)
  label(title,definition.title,12,A.white,true,{
-  Position=UDim2.fromOffset(42,10),Size=UDim2.new(1,-82,0,28)})
+  Position=UDim2.fromOffset(44,7),Size=UDim2.new(1,-84,0,29)})
  local arrow=artwork(title,"chevron",0,0,16,16,A.muted)
- arrow.Position=UDim2.new(1,-30,0,16)
+ arrow.Position=UDim2.new(1,-30,0,14)
 local inside=create("Frame",c,{BackgroundTransparency=1,Size=UDim2.new(1,0,0,0),
   AutomaticSize=Enum.AutomaticSize.Y,Visible=true})
  create("UIPadding",inside,{PaddingLeft=UDim.new(0,8),
@@ -851,8 +856,8 @@ for i,name in ipairs(tabs) do
   BorderSizePixel=0,Position=UDim2.fromOffset(0,8),Size=UDim2.fromOffset(3,23)})
  navIcon(b,name)
  label(b,tabLabels[name] or name,12,A.muted,true,{
-  Name="NavTitle",Position=UDim2.fromOffset(47,7),
-  Size=UDim2.new(1,-50,0,25)
+  Name="NavTitle",Position=UDim2.fromOffset(53,7),
+  Size=UDim2.new(1,-57,0,25)
  })
  navButtons[name]=b
  bind(b.MouseEnter,function()

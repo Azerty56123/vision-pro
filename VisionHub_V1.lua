@@ -320,10 +320,10 @@ tabRail=create("Frame",app,{BackgroundColor3=A.side,BorderSizePixel=0,
 create("Frame",tabRail,{BackgroundColor3=A.border,BorderSizePixel=0,
  Position=UDim2.new(1,-1,0,0),Size=UDim2.new(0,1,1,0)})
 local sideBadge=monogram(tabRail,16,13,34)
-local brandFirst=label(tabRail,"VISION",14,A.white,true,{
- Position=UDim2.fromOffset(58,13),Size=UDim2.fromOffset(67,24)})
-local brandSecond=label(tabRail,"WARE",14,A.cyan,true,{
- Position=UDim2.fromOffset(113,13),Size=UDim2.fromOffset(60,24)})
+-- One rich-text label keeps the two-tone wordmark consistently spaced.
+local brandName=label(tabRail,'VISION <font color="#00BFFF">WARE</font>',14,A.white,true,{
+ Name="VisionWareWordmark",RichText=true,
+ Position=UDim2.fromOffset(58,13),Size=UDim2.fromOffset(146,24)})
 local titleGame=label(tabRail,selected.name,10,A.muted,false,{
  Position=UDim2.fromOffset(59,36),Size=UDim2.fromOffset(128,16)})
 local railTitle=label(tabRail,"WORKSPACE",9,A.muted,true,{
@@ -371,9 +371,9 @@ local function footerTag(pos,size)
  corner(pill,5)
  return pill
 end
-footerTag(UDim2.new(1,-280,0,4),UDim2.fromOffset(165,22))
-footerTag(UDim2.new(1,-111,0,4),UDim2.fromOffset(57,22))
-footerTag(UDim2.new(1,-51,0,4),UDim2.fromOffset(44,22))
+local execTag=footerTag(UDim2.new(1,-280,0,4),UDim2.fromOffset(165,22))
+local fpsTag=footerTag(UDim2.new(1,-111,0,4),UDim2.fromOffset(57,22))
+local versionTag=footerTag(UDim2.new(1,-51,0,4),UDim2.fromOffset(44,22))
 footerMessage=label(footer,"●  SYSTEM READY",10,A.good,true,{
  Position=UDim2.fromOffset(13,4),Size=UDim2.fromOffset(320,24)})
 local footerExec=label(footer,"Executor: "..(type(identifyexecutor)=="function"
@@ -438,8 +438,11 @@ fitToScreen=function()
   appScale.Scale=math.clamp(math.min(nums.zoom/100,(v.X-12)/450,(v.Y-12)/650),.3,1)
   header.Position=UDim2.fromOffset(0,0);header.Size=UDim2.new(1,0,0,64)
   tabRail.Position=UDim2.fromOffset(0,64);tabRail.Size=UDim2.new(1,0,0,42)
-  sideBadge.Visible=false;brandFirst.Visible=false;brandSecond.Visible=false
+  sideBadge.Visible=false;brandName.Visible=false
   titleGame.Visible=false;railTitle.Visible=false
+  footerExec.Visible=false;execTag.Visible=false
+  fpsTag.Visible=true;versionTag.Visible=true
+  footerMessage.Size=UDim2.fromOffset(308,24)
   nav.Position=UDim2.fromOffset(7,4);nav.Size=UDim2.new(1,-14,0,36)
   nav.ScrollingDirection=Enum.ScrollingDirection.X
   nav.AutomaticCanvasSize=Enum.AutomaticSize.X
@@ -458,8 +461,11 @@ fitToScreen=function()
   appScale.Scale=math.clamp(math.min(nums.zoom/100,(v.X-14)/865,(v.Y-14)/548),.45,1.15)
   header.Position=UDim2.fromOffset(210,0);header.Size=UDim2.new(1,-210,0,64)
   tabRail.Position=UDim2.fromOffset(0,0);tabRail.Size=UDim2.new(0,210,1,-30)
-  sideBadge.Visible=true;brandFirst.Visible=true;brandSecond.Visible=true
+  sideBadge.Visible=true;brandName.Visible=true
   titleGame.Visible=true;railTitle.Visible=false
+  footerExec.Visible=true;execTag.Visible=true
+  fpsTag.Visible=true;versionTag.Visible=true
+  footerMessage.Size=UDim2.fromOffset(320,24)
   nav.Position=UDim2.fromOffset(9,92);nav.Size=UDim2.new(1,-18,1,-107)
   nav.ScrollingDirection=Enum.ScrollingDirection.Y
   nav.AutomaticCanvasSize=Enum.AutomaticSize.Y

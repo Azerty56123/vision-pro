@@ -125,57 +125,47 @@ local function artwork(host,name,x,y,w,h,color)
 end
 -- Compact hub-style neon monogram: designed for a 35px sidebar icon.
 -- All elements are native Roblox UI; no uploaded image asset is required.
+-- VISION WARE: compact, native Roblox UI monogram.
+-- Built specifically for the sidebar at 36px, not a scaled-down banner image.
 local function monogram(host,x,y,size)
- local icon=create("Frame",host,{
-  Name="VisionWareLogo",BackgroundColor3=Color3.fromRGB(9,15,27),
+ local logo=create("Frame",host,{
+  Name="VisionWareLogo",BackgroundColor3=Color3.fromRGB(11,20,31),
   BorderSizePixel=0,Position=UDim2.fromOffset(x,y),
   Size=UDim2.fromOffset(size,size)
  })
- corner(icon,10)
- local rim=create("UIStroke",icon,{
-  Color=Color3.fromRGB(22,191,242),Thickness=1,
-  Transparency=.22,ApplyStrokeMode=Enum.ApplyStrokeMode.Border
- })
- create("UIGradient",icon,{Rotation=95,Color=ColorSequence.new({
-  ColorSequenceKeypoint.new(0,Color3.fromRGB(20,35,52)),
-  ColorSequenceKeypoint.new(1,Color3.fromRGB(7,12,21))
- })})
- local surface=create("Frame",icon,{
-  Name="Inset",BackgroundColor3=Color3.fromRGB(8,16,28),
-  BorderSizePixel=0,BackgroundTransparency=.14,
-  Position=UDim2.fromOffset(3,3),Size=UDim2.new(1,-6,1,-6)
- })
- corner(surface,8)
- -- Two clean diagonal segments form the V. Soft underlayers simulate neon
- -- without an expensive blur or a bulky metallic wordmark.
- local function beam(name,cx,cy,rotation,color)
-  local glow=create("Frame",surface,{
-   Name=name.."Glow",BackgroundColor3=Color3.fromRGB(0,183,255),
-   BackgroundTransparency=.82,BorderSizePixel=0,
-   AnchorPoint=Vector2.new(.5,.5),Rotation=rotation,
-   Position=UDim2.fromOffset(cx,cy),
-   Size=UDim2.fromOffset(7,21)
+ corner(logo,9)
+ outline(logo,Color3.fromRGB(30,129,165),1)
+ create("UIGradient",logo,{
+  Rotation=90,Color=ColorSequence.new({
+   ColorSequenceKeypoint.new(0,Color3.fromRGB(18,33,47)),
+   ColorSequenceKeypoint.new(1,Color3.fromRGB(8,15,24))
   })
-  corner(glow,4)
-  local line=create("Frame",surface,{
+ })
+ -- A balanced geometric V: both strokes converge at the same lower point.
+ -- Cyan is reserved for the right arm and a restrained neon underglow.
+ local scale=size/36
+ local function stroke(name,px,angle,color)
+  local y=18*scale
+  local h=24*scale
+  local glow=create("Frame",logo,{
+   Name=name.."Glow",BackgroundColor3=Color3.fromRGB(0,191,255),
+   BackgroundTransparency=.86,BorderSizePixel=0,
+   AnchorPoint=Vector2.new(.5,.5),
+   Position=UDim2.fromOffset(px*scale,y),Rotation=angle,
+   Size=UDim2.fromOffset(8*scale,h+2*scale)
+  })
+  corner(glow,4*scale)
+  local beam=create("Frame",logo,{
    Name=name,BackgroundColor3=color,BorderSizePixel=0,
-   AnchorPoint=Vector2.new(.5,.5),Rotation=rotation,
-   Position=UDim2.fromOffset(cx,cy),
-   Size=UDim2.fromOffset(3,19)
+   AnchorPoint=Vector2.new(.5,.5),
+   Position=UDim2.fromOffset(px*scale,y),Rotation=angle,
+   Size=UDim2.fromOffset(4*scale,h)
   })
-  corner(line,2)
+  corner(beam,2*scale)
  end
- -- Inset is 29x29 at standard size; scale the geometry for other sizes.
- local k=(size-6)/29
- beam("Left",11*k,14.2*k,-25,Color3.fromRGB(235,249,255))
- beam("Right",18*k,14.2*k,25,Color3.fromRGB(0,211,255))
- local gleam=create("Frame",surface,{
-  Name="TopAccent",BackgroundColor3=Color3.fromRGB(55,207,250),
-  BackgroundTransparency=.58,BorderSizePixel=0,
-  Position=UDim2.fromOffset(math.floor(9*k),math.floor(3*k)),
-  Size=UDim2.fromOffset(math.max(7,math.floor(11*k)),1)
- })
- return icon
+ stroke("VLeft",13,-23,Color3.fromRGB(240,249,255))
+ stroke("VRight",23,23,Color3.fromRGB(0,211,255))
+ return logo
 end
 
 local function bind(signal,fn,page)
@@ -351,13 +341,13 @@ tabRail=create("Frame",app,{BackgroundColor3=A.side,BorderSizePixel=0,
  Position=UDim2.fromOffset(0,0),Size=UDim2.new(0,DESIGN.rail,1,-DESIGN.footer)})
 create("Frame",tabRail,{BackgroundColor3=A.border,BorderSizePixel=0,
  Position=UDim2.new(1,-1,0,0),Size=UDim2.new(0,1,1,0)})
-local sideBadge=monogram(tabRail,22,20,35)
+local sideBadge=monogram(tabRail,15,16,36)
 -- One rich-text label keeps the two-tone wordmark consistently spaced.
 local brandName=label(tabRail,'VISION <font color="#00D3FF">WARE</font>',13,A.white,true,{
  Name="VisionWareWordmark",RichText=true,
- Position=UDim2.fromOffset(64,18),Size=UDim2.fromOffset(125,24)})
+ Position=UDim2.fromOffset(60,16),Size=UDim2.fromOffset(130,24)})
 local titleGame=label(tabRail,selected.name,10,A.muted,false,{
- Position=UDim2.fromOffset(64,40),Size=UDim2.fromOffset(122,17)})
+ Position=UDim2.fromOffset(60,38),Size=UDim2.fromOffset(130,17)})
 local railTitle=label(tabRail,"WORKSPACE",9,A.muted,true,{
  Position=UDim2.fromOffset(15,73),Size=UDim2.fromOffset(155,15),
  Visible=false})

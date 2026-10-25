@@ -44,7 +44,7 @@ return {
   {tab="Settings",column="right",title="Window",subtitle="Aide et commandes",items={
    {type="info",label="Hide / Show",value="RightShift"},
    {type="button",id="minimize",label="Minimize Hub"},
-   {type="button",id="close",label="Close Vision Hub"}
+   {type="button",id="close",label="Close Vision Ware"}
   }}
  }
 }

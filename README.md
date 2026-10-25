@@ -46,7 +46,7 @@ The system gracefully falls back to the universal dashboard if the game is unkno
 
 ## Misc security and server anti-exploit
 
-The **Misc** tab contains **one card with only two switches**: Anti-Fling and Anti-Void, both operating on the local player. The Surveillance card, other-player observation loop, reports, and unused background counters have been removed from the hub. These are optional local assistance features, not server-side moderation.
+The **Misc** tab keeps **one card with two optional local protections**. **Anti-Fling** recognizes unusually large horizontal/upward velocity spikes and character rotation, then attempts to damp them; it also includes thresholds based on walk speed and limited notification frequency. **Anti-Void** records a verified stationary ground position after stable contact, validates that the platform still exists and attempts rescue when the character enters a dangerous fall or approaches the destruction boundary. Ground checks are throttled to about 10 Hz and rescue confirmation happens only when necessary. Both reset their internal state on respawn; vehicles, swimming and climbing are excluded to reduce false positives. These client-only techniques can be limited or overridden by the Roblox server and can still react to intentional launch pads or very long legitimate falls.
 
 For experiences you own, the repository also includes:
 

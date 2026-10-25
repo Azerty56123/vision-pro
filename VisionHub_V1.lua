@@ -131,12 +131,15 @@ end
 -- Hand-designed flat brand icon. PNG in assets/visionware_logo.png;
 -- the matching editable vector source is assets/visionware_logo.svg.
 -- New cache filename is intentional: it prevents using the previous neon icon.
+-- Exact VISION WARE logo selected by the user.
+-- GitHub stores the optimized PNG; compatible local-asset APIs display it.
+-- A new cache filename prevents the earlier flat/neon logos from persisting.
 local function loadVisionLogo()
  local getAsset=getcustomasset or getsynasset
  if type(getAsset)~="function" or type(writefile)~="function" then
   return nil
  end
- local file="visionware_flat_logo_v2.png"
+ local file="visionware_exact_logo_v3.png"
  local available=false
  if type(isfile)=="function" then
   local ok,exists=pcall(isfile,file)
@@ -144,7 +147,7 @@ local function loadVisionLogo()
  end
  if not available then
   local ok,bytes=pcall(function()
-   return game:HttpGet(BASE.."assets/visionware_logo.png")
+   return game:HttpGet(BASE.."assets/visionware_logo_exact.png")
   end)
   if ok and type(bytes)=="string" and bytes:sub(1,4)=="\137PNG" then
    available=pcall(writefile,file,bytes)
@@ -163,55 +166,29 @@ local function monogram(host,x,y,size)
   Name="VisionWareLogo",BackgroundTransparency=1,BorderSizePixel=0,
   Position=UDim2.fromOffset(x,y),Size=UDim2.fromOffset(size,size)
  })
- corner(holder,8)
- -- Discreet cyan neon framing, drawn in native UI so the flat V stays sharp.
- -- Separate strokes give a soft glow at icon size without a blurry image.
- local function neonOutline(name,spread,thickness,transparency,z)
-  local frame=create("Frame",holder,{
-   Name=name,BackgroundTransparency=1,BorderSizePixel=0,
-   Position=UDim2.fromOffset(-spread,-spread),
-   Size=UDim2.new(1,spread*2,1,spread*2),
-   ZIndex=z
-  })
-  corner(frame,8+spread)
-  create("UIStroke",frame,{
-   Color=Color3.fromRGB(0,199,255),
-   Thickness=thickness,Transparency=transparency,
-   ApplyStrokeMode=Enum.ApplyStrokeMode.Border
-  })
-  return frame
- end
- neonOutline("OuterNeonGlow",3,5,.88,1)
- neonOutline("InnerNeonGlow",1,3,.72,2)
- create("UIStroke",holder,{
-  Color=Color3.fromRGB(45,212,247),Thickness=1.1,
-  Transparency=.09,ApplyStrokeMode=Enum.ApplyStrokeMode.Border
- })
  if visionLogoAsset then
+  -- The PNG already has its own cyan glow and rounded border.
+  -- No extra strokes are added, preserving its exact visual proportions.
   create("ImageLabel",holder,{
    Name="BrandLogo",BackgroundTransparency=1,BorderSizePixel=0,
    Image=visionLogoAsset,ScaleType=Enum.ScaleType.Fit,
    Size=UDim2.fromScale(1,1),ZIndex=3
   })
  else
-  -- Native UI fallback in the same flat visual language as the PNG.
+  -- Fallback for Roblox contexts without local image-asset support.
   local fallback=create("Frame",holder,{
-   Name="VectorFallback",BackgroundColor3=Color3.fromRGB(20,27,37),
+   Name="LogoFallback",BackgroundColor3=Color3.fromRGB(10,20,31),
    BorderSizePixel=0,Size=UDim2.fromScale(1,1),ZIndex=3
   })
-  corner(fallback,8)
-  outline(fallback,Color3.fromRGB(51,69,83),1)
-  local function vArm(name,x,rotation,color)
-   local arm=create("Frame",fallback,{
-    Name=name,BackgroundColor3=color,BorderSizePixel=0,
-    AnchorPoint=Vector2.new(.5,.5),
-    Position=UDim2.fromScale(x,.50),Rotation=rotation,
-    Size=UDim2.new(.18,0,.67,0)
-   })
-   corner(arm,1)
-  end
-  vArm("VWhite",.36,-24,Color3.fromRGB(244,248,251))
-  vArm("VCyan",.64,24,Color3.fromRGB(32,201,237))
+  corner(fallback,9)
+  create("UIStroke",fallback,{
+   Color=Color3.fromRGB(0,216,240),Thickness=1.2,
+   Transparency=.13,ApplyStrokeMode=Enum.ApplyStrokeMode.Border
+  })
+  label(fallback,"VW",14,Color3.fromRGB(238,250,255),true,{
+   Font=Enum.Font.GothamBold,Size=UDim2.fromScale(1,1),
+   TextXAlignment=Enum.TextXAlignment.Center,ZIndex=4
+  })
  end
  return holder
 end
@@ -386,7 +363,7 @@ tabRail=create("Frame",app,{BackgroundColor3=A.side,BorderSizePixel=0,
  Position=UDim2.fromOffset(0,0),Size=UDim2.new(0,DESIGN.rail,1,-DESIGN.footer)})
 create("Frame",tabRail,{BackgroundColor3=A.border,BorderSizePixel=0,
  Position=UDim2.new(1,-1,0,0),Size=UDim2.new(0,1,1,0)})
-local sideBadge=monogram(tabRail,15,16,36)
+local sideBadge=monogram(tabRail,14,15,38)
 -- One rich-text label keeps the two-tone wordmark consistently spaced.
 local brandName=label(tabRail,'VISION <font color="#20C9ED">WARE</font>',13,A.white,true,{
  Name="VisionWareWordmark",RichText=true,

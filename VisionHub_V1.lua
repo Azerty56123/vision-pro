@@ -893,6 +893,9 @@ end
 local function applySearch()
  if not search or not search.Parent then return end
  local query=string.lower(search.Text or ""):match("^%s*(.-)%s*$")
+ local anyVisible=false
+ clearSearch.Visible=query~=""
+ search.Size=UDim2.new(1,query=="" and -45 or -69,1,0)
  for _,g in ipairs(filterRecords) do
   local heading=query=="" or g.title:find(query,1,true)~=nil
   local matching=false
@@ -902,8 +905,13 @@ local function applySearch()
    if show then matching=true end
   end
   g.card.Visible=heading or matching
-  if query~="" and g.card.Visible then g.body.Visible=true end
+  if g.card.Visible then anyVisible=true end
+  if query~="" and g.card.Visible then
+   g.body.Visible=true
+   if g.arrow then g.arrow.Rotation=0 end
+  end
  end
+ noResults.Visible=query~="" and not anyVisible
  canvasHeight()
 end
 bind(search:GetPropertyChangedSignal("Text"),applySearch)
@@ -946,7 +954,9 @@ end
 local function navIcon(parent,name)
  local target={Overview="overview",Game="game",Player="player",
   Visuals="visuals",Misc="shield",Settings="settings",About="about"}
- return artwork(parent,target[name] or "menu",15,10,19,19,A.light)
+ local icon=artwork(parent,target[name] or "menu",15,10,19,19,A.muted)
+ if icon then icon.Name="NavIcon" end
+ return icon
 end
 
 local tabs={"Overview","Game","Player","Visuals","Misc","Settings","About"}
@@ -964,21 +974,25 @@ local function goPage(name)
  search.Text=""
  for n,b in pairs(navButtons)do
   local chosen=n==name
-  b.BackgroundColor3=chosen and A.field or A.side
+  uiTween(b,{BackgroundColor3=chosen and A.selected or A.side},.15)
   local textLabel=b:FindFirstChild("NavTitle")
-  if textLabel then textLabel.TextColor3=chosen and A.white or A.muted end
+  if textLabel then
+   uiTween(textLabel,{TextColor3=chosen and A.white or A.muted},.15)
+  end
+  local icon=b:FindFirstChild("NavIcon")
+  if icon then uiTween(icon,{ImageColor3=chosen and A.cyan or A.muted},.15)end
   local bar=b:FindFirstChild("Selected")
-  if bar then bar.BackgroundTransparency=chosen and 0 or 1 end
+  if bar then uiTween(bar,{BackgroundTransparency=chosen and 0 or 1},.15)end
  end
  render()
 end
 for i,name in ipairs(tabs) do
  local tabName=name
- local b=button(nav,"",{BackgroundColor3=A.side,
+ local b=button(nav,"",{BackgroundColor3=A.side,AutoButtonColor=false,
   Size=UDim2.new(1,0,0,39),LayoutOrder=i,TextXAlignment=Enum.TextXAlignment.Left})
- corner(b,6)
- create("Frame",b,{Name="Selected",BackgroundColor3=Color3.fromRGB(233,235,240),BackgroundTransparency=1,
-  BorderSizePixel=0,Position=UDim2.fromOffset(0,8),Size=UDim2.fromOffset(3,23)})
+ corner(b,7)
+ create("Frame",b,{Name="Selected",BackgroundColor3=A.cyan,BackgroundTransparency=1,
+  BorderSizePixel=0,Position=UDim2.fromOffset(1,9),Size=UDim2.fromOffset(3,21)})
  navIcon(b,name)
  label(b,tabLabels[name] or name,12,A.muted,true,{
   Name="NavTitle",Position=UDim2.fromOffset(53,7),
@@ -986,10 +1000,10 @@ for i,name in ipairs(tabs) do
  })
  navButtons[name]=b
  bind(b.MouseEnter,function()
-  if current~=tabName then b.BackgroundColor3=A.field end
+  if current~=tabName then uiTween(b,{BackgroundColor3=A.hover},.13)end
  end)
  bind(b.MouseLeave,function()
-  if current~=tabName then b.BackgroundColor3=A.side end
+  if current~=tabName then uiTween(b,{BackgroundColor3=A.side},.16)end
  end)
  bind(b.Activated,function()goPage(tabName)end)
 end

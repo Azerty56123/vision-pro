@@ -491,24 +491,33 @@ listen(Run.Heartbeat,function(dt)
   refreshESP()
  end
 end)
-local function startAutoSkip()
+local function startAutoSkip(autoWin)
  autoSkipGeneration=autoSkipGeneration+1
  local generation=autoSkipGeneration
  task.spawn(function()
-  local progress=progressValue()
-  if progress==nil then
-   status("Auto Skip refuse : compteur Stage introuvable")
+  if progressValue()==nil then
+   status("Auto Skip refuse : aucun compteur Stage lisible")
    return
   end
-  while not disposed and settings.autoSkip and autoSkipGeneration==generation do
+  while not disposed and autoSkipGeneration==generation
+   and (settings.autoSkip or autoWin) do
    local entry,why=stageDestination(1)
    if not entry then
-    status("Auto Skip arrete : "..(why or "stage introuvable"))
+    local data=scanObby(true)
+    local current=progressValue()
+    local last=data.stages[#data.stages]
+    if autoWin and last and current and current>=last.number
+     and data.finish then
+     status("Checkpoints verifies; tentative Finish...")
+     tryFinish()
+    else
+     status("Progression arretee : "..(why or "checkpoint introuvable"))
+    end
     return
    end
    local confirmed,reason=activateCheckpoint(entry)
    if not confirmed then
-    status("Auto Skip arrete : "..(reason or "stage non confirme"))
+    status("Progression arretee : "..(reason or "checkpoint non valide"))
     return
    end
    task.wait(settings.skipDelay)
@@ -538,7 +547,16 @@ end
 actions.obbySkipStage=function()return stepStage(1)end
 actions.obbyPreviousStage=function()return stepStage(-1)end
 actions.obbyTeleportFinish=gotoFinish
-actions.obbyAutoWin=tryFinish
+actions.obbyAutoWin=function()
+ if progressValue()==nil then
+  return "Auto Win indisponible : compteur Stage introuvable"
+ end
+ if #scanObby(true).stages==0 then
+  return "Auto Win indisponible : aucun checkpoint detecte"
+ end
+ startAutoSkip(true)
+ return "Auto Win : validation de chaque checkpoint avant Finish"
+end
 actions.obbyTeleportStart=function()
  local data=scanObby(false)
  local entry=data.stages[1]
